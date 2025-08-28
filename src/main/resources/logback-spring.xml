@@ -74,7 +74,7 @@
         </filter>
     </appender>
 
-    <springProfile name="dev | demo">
+    <springProfile name="dev | test">
         <logger name="com.yunling.sys" level="debug" />
         <!-- 日志输出级别 -->
         <root level="INFO">
@@ -84,7 +84,7 @@
         </root>
     </springProfile>
 
-    <springProfile name="test | product">
+    <springProfile name="product">
         <logger name="com.yunling.sys" level="debug" />
         <!-- logstash 设置 -->
         <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
