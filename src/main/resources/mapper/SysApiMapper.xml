@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysApiMapper" >
+
+    <resultMap id="apiMap" type="com.yunling.sys.entity.api.SysApi">
+        <id column="API_ID" property="id" jdbcType="NUMERIC" />
+        <result column="API_NAME" property="apiName" jdbcType="VARCHAR" />
+        <result column="API_URI" property="apiUri" jdbcType="VARCHAR" />
+        <result column="API_METHOD" property="apiMethod" jdbcType="VARCHAR" />
+        <result column="API_DESC" property="apiDesc" jdbcType="VARCHAR" />
+        <result column="CREATE_BY" property="createBy" jdbcType="NUMERIC" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
+        <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+    </resultMap>
+
+    <!--API查询-->
+    <select id="findByFuzzy" resultMap="apiMap" parameterType="com.yunling.sys.entity.api.SysApiFindByPageParam">
+        select * from sys_api
+        <trim prefix="where" prefixOverrides="and">
+            <if test="apiName !=null and apiName != ''">
+                api_name like CONCAT( CONCAT('%',#{apiName} ),'%')
+            </if>
+            <if test="apiUri !=null and apiUri != ''">
+                and api_uri like CONCAT( CONCAT('%',#{apiUri} ),'%')
+            </if>
+            <if test="apiDesc !=null and apiDesc != ''">
+                and api_desc like CONCAT( CONCAT('%',#{apiDesc} ),'%')
+            </if>
+        </trim>
+        order by api_uri
+    </select>
+
+    <!--API新增-->
+    <insert id="insert" parameterType="com.yunling.sys.entity.api.SysApi">
+        insert into sys_api (API_ID,API_NAME,API_URI,API_METHOD,API_DESC,CREATE_BY,CREATE_DATE)
+        values (#{id},#{apiName},#{apiUri},#{apiMethod},#{apiDesc},#{createBy},#{createDate})
+    </insert>
+
+    <!--API修改-->
+    <update id="update" parameterType="com.yunling.sys.entity.api.SysApi">
+        update sys_api
+        <set>
+            API_NAME = #{apiName},
+            API_URI = #{apiUri},
+            API_METHOD = #{apiMethod},
+            API_DESC = #{apiDesc},
+            LAST_UPDATE_BY = #{lastUpdateBy},
+            LAST_UPDATE_DATE = #{lastUpdateDate},
+            LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+        </set>
+        where api_id = #{id}
+    </update>
+
+    <!--API删除-->
+    <delete id="delete" parameterType="java.util.List">
+        delete from sys_api where api_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--根据ID查询API信息-->
+    <select id="findById" resultMap="apiMap" parameterType="java.lang.Long">
+        select * from sys_api where api_id = #{id}
+    </select>
+
+	<!--根据ID查询API信息(批量)-->
+	<select id="findByIds" resultMap="apiMap">
+		select * from sys_api where api_id in
+		<foreach collection="ids" item="id" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</select>
+
+	<!--根据URI查询接口信息-->
+	<select id="findByUri" resultMap="apiMap">
+		select * from sys_api where api_uri = #{uri}
+	</select>
+
+    <!--根据URI查询接口信息(批量)-->
+	<select id="findByUris" resultMap="apiMap">
+		select * from sys_api where api_uri in
+        <foreach collection="uriList" item="uri" open="(" separator="," close=")">
+            #{uri}
+        </foreach>
+	</select>
+
+	<!--根据请求类型+请求地址查询API信息-->
+	<select id="findByMethodAndUri" resultMap="apiMap">
+		select * from sys_api where api_method = #{apiMethod} and api_uri = #{apiUri}
+	</select>
+
+	<!--查询所有API信息-->
+	<select id="findAll" resultMap="apiMap">
+		select * from sys_api
+	</select>
+
+    <!--根据请求类型+请求地址查询API信息(批量)-->
+    <select id="findByMethodAndUris" resultMap="apiMap">
+        <foreach collection="apiList" item="item" separator="union">
+            select * from sys_api where api_method = #{item.apiMethod} and api_uri = #{item.apiUri}
+        </foreach>
+    </select>
+</mapper>

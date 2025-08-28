@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysRoleMapper" >
+
+    <resultMap id="roleMap" type="com.yunling.sys.entity.role.SysRole">
+        <id column="ROLE_ID" property="roleId" jdbcType="NUMERIC" />
+        <result column="ROLE_CODE" property="roleCode" jdbcType="VARCHAR" />
+        <result column="ROLE_NAME" property="roleName" jdbcType="VARCHAR" />
+        <result column="MENU_ID" property="menuId" jdbcType="NUMERIC" />
+        <result column="ROLE_DESCRIPTION" property="roleDescription" jdbcType="VARCHAR" />
+        <result column="ENABLE_FLAG" property="enableFlag" jdbcType="VARCHAR" />
+        <result column="CREATE_BY" property="createBy" jdbcType="NUMERIC" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
+        <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+    </resultMap>
+
+    <!--角色信息分页查询-->
+    <select id="findByFuzzy" resultMap="roleMap" parameterType="com.yunling.sys.entity.role.SysRoleFindByPageParam">
+        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,rb.create_by,rb.create_date,rb.last_update_by,rb.last_update_date,rb.last_update_login,
+               rtl.role_name,rtl.role_description,rtl.language
+        from sys_role_b rb
+        <if test="menuId != null">
+            join (select rm.role_id from sys_role_menu rm where rm.menu_id = #{menuId} group by rm.role_id) rma on rma.role_id = rb.role_id
+        </if>
+        join sys_role_tl rtl on rb.role_id = rtl.role_id
+        where rtl.language = #{language}
+        <if test="enableFlag !=null and enableFlag != ''">
+            and enable_flag = #{enableFlag}
+        </if>
+        <if test="roleCode !=null and roleCode != ''">
+            and role_code like CONCAT( CONCAT('%',#{roleCode} ),'%')
+        </if>
+        <if test="roleName !=null and roleName != ''">
+            and role_name like CONCAT( CONCAT('%',#{roleName} ),'%')
+        </if>
+        <if test="roleDescription !=null and roleDescription != ''">
+            and role_description like CONCAT( CONCAT('%',#{roleDescription} ),'%')
+        </if>
+        order by rtl.role_name
+    </select>
+
+    <!--添加角色-国际化数据-->
+    <insert id="addTl" parameterType="com.yunling.sys.entity.role.SysRoleTl">
+        insert into sys_role_tl (role_id,role_name,role_description,language,create_by,create_date) values
+        <foreach collection="roleTlList" item="item" separator=",">
+            (#{item.roleId},#{item.roleName},#{item.roleDescription},#{item.language},#{item.createBy},#{item.createDate})
+        </foreach>
+    </insert>
+
+    <!--添加角色主表数据-->
+    <insert id="addB" parameterType="com.yunling.sys.entity.role.SysRole">
+        insert into sys_role_b (role_id,role_code,menu_id,enable_flag,create_by,create_date)
+        values (#{roleId},#{roleCode},#{menuId},#{enableFlag},#{createBy},#{createDate})
+    </insert>
+
+    <!--角色国际化修改-->
+    <update id="updateTl" parameterType="com.yunling.sys.entity.role.SysRoleTl">
+        update sys_role_tl
+        <set>
+            role_name = #{roleName},
+            role_description = #{roleDescription},
+            LAST_UPDATE_BY = #{lastUpdateBy},
+            LAST_UPDATE_DATE = #{lastUpdateDate},
+            LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+        </set>
+        where role_id = #{roleId} and language = #{language}
+    </update>
+
+    <!--角色主表修改-->
+    <update id="updateB" parameterType="com.yunling.sys.entity.role.SysRole">
+        update sys_role_b
+        <set>
+            role_code = #{roleCode},
+            menu_id = #{menuId},
+            enable_flag = #{enableFlag},
+            LAST_UPDATE_BY = #{lastUpdateBy},
+            LAST_UPDATE_DATE = #{lastUpdateDate},
+            LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+        </set>
+        where role_id = #{roleId}
+    </update>
+
+    <!--角色国际化删除-->
+    <delete id="deleteTl" parameterType="java.util.List">
+        delete from sys_role_tl where role_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--角色主表删除-->
+    <delete id="deleteB" parameterType="java.util.List">
+        delete from sys_role_b where role_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--根据角色ID查询角色信息-->
+    <select id="findById" resultMap="roleMap">
+        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
+               rtl.role_name,rtl.role_description,rtl.language
+        from sys_role_b rb
+        join sys_role_tl rtl on rb.role_id = rtl.role_id
+        where rb.role_id = #{roleId} and rtl.language = #{language}
+    </select>
+
+    <!--根据角色编码查询角色信息-->
+    <select id="findByCode" resultMap="roleMap">
+        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
+               rtl.role_name,rtl.role_description,rtl.language
+        from sys_role_b rb
+        join sys_role_tl rtl on rb.role_id = rtl.role_id
+        where rb.role_code = #{roleCode} and rtl.language = #{language}
+    </select>
+
+    <!--查询当前用户拥有的角色列表-->
+    <select id="findByUserId" resultMap="roleMap">
+        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
+               rtl.role_name,rtl.role_description,rtl.language
+        from sys_role_b rb
+        join sys_role_tl rtl on rb.role_id = rtl.role_id and rtl.language = #{language}
+        join sys_user_role ur on ur.role_id = rb.role_id
+        where ur.user_id = #{userId}
+    </select>
+
+	<!--根据角色名称查询角色信息-->
+	<select id="findByName" resultMap="roleMap">
+		select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
+			   rtl.role_name,rtl.role_description,rtl.language
+		from sys_role_b rb
+		join sys_role_tl rtl on rb.role_id = rtl.role_id
+		where rtl.role_name = #{roleName} and rtl.language = #{language}
+	</select>
+    <select id="findByCodes" resultMap="roleMap">
+		select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
+		rtl.role_name,rtl.role_description,rtl.language
+		from sys_role_b rb
+		join sys_role_tl rtl on rb.role_id = rtl.role_id
+		where rb.role_code in (
+		<foreach collection="roleCodeList" item="item" separator=",">
+		    #{item}
+		    </foreach>
+		    )
+		and rtl.language = #{language}
+	</select>
+</mapper>

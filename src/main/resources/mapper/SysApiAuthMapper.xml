@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysApiAuthMapper">
+
+    <resultMap id="apiAuthMap" type="com.yunling.sys.entity.api.SysApiAuth">
+        <result column="AUTH_ID" property="authId" jdbcType="NUMERIC"/>
+        <result column="AUTH_URI" property="authUri" jdbcType="VARCHAR"/>
+        <result column="AUTH_TYPE" property="authType" jdbcType="VARCHAR"/>
+        <result column="AUTH_DESC" property="authDesc" jdbcType="VARCHAR"/>
+        <result column="CREATE_BY" property="createBy" jdbcType="NUMERIC"/>
+        <result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--API权限模糊查询-->
+    <select id="findByFuzzy" resultMap="apiAuthMap">
+        select * from sys_api_auth
+        <trim prefix="where" prefixOverrides="and">
+            <if test="authUri !=null and authUri != ''">
+                and auth_uri like CONCAT( CONCAT('%',#{authUri} ),'%')
+            </if>
+            <if test="authType !=null and authType != ''">
+                and auth_type = #{authType}
+            </if>
+            <if test="authDesc !=null and authDesc != ''">
+                and auth_desc like CONCAT( CONCAT('%',#{authDesc} ),'%')
+            </if>
+        </trim>
+    </select>
+
+    <!--权限(白/黑)名单新增-->
+    <insert id="add">
+        insert into sys_api_auth(auth_id,auth_uri,auth_type,auth_desc,create_by,create_date)
+        values(#{authId},#{authUri},#{authType},#{authDesc},#{createBy},#{createDate})
+    </insert>
+
+    <!--根据权限类型查询-->
+    <select id="findByAuthType" resultMap="apiAuthMap">
+        select * from sys_api_auth
+        <where>
+            <if test="authType!=null and authType!= ''">
+                auth_type = #{authType}
+            </if>
+        </where>
+    </select>
+
+    <!--权限(白/黑)名单修改-->
+    <update id="update">
+        update sys_api_auth
+        <set>
+            auth_uri = #{authUri},
+            auth_type = #{authType},
+            auth_desc = #{authDesc},
+            last_update_by = #{lastUpdateBy},
+            last_update_date = #{lastUpdateDate},
+            last_update_login = #{lastUpdateLogin}
+        </set>
+        where auth_id = #{authId}
+    </update>
+
+    <!--删除-->
+    <delete id="delete">
+        delete from sys_api_auth
+        where auth_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--根据名单ID查询名单信息-->
+    <select id="findById" resultMap="apiAuthMap">
+        select * from sys_api_auth where auth_id = #{authId}
+    </select>
+
+    <!--根据权限ID列表查询(批量)-->
+    <select id="findByAuthIdList" resultMap="apiAuthMap">
+        select * from sys_api_auth where auth_id in
+        <foreach collection="authIdList" item="authId" open="(" separator="," close=")">
+            #{authId}
+        </foreach>
+    </select>
+</mapper>

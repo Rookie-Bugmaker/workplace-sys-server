@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysProfileTlMapper" >
+
+	<!--配置文件-国际化新增-->
+	<insert id="insertList" parameterType="java.util.List">
+		insert into sys_profile_tl (profile_id,language,profile_name,create_by,create_date) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.profileId},#{item.language},#{item.profileName},#{item.createBy},#{item.createDate})
+		</foreach>
+	</insert>
+
+	<!--配置文件-国际化修改-->
+	<update id="update" parameterType="com.yunling.sys.entity.profile.SysProfile">
+		update sys_profile_tl
+		<set>
+			profile_name = #{profileName},
+			LAST_UPDATE_BY = #{lastUpdateBy},
+			LAST_UPDATE_DATE = #{lastUpdateDate},
+			LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+		</set>
+		where profile_id = #{profileId} and language = #{language}
+	</update>
+
+	<!--根据配置ID删除-->
+	<delete id="delete" parameterType="java.util.List">
+		delete from sys_profile_tl where profile_id in
+		<foreach collection="profileIdList" item="profileId" open="(" separator="," close=")">
+			#{profileId}
+		</foreach>
+	</delete>
+</mapper>

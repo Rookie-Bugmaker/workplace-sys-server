@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysDataAuthValueMapper" >
+
+	<resultMap id="dataAuthValueMap" type="com.yunling.sys.entity.auth.SysDataAuthValue">
+		<id column="AUTH_ID" property="authId" jdbcType="NUMERIC" />
+		<result column="AUTH_VALUE" property="authValue" jdbcType="VARCHAR" />
+		<result column="AUTH_VALUE_DESC" property="authValueDesc" jdbcType="VARCHAR" />
+		<result column="CREATE_BY" property="createBy" jdbcType="NUMERIC" />
+		<result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP" />
+	</resultMap>
+
+	<!--新增数据权限值(批量)-->
+	<insert id="insertList">
+		insert into sys_data_auth_value(auth_id,auth_value,auth_value_desc,create_by,create_date) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.authId},#{item.authValue},#{item.authValueDesc},#{item.createBy},#{item.createDate})
+		</foreach>
+	</insert>
+
+	<!--根据对象ID删除数据权限值-->
+	<delete id="delete">
+		delete from sys_data_auth_value where auth_id in (
+			select auth_id from sys_data_auth where object_id = #{objectId}
+		)
+	</delete>
+
+	<!--根据对象ID删除数据权限值(批量)-->
+	<delete id="deleteByObjectIds">
+		delete from sys_data_auth_value where auth_id in (
+			select auth_id from sys_data_auth where object_id in
+			<foreach collection="objectIds" item="objectId" open="(" separator="," close=")">
+				#{objectId}
+			</foreach>
+		)
+	</delete>
+
+	<!--根据数据权限ID查询数据权限值-->
+	<select id="findByAuthIds" resultMap="dataAuthValueMap">
+		select * from sys_data_auth_value where auth_id in
+		<foreach collection="list" item="authId" open="(" separator="," close=")">
+			#{authId}
+		</foreach>
+	</select>
+</mapper>

@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysFunctionMapper" >
+
+    <resultMap id="functionMap" type="com.yunling.sys.entity.function.SysFunction">
+        <id column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
+        <result column="PARENT_ID" property="parentId" jdbcType="NUMERIC" />
+        <result column="FUNCTION_CODE" property="functionCode" jdbcType="VARCHAR" />
+        <result column="FUNCTION_NAME" property="functionName" jdbcType="VARCHAR" />
+        <result column="FUNCTION_TYPE" property="functionType" jdbcType="VARCHAR" />
+        <result column="PATH" property="path" jdbcType="VARCHAR" />
+        <result column="PARAMETERS" property="parameters" jdbcType="VARCHAR" />
+        <result column="OPEN_METHOD" property="openMethod" jdbcType="NUMERIC" />
+        <result column="KEEP_ALIVE" property="keepAlive" jdbcType="BOOLEAN" />
+        <result column="COMPONENT" property="component" jdbcType="VARCHAR" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+        <result column="REDIRECT" property="redirect" jdbcType="VARCHAR" />
+        <result column="HIDE_CHILDREN_IN_MENU" property="hideChildrenInMenu" jdbcType="BOOLEAN" />
+        <result column="HIDE_IN_MENU" property="hideInMenu" jdbcType="BOOLEAN" />
+        <result column="LOCK_IN_TAB" property="lockInTab" jdbcType="BOOLEAN" />
+        <result column="MERGE_TAB" property="mergeTab" jdbcType="BOOLEAN" />
+        <result column="FUNCTION_DESCRIPTION" property="functionDescription" jdbcType="VARCHAR" />
+        <result column="ICON" property="icon" jdbcType="VARCHAR" />
+        <result column="VS_ID" property="vsId" jdbcType="NUMERIC" />
+        <result column="PAGE_ID" property="pageId" jdbcType="NUMERIC" />
+        <result column="CREATE_BY" property="createBy" jdbcType="NUMERIC" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
+        <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+    </resultMap>
+
+    <!--功能查询-->
+    <select id="findByFuzzy" resultMap="functionMap" parameterType="com.yunling.sys.entity.function.SysFunctionFindByPageParam">
+        select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+        from sys_function_b fb
+        left join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+        where PARENT_ID is null
+        <if test="functionCode != null and functionCode != ''">
+            and function_code like CONCAT( CONCAT('%',#{functionCode} ),'%')
+        </if>
+        <if test="functionName != null and functionName != ''">
+            and function_name like CONCAT( CONCAT('%',#{functionName} ),'%')
+        </if>
+        <if test="path != null and path != ''">
+            and path like CONCAT( CONCAT('%',#{path} ),'%')
+        </if>
+        <if test="parameters != null and parameters != ''">
+            and parameters like CONCAT( CONCAT('%',#{parameters} ),'%')
+        </if>
+        <if test="component != null and component != ''">
+            and component like CONCAT( CONCAT('%',#{component} ),'%')
+        </if>
+        <if test="name != null and name != ''">
+            and name like CONCAT( CONCAT('%',#{name} ),'%')
+        </if>
+        <if test="redirect != null and redirect != ''">
+            and redirect like CONCAT( CONCAT('%',#{redirect} ),'%')
+        </if>
+        <if test="functionDescription != null and functionDescription != ''">
+            and function_description like CONCAT( CONCAT('%',#{functionDescription} ),'%')
+        </if>
+        <trim suffixOverrides="and">
+			<if test="columnValueSetMap != null">
+				and
+				<foreach collection="columnValueSetMap.keys" item="key" separator="and">
+					<if test="columnValueSetMap[key] != null">
+						${key} in
+						<foreach collection="columnValueSetMap[key]" item="vsCode" open="(" separator="," close=")">
+							#{vsCode}
+						</foreach>
+					</if>
+				</foreach>
+			</if>
+		</trim>
+    </select>
+
+    <!--功能(多语言)新增-->
+    <insert id="insertTl" parameterType="java.util.List">
+        insert into sys_function_tl (function_id,function_name,function_description,language,create_by,create_date) values
+        <foreach collection="functionTlList" item="item" separator=",">
+            (#{item.functionId},#{item.functionName},#{item.functionDescription},#{item.language},#{item.createBy},#{item.createDate})
+        </foreach>
+    </insert>
+
+    <!--功能新增-->
+    <insert id="insert" parameterType="com.yunling.sys.entity.function.SysFunction">
+        insert into sys_function_b (function_id,parent_id,function_code,function_type,path,parameters,open_method,keep_alive,component,name,redirect,hide_children_in_menu,hide_in_menu,lock_in_tab,merge_tab,icon,vs_id,create_by,create_date,page_id)
+        values (#{functionId},#{parentId},#{functionCode},#{functionType},#{path},#{parameters},#{openMethod},#{keepAlive},#{component},#{name},#{redirect},#{hideChildrenInMenu},#{hideInMenu},#{lockInTab},#{mergeTab},#{icon},#{vsId},#{createBy},#{createDate},#{pageId})
+    </insert>
+
+    <!--根据功能ID查询子菜单集合-->
+    <select id="findByParentIds" resultMap="functionMap">
+        select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+        from sys_function_b fb
+        left join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+        <if test="parentIdList != null">
+            where PARENT_ID in
+            <foreach collection="parentIdList" item="parentId" open="(" separator="," close=")">
+                #{parentId}
+            </foreach>
+        </if>
+        <if test="parentIdList == null">
+            where PARENT_ID is not null
+        </if>
+    </select>
+
+    <!--修改功能语言信息-->
+    <update id="updateTl" parameterType="com.yunling.sys.entity.function.SysFunctionTl">
+        update sys_function_tl
+        <set>
+            FUNCTION_NAME = #{functionName},
+            FUNCTION_DESCRIPTION = #{functionDescription},
+            LAST_UPDATE_BY = #{lastUpdateBy},
+            LAST_UPDATE_DATE = #{lastUpdateDate},
+            LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+        </set>
+        where function_id = #{functionId} and language = #{language}
+    </update>
+
+    <!--修改功能信息-->
+    <update id="update" parameterType="com.yunling.sys.entity.function.SysFunction">
+        update sys_function_b
+        <set>
+            PARENT_ID = #{parentId},
+            FUNCTION_CODE = #{functionCode},
+            FUNCTION_TYPE = #{functionType},
+            PATH = #{path},
+            PARAMETERS = #{parameters},
+            COMPONENT = #{component},
+            NAME = #{name},
+            REDIRECT = #{redirect},
+            HIDE_CHILDREN_IN_MENU = #{hideChildrenInMenu},
+            HIDE_IN_MENU = #{hideInMenu},
+            LOCK_IN_TAB = #{lockInTab},
+            MERGE_TAB = #{mergeTab},
+            OPEN_METHOD = #{openMethod},
+            KEEP_ALIVE = #{keepAlive},
+            ICON = #{icon},
+            VS_ID = #{vsId},
+            LAST_UPDATE_BY = #{lastUpdateBy},
+            LAST_UPDATE_DATE = #{lastUpdateDate},
+            LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+        </set>
+        where function_id = #{functionId}
+    </update>
+
+    <!--功能删除-->
+    <delete id="delete" parameterType="java.util.List">
+        delete from sys_function_b where function_id in
+        <foreach collection="functionIds" item="functionId" open="(" separator="," close=")">
+            #{functionId}
+        </foreach>
+    </delete>
+
+    <!--根据功能ID查询功能信息-->
+    <select id="findById" resultMap="functionMap">
+        select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+        from sys_function_b fb
+        left join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+        where fb.function_id = #{functionId}
+    </select>
+
+    <!--根据功能编码查询功能信息-->
+    <select id="findByCode" resultMap="functionMap">
+        select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+        from sys_function_b fb
+        join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+        where fb.function_code = #{functionCode}
+    </select>
+
+    <!--根据功能ID查询功能信息(批量)-->
+    <select id="findByIds" resultMap="functionMap">
+        select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+        from sys_function_b fb
+        left join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+        where fb.function_id in
+        <foreach collection="functionIdList" item="functionId" open="(" separator="," close=")">
+            #{functionId}
+        </foreach>
+    </select>
+
+    <!--查询所有功能数据-->
+    <select id="findAll" resultMap="functionMap" parameterType="java.lang.String">
+        select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+        from sys_function_b fb
+        join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+    </select>
+
+	<!--查询角色拥有的功能-->
+    <select id="findByRoleId" resultMap="functionMap">
+        select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+        from sys_function_b fb
+        join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+        join sys_role_menu rm on rm.menu_id = fb.function_id
+        where rm.role_id = #{roleId}
+    </select>
+
+	<!--根据页面ID查询功能信息-->
+	<select id="findByPageId" resultMap="functionMap">
+		select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+		from sys_function_b fb
+		join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+		where fb.page_id = #{pageId}
+	</select>
+
+	<!--根据功能ID查询按钮权限列表-->
+	<select id="findButtonById" resultMap="functionMap">
+		select b.*,tl.function_name
+        from sys_function_b b
+        join sys_function_tl tl on tl.function_id = b.function_id and tl.language = 'zh-CN'
+		where function_type = 'B' and parent_id = #{functionId}
+	</select>
+
+	<!--根据路由名称查询功能信息-->
+	<select id="findByRouteName" resultMap="functionMap">
+		select * from sys_function_b where name = #{routeName}
+	</select>
+
+    <!--查询功能总条数-->
+    <select id="findCount" resultType="java.lang.Integer">
+        select count(1)
+        from sys_function_b fb
+        join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = 'zh-CN'
+    </select>
+
+    <!--分页查询菜单列表-->
+    <select id="findByPage" resultMap="functionMap">
+          select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+          from sys_function_b fb
+          join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+          order by fb.function_id
+      LIMIT #{offset}, #{endset}
+    </select>
+
+    <!--查询角色拥有的菜单集合总条数-->
+    <select id="findCountByRoleId" resultType="java.lang.Integer">
+        select count(1)
+        from sys_function_b fb
+        join sys_role_menu rm on rm.menu_id = fb.function_id
+        where rm.role_id = #{roleId}
+    </select>
+
+    <!--查询角色拥有的功能集合(分页查询)-->
+    <select id="findPageByRoleId" resultMap="functionMap">
+          select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+          from sys_function_b fb
+          join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+          join sys_role_menu rm on rm.menu_id = fb.function_id
+          where rm.role_id = #{roleId}
+          order by fb.function_id
+          LIMIT #{offset}, #{endset}
+    </select>
+
+    <!--查询所有子功能条数-->
+    <select id="findNotParent" resultType="java.lang.Integer">
+        select count(1)
+        from sys_function_b fb
+        join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+        where fb.PARENT_ID is not null
+    </select>
+
+    <!--分页查询子功能-->
+    <select id="findPageByNotParent" resultMap="functionMap">
+          select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
+          from sys_function_b fb
+          join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
+          where PARENT_ID is not null
+          order by fb.function_id
+          LIMIT #{offset}, #{endset}
+    </select>
+
+    <select id="findByWorkflow" resultMap="functionMap">
+        select b.*,tl.FUNCTION_NAME,tl.FUNCTION_DESCRIPTION
+        from sys_function_b b
+        join sys_function_tl tl on tl.function_id = b.function_id and tl.language = 'zh-CN'
+        where b.function_id in (
+            select function_id from workflow_approval_template where function_id is not null
+            union
+            select mobile_function_id function_id from workflow_approval_template where mobile_function_id is not null
+        )
+    </select>
+</mapper>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysFunctionColumnMapper" >
+
+	<resultMap id="functionColumnMap" type="com.yunling.sys.entity.function.column.SysFunctionColumn">
+		<id column="FC_ID" property="fcId" jdbcType="NUMERIC" />
+		<result column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
+		<result column="FC_CODE" property="fcCode" jdbcType="VARCHAR" />
+		<result column="FC_NAME" property="fcName" jdbcType="VARCHAR" />
+		<result column="FC_DESC" property="fcDesc" jdbcType="VARCHAR" />
+		<result column="FC_DISPLAY_FLAG" property="fcDisplayFlag" jdbcType="VARCHAR" />
+		<result column="FC_EDITABLE_FLAG" property="fcEditableFlag" jdbcType="VARCHAR" />
+		<result column="PARENT_ID" property="parentId" jdbcType="NUMERIC" />
+		<result column="VS_ID" property="vsId" jdbcType="NUMERIC" />
+		<result column="FC_TYPE" property="fcType" jdbcType="VARCHAR" />
+		<result column="VS_CODE" property="vsCode" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!--根据块ID查询列权限信息-->
+	<select id="findByParentIds" resultMap="functionColumnMap">
+		select b.fc_id,b.function_id,b.fc_code,tl.fc_name,tl.fc_desc,b.fc_display_flag,b.fc_editable_flag,b.parent_id,b.vs_id,b.fc_type
+		from sys_function_column_b b
+		left join sys_function_column_tl tl on tl.fc_id = b.fc_id and tl.language = #{language}
+		where b.parent_id in
+		<foreach collection="blockIdList" item="blockId" open="(" separator="," close=")">
+			#{blockId}
+		</foreach>
+		order by b.fc_id
+	</select>
+
+	<!--列权限-多语言新增-->
+	<insert id="insertTl" parameterType="java.util.List">
+		insert into sys_function_column_tl (fc_id,language,fc_name,fc_desc,create_by,create_date) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.fcId},#{item.language},#{item.fcName},#{item.fcDesc},#{item.createBy},#{item.createDate})
+		</foreach>
+	</insert>
+
+	<!--列权限新增-->
+	<insert id="insert" parameterType="com.yunling.sys.entity.function.column.SysFunctionColumn">
+		insert into sys_function_column_b (fc_id,function_id,fc_code,fc_display_flag,fc_editable_flag,parent_id,vs_id,fc_type,create_by,create_date)
+		values (#{fcId},#{functionId},#{fcCode},#{fcDisplayFlag},#{fcEditableFlag},#{parentId},#{vsId},#{fcType},#{createBy},#{createDate})
+	</insert>
+
+	<!--根据块编码查询块信息-->
+	<select id="findByBlockCode" resultMap="functionColumnMap">
+		select b.fc_id,b.function_id,b.fc_code,tl.fc_name,tl.fc_desc,b.fc_display_flag,b.fc_editable_flag,b.parent_id,b.vs_id,b.fc_type
+		from sys_function_column_b b
+		left join sys_function_column_tl tl on tl.fc_id = b.fc_id and tl.language = #{language}
+		where b.parent_id is null and b.fc_code = #{blockCode}
+	</select>
+
+	<!--根据列编码查询列信息-->
+	<select id="findByColumnCode" resultMap="functionColumnMap">
+		select b.fc_id,b.function_id,b.fc_code,tl.fc_name,tl.fc_desc,b.fc_display_flag,b.fc_editable_flag,b.parent_id,b.vs_id,b.fc_type
+		from sys_function_column_b b
+		left join sys_function_column_tl tl on tl.fc_id = b.fc_id and tl.language = #{language}
+		where b.parent_id = #{blockId} and b.fc_code = #{columnCode}
+	</select>
+
+	<!--列权限-多语言修改-->
+	<update id="updateTl" parameterType="com.yunling.sys.entity.function.column.SysFunctionColumn">
+		update sys_function_column_tl
+		<set>
+			fc_name = #{fcName},
+			fc_desc = #{fcDesc},
+			last_update_by = #{lastUpdateBy},
+			last_update_date = #{lastUpdateDate},
+			last_update_login = #{lastUpdateLogin}
+		</set>
+		where fc_id = #{fcId} and language = #{language}
+	</update>
+
+	<!--列权限修改-->
+	<update id="update" parameterType="com.yunling.sys.entity.function.column.SysFunctionColumn">
+		update sys_function_column_b
+		<set>
+			fc_code = #{fcCode},
+			fc_display_flag = #{fcDisplayFlag},
+			fc_editable_flag = #{fcEditableFlag},
+		    vs_id = #{vsId},
+		    fc_type = #{fcType},
+			last_update_by = #{lastUpdateBy},
+			last_update_date = #{lastUpdateDate},
+			last_update_login = #{lastUpdateLogin}
+		</set>
+		where fc_id = #{fcId}
+	</update>
+
+	<!--列权限-多语言删除-->
+	<delete id="deleteTlByIds" parameterType="java.util.List">
+		delete from sys_function_column_tl where fc_id in
+		<foreach collection="ids" item="id" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<!--列权限删除-->
+	<delete id="deleteByIds" parameterType="java.util.List">
+		delete from sys_function_column_b where fc_id in
+		<foreach collection="ids" item="id" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<!--根据功能ID查询块信息(批量)-->
+	<select id="findByFunctionIds" resultMap="functionColumnMap">
+		select b.fc_id,b.function_id,b.fc_code,tl.fc_name,tl.fc_desc,b.fc_display_flag,b.fc_editable_flag,b.parent_id,b.vs_id,b.fc_type
+		from sys_function_column_b b
+		left join sys_function_column_tl tl on tl.fc_id = b.fc_id and tl.language = #{language}
+		where b.function_id in
+		<foreach collection="functionIdList" item="functionId" open="(" separator="," close=")">
+			#{functionId}
+		</foreach>
+		order by b.fc_id
+	</select>
+
+	<!--根据角色ID和快编码查询未拥有的列权限-->
+	<select id="getHaveNoColumnCode" resultMap="functionColumnMap">
+		select fcb.fc_id,fcb.fc_code
+		from sys_function_column_b fcb
+	    join sys_function_column_b pa on pa.fc_id = fcb.parent_id
+		left join sys_role_function_column rfc on rfc.fc_id = fcb.fc_id and rfc.role_id = #{roleId}
+		where pa.fc_code = #{blockCode} and rfc.role_id is null
+	</select>
+
+	<!--根据列ID查询列信息(批量)-->
+	<select id="findByColumnIds" resultMap="functionColumnMap">
+		select b.fc_id,b.function_id,b.fc_code,tl.fc_name,tl.fc_desc,b.fc_display_flag,b.fc_editable_flag,b.parent_id,b.vs_id,b.fc_type
+		from sys_function_column_b b
+		left join sys_function_column_tl tl on tl.fc_id = b.fc_id and tl.language = #{language}
+		where b.fc_id in
+		<foreach collection="columnIdList" item="columnId" open="(" separator="," close=")">
+			#{columnId}
+		</foreach>
+	</select>
+</mapper>

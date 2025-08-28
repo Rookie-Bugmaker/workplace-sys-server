@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysUserMapper" >
+
+    <resultMap id="userMap" type="com.yunling.sys.entity.user.SysUser">
+        <id column="USER_ID" property="userId" jdbcType="NUMERIC" />
+        <result column="USER_NAME" property="userName" jdbcType="VARCHAR" />
+        <result column="USER_DESCRIPTION" property="userDescription" jdbcType="VARCHAR" />
+        <result column="PASSWORD" property="password" jdbcType="VARCHAR" />
+        <result column="PASSWORD_UPDATE_DATE" property="passwordUpdateDate" jdbcType="VARCHAR" />
+        <result column="USER_TYPE" property="userType" jdbcType="VARCHAR" />
+        <result column="USER_RELATION_ID" property="userRelationId" jdbcType="NUMERIC" />
+        <result column="LOGIN_ERROR_COUNT" property="loginErrorCount" jdbcType="NUMERIC" />
+        <result column="LAST_LOGIN_INFO_ID" property="lastLoginInfoId" jdbcType="NUMERIC" />
+        <result column="DISABLE_DEADLINE_DATE" property="disableDeadlineDate" jdbcType="TIMESTAMP" />
+        <result column="DISABLE_STATE" property="disableState" jdbcType="VARCHAR" />
+        <result column="CREATE_BY" property="createBy" jdbcType="NUMERIC" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
+        <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+    </resultMap>
+
+    <!--根据用户名查询用户信息-->
+    <select id="findByUserName" resultMap="userMap">
+        select u.user_id,u.user_name,u.password,u.password_update_date,u.user_type,u.user_relation_id,
+               u.login_error_count,u.last_login_info_id,u.last_update_login,u.disable_deadline_date,u.disable_state,
+               ifnull(tl.full_name, u.user_description) user_description
+        from sys_user u
+        left join sys_org_person_b b on b.person_id = u.user_relation_id
+        left join sys_org_person_tl tl on b.person_id = tl.person_id and tl.language = 'zh-CN'
+        where u.user_name = #{userName}
+    </select>
+
+    <!--用户信息模糊查询-->
+    <select id="findByFuzzy" resultMap="userMap">
+		select * from (
+			select u.user_id,u.user_name,u.password_update_date,u.user_type,u.user_relation_id,u.disable_deadline_date,u.disable_state,
+			u.create_by,u.create_date,u.last_update_by,u.last_update_date,ifnull(tl.full_name, u.user_description) user_description
+			from sys_user u
+			<if test="roleId != null">
+                join sys_user_role ur on ur.user_id = u.user_id and ur.role_id = #{roleId}
+            </if>
+			left join sys_org_person_b b on b.person_id = u.user_relation_id
+			left join sys_org_person_tl tl on b.person_id = tl.person_id and tl.language = 'zh-CN'
+			<if test="disableState != null and disableState != ''">
+				where u.disable_state = #{disableState}
+			</if>
+		) a
+		<trim prefix="where">
+			<if test="userName !=null and userName != ''">
+				user_name like CONCAT( CONCAT('%',#{userName} ),'%')
+			</if>
+			<if test="userName != null and userName != '' and userDescription !=null and userDescription != ''">
+				${montage}
+			</if>
+			<if test="userDescription !=null and userDescription != ''">
+				user_description like CONCAT( CONCAT('%',#{userDescription} ),'%')
+			</if>
+		</trim>
+    </select>
+
+    <!--用户添加-->
+    <insert id="insert">
+        insert into sys_user(USER_ID,USER_NAME,USER_DESCRIPTION,PASSWORD,USER_TYPE,USER_RELATION_ID,CREATE_BY,CREATE_DATE,DISABLE_STATE)
+        values (#{userId},#{userName},#{userDescription},#{password},#{userType},#{userRelationId},#{createBy},#{createDate},#{disableState})
+    </insert>
+
+    <!--批量保存-->
+    <insert id="insertAll">
+		insert into sys_user(USER_ID,USER_NAME,USER_DESCRIPTION,PASSWORD,USER_TYPE,USER_RELATION_ID,CREATE_BY,CREATE_DATE,DISABLE_STATE) values
+       <foreach collection="list" item = "item" separator=",">
+            (#{item.userId},#{item.userName},#{item.userDescription},#{item.password},#{item.userType},#{item.userRelationId},#{item.createBy},#{item.createDate},#{item.disableState})
+       </foreach>
+	</insert>
+
+    <!--用户修改-->
+    <update id="update">
+        update sys_user
+        <set>
+            USER_NAME = #{userName},
+            USER_DESCRIPTION = #{userDescription},
+            <if test="password != null and password != ''">
+                PASSWORD = #{password},
+                PASSWORD_UPDATE_DATE = #{passwordUpdateDate},
+            </if>
+            USER_TYPE = #{userType},
+            USER_RELATION_ID = #{userRelationId},
+            LAST_UPDATE_BY = #{lastUpdateBy},
+            LAST_UPDATE_DATE = #{lastUpdateDate},
+            LAST_UPDATE_LOGIN = #{lastUpdateLogin},
+            DISABLE_STATE = #{disableState}
+        </set>
+        where user_id = #{userId}
+    </update>
+
+    <!--用户删除-->
+    <delete id="delete" parameterType="java.util.List">
+        delete from sys_user where user_id in
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <!--根据用户ID查询用户-->
+    <select id="findById" resultMap="userMap" parameterType="java.lang.Long">
+        select * from sys_user where user_id = #{userId}
+    </select>
+
+    <!--修改用户最后登录信息ID-->
+    <update id="updateLastLoginInfoId">
+        update sys_user set LAST_LOGIN_INFO_ID = #{loginId} where user_id = #{userId}
+    </update>
+
+    <!--密码错误次数保存-->
+    <update id="updateLoginError">
+        update sys_user
+        <set>
+            LOGIN_ERROR_COUNT = #{loginErrorCount},
+            DISABLE_DEADLINE_DATE = #{disableDeadlineDate},
+            DISABLE_STATE = #{disableState}
+        </set>
+        where user_id = #{userId}
+    </update>
+
+	<!--根据用户ID集合查询用户信息-->
+	<select id="findByUserIds" resultMap="userMap">
+        select u.user_id,u.user_name,u.password_update_date,u.user_type,u.user_relation_id,u.disable_deadline_date,u.disable_state,
+        u.create_by,u.create_date,u.last_update_by,u.last_update_date,ifnull(tl.full_name, u.user_description) user_description
+        from sys_user u
+        left join sys_org_person_b b on b.person_id = u.user_relation_id
+        left join sys_org_person_tl tl on b.person_id = tl.person_id and tl.language = 'zh-CN'
+        <if test="userIds != null and userIds.size > 0">
+            where u.user_id in
+            <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+                #{userId}
+            </foreach>
+        </if>
+	</select>
+
+	<!--密码修改-->
+	<update id="updatePassword">
+		update sys_user
+		<set>
+			PASSWORD = #{password},
+			PASSWORD_UPDATE_DATE = #{passwordUpdateDate}
+		</set>
+		where user_id = #{userId}
+	</update>
+
+	<!--根据用户关联ID(员工ID/供应商ID/客户ID)查询用户信息-->
+	<select id="findByRelationIds" resultMap="userMap">
+		select u.user_id,u.user_name,u.password_update_date,u.user_type,u.user_relation_id,u.disable_deadline_date,u.disable_state,
+        u.create_by,u.create_date,u.last_update_by,u.last_update_date,u.user_description
+		from sys_user u
+		where user_relation_id in
+		<foreach collection="relationIdList" item="relationId" open="(" separator="," close=")">
+			#{relationId}
+		</foreach>
+	</select>
+
+	<!--根据用户名集合查询用户信息-->
+	<select id="findByUserNameList" resultMap="userMap">
+		select * from sys_user
+        <if test="userNameList != null and userNameList.size > 0">
+            where user_name in
+            <foreach collection="userNameList" item="userName" open="(" separator="," close=")">
+                #{userName}
+            </foreach>
+        </if>
+	</select>
+
+    <!--根据用户ID批量查询并模糊查询-->
+    <select id="findByUserIdsAndFuzzy" resultMap="userMap">
+        select t.* from (
+            select u.user_id,u.user_name,u.password_update_date,u.user_type,u.user_relation_id,u.disable_deadline_date,u.disable_state,
+            u.create_by,u.create_date,u.last_update_by,u.last_update_date,ifnull(tl.full_name, u.user_description) user_description
+            from sys_user u
+            left join sys_org_person_b b on b.person_id = u.user_relation_id
+            left join sys_org_person_tl tl on b.person_id = tl.person_id and tl.language = 'zh-CN'
+            <if test="userIdList != null and userIdList.size > 0">
+                where u.user_id in
+                <foreach collection="userIdList" item="userId" open="(" separator="," close=")">
+                    #{userId}
+                </foreach>
+            </if>
+        ) t
+        <trim prefix="where" prefixOverrides="and">
+            <if test="userName != null and userName != ''">
+                user_name like CONCAT( CONCAT('%',#{userName} ),'%')
+            </if>
+            <if test="fullName != null and fullName != ''">
+                and user_description like CONCAT( CONCAT('%',#{fullName} ),'%')
+            </if>
+        </trim>
+    </select>
+</mapper>

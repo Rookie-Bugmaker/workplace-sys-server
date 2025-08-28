@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysFunctionTlMapper" >
+
+    <resultMap id="functionTlMap" type="com.yunling.sys.entity.function.SysFunctionTl">
+        <id column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
+        <result column="FUNCTION_NAME" property="functionName" jdbcType="VARCHAR" />
+        <result column="FUNCTION_DESCRIPTION" property="functionDescription" jdbcType="VARCHAR" />
+        <result column="LANGUAGE" property="language" jdbcType="VARCHAR" />
+        <result column="CREATE_BY" property="createBy" jdbcType="NUMERIC" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
+        <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+    </resultMap>
+
+    <!--功能(多语言)新增-->
+    <insert id="insertTl" parameterType="java.util.List">
+        insert into sys_function_tl (function_id,function_name,function_description,language,create_by,create_date) values
+        <foreach collection="functionTlList" item="item" separator=",">
+            (#{item.functionId},#{item.functionName},#{item.functionDescription},#{item.language},#{item.createBy},#{item.createDate})
+        </foreach>
+    </insert>
+
+    <!--功能(多语言)删除-->
+    <delete id="deleteTl" parameterType="java.util.List">
+        delete from sys_function_tl where function_id in
+        <foreach collection="functionIds" item="functionId" open="(" separator="," close=")">
+            #{functionId}
+        </foreach>
+    </delete>
+
+    <!--根据功能ID查询多语言-->
+    <select id="findByFunctionIds" resultMap="functionTlMap">
+        select * from sys_function_tl where function_id in
+        <foreach collection="functionIdList" item="functionId" open="(" separator="," close=")">
+            #{functionId}
+        </foreach>
+    </select>
+</mapper>

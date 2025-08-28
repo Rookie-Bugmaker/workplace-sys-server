@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysProfileMapper">
+
+	<resultMap id="profileMap" type="com.yunling.sys.entity.profile.SysProfile">
+		<id column="PROFILE_ID" property="profileId" jdbcType="NUMERIC" />
+		<result column="PROFILE_NAME" property="profileName" jdbcType="VARCHAR" />
+		<result column="PROFILE_CODE" property="profileCode" jdbcType="VARCHAR" />
+		<result column="PROFILE_SOURCE_TYPE" property="profileSourceType" jdbcType="VARCHAR" />
+		<result column="PROFILE_SOURCE" property="profileSource" jdbcType="VARCHAR" />
+		<result column="PROFILE_VALUE_COLUMN" property="profileValueColumn" jdbcType="VARCHAR" />
+		<result column="PROFILE_CODE_COLUMN" property="profileCodeColumn" jdbcType="VARCHAR" />
+		<result column="PROFILE_DESC_COLUMN" property="profileDescColumn" jdbcType="VARCHAR" />
+		<result column="PROFILE_PARENT_COLUMN" property="profileParentColumn" jdbcType="VARCHAR" />
+		<result column="PROFILE_COMPONENT_TYPE" property="profileComponentType" jdbcType="VARCHAR" />
+		<result column="PROFILE_TYPE" property="profileType" jdbcType="VARCHAR" />
+		<result column="PROFILE_FIELD_ALIAS" property="fieldAlias" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="valueSetMap" type="com.yunling.sys.entity.profile.ValueSet">
+		<result column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="CODE" property="code" jdbcType="VARCHAR" />
+		<result column="DESC" property="desc" jdbcType="VARCHAR" />
+		<result column="PARENT_ID" property="parentId" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!--配置文件查询-->
+	<select id="findByFuzzy" resultMap="profileMap" parameterType="com.yunling.sys.entity.profile.SysProfileFindByPageParam">
+		select b.*,tl.profile_name
+		from sys_profile_b b
+		join sys_profile_tl tl on tl.profile_id = b.profile_id and tl.language = #{language}
+		<trim prefix="where" prefixOverrides="and">
+			<if test="profileCode != null and profileCode != ''">
+				and b.profile_code like CONCAT( CONCAT('%',#{profileCode} ),'%')
+			</if>
+			<if test="profileName != null and profileName != ''">
+				and tl.profile_name like CONCAT( CONCAT('%',#{profileName} ),'%')
+			</if>
+			<if test="profileType != null and profileType != ''">
+				and b.profile_type = #{profileType}
+			</if>
+		</trim>
+		order by b.profile_id
+	</select>
+
+	<!--配置文件新增-->
+	<insert id="insert" parameterType="com.yunling.sys.entity.profile.SysProfile">
+		insert into sys_profile_b (
+		    profile_id,profile_code,profile_source_type,profile_source,profile_value_column,profile_code_column,profile_desc_column,
+		    profile_parent_column,profile_component_type,profile_type,profile_field_alias,create_by,create_date)
+		values (
+		    #{profileId},#{profileCode},#{profileSourceType},#{profileSource},#{profileValueColumn},#{profileCodeColumn},#{profileDescColumn},
+		    #{profileParentColumn},#{profileComponentType},#{profileType},#{fieldAlias},#{createBy},#{createDate})
+	</insert>
+
+	<!--配置文件修改-->
+	<update id="update" parameterType="com.yunling.sys.entity.profile.SysProfile">
+		update sys_profile_b
+		<set>
+			profile_code = #{profileCode},
+			profile_source_type = #{profileSourceType},
+			profile_source = #{profileSource},
+			profile_value_column = #{profileValueColumn},
+			profile_code_column = #{profileCodeColumn},
+			profile_desc_column = #{profileDescColumn},
+			profile_parent_column = #{profileParentColumn},
+			profile_component_type = #{profileComponentType},
+			profile_type = #{profileType},
+			profile_field_alias = #{fieldAlias},
+			LAST_UPDATE_BY = #{lastUpdateBy},
+			LAST_UPDATE_DATE = #{lastUpdateDate},
+			LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+		</set>
+		where profile_id = #{profileId}
+	</update>
+
+	<!--根据配置ID查询配置信息-->
+	<select id="findById" resultMap="profileMap">
+		select b.*,tl.profile_name
+		from sys_profile_b b
+		join sys_profile_tl tl on tl.profile_id = b.profile_id and tl.language = #{language}
+		where b.profile_id = #{profileId}
+	</select>
+
+	<!--配置文件删除-->
+	<delete id="delete" parameterType="java.util.List">
+		delete from sys_profile_b where profile_id in
+		<foreach collection="profileIdList" item="profileId" open="(" separator="," close=")">
+			#{profileId}
+		</foreach>
+	</delete>
+
+	<!--根据配置编码查询配置文件信息-->
+	<select id="findByCode" resultMap="profileMap" parameterType="java.lang.String">
+		select * from sys_profile_b where profile_code = #{profileCode}
+	</select>
+
+	<!--执行sql-->
+	<select id="executeSql" resultMap="valueSetMap" parameterType="com.yunling.sys.entity.profile.SysProfileValuePageSearch">
+		select
+	   <trim suffixOverrides=",">
+		   <if test="profileValueColumn != null and profileValueColumn != ''">
+			   ${profileValueColumn} "ID",
+		   </if>
+		   <if test="profileCodeColumn != null and profileCodeColumn != ''">
+			   ${profileCodeColumn} "CODE",
+		   </if>
+		   <if test="profileDescColumn != null and profileDescColumn != ''">
+			   ${profileDescColumn} "DESC",
+		   </if>
+		   <if test="profileParentColumn != null and profileParentColumn != ''">
+			   ${profileParentColumn} "PARENT_ID"
+		   </if>
+	   </trim>
+		from (${sql}) tb
+		<where>
+			<if test="fuzzyQuery != null and fuzzyQuery != ''">
+				<if test="profileDescColumn != null and profileDescColumn != ''">
+					${profileDescColumn} like CONCAT(CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR}),'%')
+				</if>
+				<if test="profileCodeColumn != null and profileCodeColumn != ''">
+					or ${profileCodeColumn} like CONCAT(CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR}),'%')
+				</if>
+			</if>
+		</where>
+	</select>
+
+	<!--根据配置分类查询配置信息-->
+	<select id="findByType" resultMap="profileMap">
+		select b.*,tl.profile_name
+		from sys_profile_b b
+		join sys_profile_tl tl on tl.profile_id = b.profile_id and tl.language = #{language}
+		where b.profile_type = #{profileType}
+	</select>
+
+	<!--根据配置文件ID查询配文件信息(批量)-->
+	<select id="findByIds" resultMap="profileMap">
+		select b.*,tl.profile_name
+		from sys_profile_b b
+		join sys_profile_tl tl on tl.profile_id = b.profile_id and tl.language = #{language}
+		where b.profile_id in
+		<foreach collection="profileIdList" item="profileId" open="(" separator="," close=")">
+			#{profileId}
+		</foreach>
+	</select>
+</mapper>

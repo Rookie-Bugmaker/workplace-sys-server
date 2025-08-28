@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD SQL MAP Config 3.1//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <!-- 空值也映射到结果集中 -->
+        <setting name="callSettersOnNulls" value="true" />
+        <!--取消缓存-->
+        <setting name="cacheEnabled" value="false" />
+        <!--取消二级缓存-->
+        <setting name="localCacheScope" value="STATEMENT"/>
+        <setting name="jdbcTypeForNull" value="NULL"/>
+    </settings>
+</configuration>

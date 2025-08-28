@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysOrgPersonTlMapper" >
+
+	<!--人员-国际化新增-->
+	<insert id="insertList" parameterType="java.util.List">
+		insert into sys_org_person_tl (person_id,language,full_name,create_by,create_date) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.personId},#{item.language},#{item.fullName},#{item.createBy},#{item.createDate})
+		</foreach>
+	</insert>
+
+	<!--人员-国际化修改-->
+	<update id="update" parameterType="com.yunling.sys.entity.org.person.SysOrgPerson">
+		update sys_org_person_tl
+		<set>
+			full_name = #{fullName},
+			LAST_UPDATE_BY = #{lastUpdateBy},
+			LAST_UPDATE_DATE = #{lastUpdateDate},
+			LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+		</set>
+		where person_id = #{personId} and language = #{language}
+	</update>
+
+	<!--根据人员ID删除-->
+	<delete id="delete" parameterType="java.util.List">
+		delete from sys_org_person_tl where person_id in
+		<foreach collection="personIdList" item="personId" open="(" separator="," close=")">
+			#{personId}
+		</foreach>
+	</delete>
+</mapper>

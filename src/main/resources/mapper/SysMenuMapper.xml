@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysMenuMapper" >
+
+    <resultMap id="menuMap" type="com.yunling.sys.entity.menu.SysMenu">
+        <id column="MENU_ID" property="menuId" jdbcType="NUMERIC" />
+        <result column="MENU_CODE" property="menuCode" jdbcType="VARCHAR" />
+        <result column="MENU_SORT" property="menuSort" jdbcType="NUMERIC" />
+        <result column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
+        <result column="PARENT_ID" property="parentId" jdbcType="NUMERIC" />
+        <result column="CHILD_ID" property="childId" jdbcType="NUMERIC" />
+        <result column="MENU_NAME" property="menuName" jdbcType="VARCHAR" />
+        <result column="MENU_DESCRIPTION" property="menuDescription" jdbcType="VARCHAR" />
+        <result column="MENU_ICON" property="menuIcon" jdbcType="VARCHAR" />
+        <result column="CREATE_BY" property="createBy" jdbcType="NUMERIC" />
+        <result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
+        <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
+        <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+    </resultMap>
+
+    <!--菜单(根菜单)查询-->
+    <select id="findByFuzzy" resultMap="menuMap" parameterType="com.yunling.sys.entity.menu.SysMenuFindByPageParam">
+        select mb.*,mtl.menu_name,mtl.menu_description
+        from sys_menu_b mb
+        join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+        where parent_id is null
+        <if test="menuCode != null and menuCode != ''">
+            and menu_code like CONCAT( CONCAT('%',#{menuCode} ),'%')
+        </if>
+        <if test="menuName != null and menuName != ''">
+            and menu_name like CONCAT( CONCAT('%',#{menuName} ),'%')
+        </if>
+        <if test="menuDescription != null and menuDescription != ''">
+            and menu_description like CONCAT( CONCAT('%',#{menuDescription} ),'%')
+        </if>
+        order by mtl.menu_name
+    </select>
+
+    <!--菜单(多语言)新增-->
+    <insert id="insertTl" parameterType="java.util.List">
+        insert into sys_menu_tl (menu_id,language,menu_name,menu_description,create_by,create_date) values
+        <foreach collection="menuTlList" item="item" separator=",">
+            (#{item.menuId},#{item.language},#{item.menuName},#{item.menuDescription},#{item.createBy},#{item.createDate})
+        </foreach>
+    </insert>
+
+    <!--菜单新增-->
+    <insert id="insert" parameterType="com.yunling.sys.entity.menu.SysMenuPO">
+        insert into sys_menu_b (menu_id,menu_code,menu_sort,function_id,parent_id,child_id,menu_icon,create_by,create_date)
+        values (#{menuId},#{menuCode},#{menuSort},#{functionId},#{parentId},#{childId},#{menuIcon},#{createBy},#{createDate})
+    </insert>
+
+    <!--菜单新增(批量)-->
+    <insert id="insertList" parameterType="java.util.List">
+        INSERT ALL
+        <foreach collection="menuList" item="item">
+            into sys_menu_b (menu_id,menu_code,menu_sort,function_id,parent_id,child_id,menu_icon,create_by,create_date) values (#{item.menuId},#{item.menuCode},#{item.menuSort},#{item.functionId},#{item.parentId},#{item.childId},#{item.menuIcon},#{item.createBy},#{item.createDate})
+        </foreach>
+        SELECT 1 FROM DUAL
+    </insert>
+
+    <!--查询所有子菜单-->
+    <select id="findBySubmenu" resultMap="menuMap" parameterType="java.lang.String">
+        select mb.*,mtl.menu_name,mtl.menu_description
+        from sys_menu_b mb
+        join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+        where mb.parent_id is not null
+        order by mb.menu_sort
+    </select>
+
+    <!--查询所有菜单-->
+    <select id="findAll" resultMap="menuMap" parameterType="java.lang.String">
+        select mb.*,mtl.menu_name,mtl.menu_description
+        from sys_menu_b mb
+        join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+        order by mb.menu_sort
+    </select>
+
+    <!--菜单(多语言)修改-->
+    <update id="updateTl" parameterType="com.yunling.sys.entity.menu.SysMenuTl">
+        update sys_menu_tl
+        <set>
+            menu_name = #{menuName},
+            menu_description = #{menuDescription},
+            LAST_UPDATE_BY = #{lastUpdateBy},
+            LAST_UPDATE_DATE = #{lastUpdateDate},
+            LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+        </set>
+        where menu_id = #{menuId} and language = #{language}
+    </update>
+
+    <!--菜单修改-->
+    <update id="update">
+        update sys_menu_b
+        <set>
+            menu_sort = #{menuSort},
+            function_id = #{functionId},
+            parent_id = #{parentId},
+            child_id = #{childId},
+            menu_icon = #{menuIcon},
+            LAST_UPDATE_BY = #{lastUpdateBy},
+            LAST_UPDATE_DATE = #{lastUpdateDate},
+            LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+        </set>
+        where menu_id = #{menuId}
+    </update>
+
+    <!--根据菜单ID查询菜单信息(批量)-->
+    <select id="findByIds" resultMap="menuMap" parameterType="java.util.List">
+        select mb.*,mtl.menu_name,mtl.menu_description
+        from sys_menu_b mb
+        join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+        where mb.menu_id in
+        <foreach collection="menuIds" item="menuId" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+    </select>
+
+    <!--根据菜单ID查询菜单信息-->
+    <select id="findById" resultMap="menuMap">
+        select mb.*,mtl.menu_name,mtl.menu_description
+        from sys_menu_b mb
+        join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+        where mb.menu_id = #{menuId}
+    </select>
+
+    <!--菜单(多语言)删除-->
+    <delete id="deleteTl" parameterType="java.util.List">
+        delete from sys_menu_tl where menu_id in
+        <foreach collection="menuIdList" item="menuId" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+    </delete>
+
+    <!--菜单删除-->
+    <delete id="delete" parameterType="java.util.List">
+        delete from sys_menu_b where menu_id in
+        <foreach collection="menuIdList" item="menuId" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+    </delete>
+
+    <!--根据父菜单ID查询子菜单-->
+    <select id="findByParentId" resultMap="menuMap">
+        select mb.*,mtl.menu_name,mtl.menu_description
+        from sys_menu_b mb
+        join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+        <if test="parentId != null">
+            where mb.parent_id = #{parentId}
+        </if>
+        <if test="parentId == null">
+            where mb.parent_id is null
+        </if>
+        order by mb.menu_sort
+    </select>
+
+    <!--根据菜单编码查询菜单信息-->
+    <select id="findByCodes" resultMap="menuMap">
+        select mb.*,mtl.menu_name,mtl.menu_description
+        from sys_menu_b mb
+        join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+        where mb.menu_code in
+        <foreach collection="codeList" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
+    </select>
+
+	<!--查询角色拥有的菜单-->
+	<select id="findByRoleId" resultMap="menuMap">
+		select mb.menu_id,mb.menu_code,mb.function_id,mb.menu_icon,mb.parent_id,mb.child_id,mb.menu_sort,mtl.menu_name,mtl.menu_description
+		from sys_menu_b mb
+	    join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+	    join sys_role_menu rm on rm.menu_id = mb.menu_id
+		where rm.role_id = #{roleId}
+		order by mb.menu_sort
+	</select>
+
+	<!--根据菜单ID查询绑定的功能ID-->
+	<select id="findBindFunctionId" resultType="java.lang.Long" parameterType="java.util.List">
+		select function_id from sys_menu_b where function_id is not null and menu_id in
+		<foreach collection="menuIds" item="menuId" open="(" separator="," close=")">
+			#{menuId}
+		</foreach>
+	</select>
+
+	<!--根据菜单ID查询绑定的子菜单ID-->
+	<select id="findBindChildId" resultType="java.lang.Long" parameterType="java.util.List">
+		select child_id from sys_menu_b where child_id is not null and menu_id in
+		<foreach collection="menuIds" item="menuId" open="(" separator="," close=")">
+			#{menuId}
+		</foreach>
+	</select>
+
+    <!--根据父菜单ID查询子菜单ID集合(批量)-->
+    <select id="findByParentIds" resultType="java.lang.Long">
+        select menu_id from sys_menu_b where parent_id in
+        <foreach collection="parentIdList" item="parentId" open="(" separator="," close=")">
+            #{parentId}
+        </foreach>
+    </select>
+
+    <!--查询所有菜单的总数-->
+    <select id="findCount" resultType="java.lang.Integer">
+        select count(1) from sys_menu_b
+    </select>
+
+    <!--分页查询菜单列表-->
+    <select id="findByPage" resultMap="menuMap">
+        select mb.*,mtl.menu_name,mtl.menu_description
+        from sys_menu_b mb
+        join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+        order by mb.menu_sort
+        LIMIT #{offset}, #{endset}
+    </select>
+
+    <!--查询角色拥有的菜单集合总条数-->
+    <select id="findCountByRoleId" resultType="java.lang.Integer">
+        select count(1)
+        from sys_menu_b mb
+        join sys_role_menu rm on rm.menu_id = mb.menu_id
+        where rm.role_id = #{roleId}
+    </select>
+
+    <!--查询角色拥有的菜单(根据起止编号查询)-->
+    <select id="findPageByRoleId" resultMap="menuMap">
+      select mb.menu_id,mb.menu_code,mb.function_id,mb.menu_icon,mb.parent_id,mb.child_id,mb.menu_sort,mtl.menu_name,mtl.menu_description
+      from sys_menu_b mb
+      join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+      join sys_role_menu rm on rm.menu_id = mb.menu_id
+      where rm.role_id = #{roleId}
+      order by mb.menu_id
+      LIMIT #{offset}, #{endset}
+    </select>
+</mapper>

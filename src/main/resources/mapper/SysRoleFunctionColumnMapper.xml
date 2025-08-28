@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysRoleFunctionColumnMapper" >
+
+	<resultMap id="roleFunctionColumnMap" type="com.yunling.sys.entity.role.SysRoleFunctionColumn">
+		<result column="ROLE_ID" property="roleId" jdbcType="NUMERIC" />
+		<result column="FC_ID" property="fcId" jdbcType="NUMERIC" />
+		<result column="FC_EDITABLE_FLAG" property="fcEditableFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!--保存未拥有的列权限-->
+	<insert id="insert" parameterType="java.util.List">
+		insert into sys_role_function_column(role_id, fc_id, fc_editable_flag, create_by, create_date) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.roleId},#{item.fcId},#{item.fcEditableFlag},#{item.createBy},#{item.createDate})
+		</foreach>
+	</insert>
+
+	<!--角色列权限删除-->
+	<delete id="deleteByRoleIds" parameterType="java.util.List">
+		delete from sys_role_function_column where role_id in
+		<foreach collection="roleIdList" item="roleId" open="(" separator="," close=")">
+			#{roleId}
+		</foreach>
+	</delete>
+
+	<!--根据角色ID查询拥有的列权限-->
+	<select id="findByRoleId" resultMap="roleFunctionColumnMap" parameterType="java.lang.Long">
+		select * from sys_role_function_column where role_id = #{roleId}
+	</select>
+</mapper>

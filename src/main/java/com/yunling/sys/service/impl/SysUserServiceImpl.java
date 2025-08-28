@@ -1,0 +1,345 @@
+package com.yunling.sys.service.impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.yunling.sys.client.AuthClient;
+import com.yunling.sys.common.IdKeyGenerator;
+import com.yunling.sys.common.PaginationGrid;
+import com.yunling.sys.common.ResultData;
+import com.yunling.sys.config.exception.BizException;
+import com.yunling.sys.entity.auth.SysDataAuth;
+import com.yunling.sys.entity.auth.SysDataAuthValue;
+import com.yunling.sys.entity.role.SysRole;
+import com.yunling.sys.entity.role.SysRoleOrg;
+import com.yunling.sys.entity.user.SysUser;
+import com.yunling.sys.entity.user.SysUserFindByPageParam;
+import com.yunling.sys.entity.user.SysUserRole;
+import com.yunling.sys.mapper.*;
+import com.yunling.sys.service.SysUserService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 用户-接口实现
+ *
+ * @author 谭永强
+ * @date 2022-09-02
+ */
+@Service
+public class SysUserServiceImpl implements SysUserService {
+
+    @Resource
+    private IdKeyGenerator idKeyGenerator;
+    @Resource
+    private SysUserMapper userMapper;
+    @Resource
+    private SysUserRoleMapper userRoleMapper;
+    @Resource
+    private SysDataAuthMapper dataAuthMapper;
+    @Resource
+    private SysDataAuthValueMapper dataAuthValueMapper;
+    @Resource
+    private AuthClient authClient;
+    @Resource
+    private SysRoleOrgMapper roleOrgMapper;
+
+    /**
+     * 根据用户名查询用户信息
+     *
+     * @param userName 用户名
+     * @return 用户信息
+     */
+    @Override
+    public SysUser findByUserName(String userName) {
+        SysUser sysUser = userMapper.findByUserName(userName);
+        if (!ObjectUtils.isEmpty(sysUser)) {
+            List<Long> roleIdList = userRoleMapper.findRoleIdByUserId(sysUser.getUserId());
+            sysUser.setRoleIdList(roleIdList);
+        }
+        return sysUser;
+    }
+
+    /**
+     * 用户信息分页查询
+     *
+     * @param param 查询条件
+     * @return 分页数据
+     */
+    @Override
+    public PaginationGrid<SysUser> findByPage(SysUserFindByPageParam param) {
+        if (!ObjectUtils.isEmpty(param.getUserName()) && !ObjectUtils.isEmpty(param.getUserDescription()) && ObjectUtils.isEmpty(param.getMontage())) {
+            param.setMontage("and");
+        }
+        PageHelper.startPage(param.getPage(), param.getPageSize());
+        List<SysUser> rows = userMapper.findByFuzzy(param);
+        PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
+        return PaginationGrid.success(pageInfo);
+    }
+
+    /**
+     * 用户添加
+     *
+     * @param user 用户信息
+     * @return 结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int add(SysUser user) {
+        //1.添加用户角色
+        final List<SysRole> roleList = user.getRoleList();
+        if (!CollectionUtils.isEmpty(roleList)) {
+            List<SysUserRole> userRoleList = roleList.stream().map(o -> {
+                SysUserRole userRole = new SysUserRole();
+                userRole.setId(idKeyGenerator.getId());
+                userRole.setUserId(user.getUserId());
+                userRole.setRoleId(o.getRoleId());
+                userRole.setCreateBy(user.getCreateBy());
+                userRole.setCreateDate(user.getCreateDate());
+                return userRole;
+            }).collect(Collectors.toList());
+            userRoleMapper.insert(userRoleList);
+        }
+        List<SysDataAuth> dataAuthList = user.getDataAuthList();
+        if (!CollectionUtils.isEmpty(dataAuthList)) {
+            //3.添加用户数据权限
+            dataAuthMapper.insertList(dataAuthList);
+            //4.添加用户数据权限值
+            dataAuthValueMapper.insertList(dataAuthList.stream().map(SysDataAuth::getDataAuthValueList).flatMap(Collection::stream).collect(Collectors.toList()));
+        }
+        if (!CollectionUtils.isEmpty(user.getOrgIdList())) {
+            List<SysRoleOrg> roleOrgList = user.getOrgIdList().stream().map(o -> {
+                SysRoleOrg roleOrg = new SysRoleOrg(user.getUserId(), o);
+                roleOrg.setCreateBy(user.getCreateBy());
+                roleOrg.setCreateDate(user.getCreateDate());
+                roleOrg.setLastUpdateLogin(user.getLastUpdateLogin());
+                return roleOrg;
+            }).collect(Collectors.toList());
+            //5.添加用户组织
+            roleOrgMapper.insert(roleOrgList);
+        }
+        //6.添加用户
+        return userMapper.insert(user);
+    }
+
+    /**
+     * 用户修改
+     *
+     * @param user 用户信息
+     * @return 结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int update(SysUser user) {
+        //1.修改用户登录失败的错误信息
+        userMapper.updateLoginError(user);
+        //2.删除用户角色中间表数据
+        userRoleMapper.deleteByUserId(user.getUserId());
+        List<SysUserRole> userRoleList = user.getRoleList().stream().map(o -> {
+            SysUserRole userRole = new SysUserRole();
+            userRole.setId(idKeyGenerator.getId());
+            userRole.setUserId(user.getUserId());
+            userRole.setRoleId(o.getRoleId());
+            userRole.setCreateBy(o.getCreateBy());
+            userRole.setCreateDate(o.getCreateDate());
+            return userRole;
+        }).collect(Collectors.toList());
+        //5.保存用户角色中间表数据
+        userRoleMapper.insert(userRoleList);
+        //6.删除用户数据权限值
+        dataAuthValueMapper.delete(user.getUserId());
+        //7.删除用户数据权限
+        dataAuthMapper.delete(user.getUserId());
+        List<SysDataAuth> dataAuthList = user.getDataAuthList();
+        if (!CollectionUtils.isEmpty(dataAuthList)) {
+            //8.添加用户数据权限
+            dataAuthMapper.insertList(dataAuthList);
+            //9.添加用户数据权限值
+            dataAuthValueMapper.insertList(dataAuthList.stream().map(SysDataAuth::getDataAuthValueList).flatMap(Collection::stream).collect(Collectors.toList()));
+        }
+        //10.删除用户组织(角色组织表中的role_id实际保存的是角色ID或用户ID)
+        roleOrgMapper.deleteByRoleId(user.getUserId());
+        //11.用户组织
+        if (!CollectionUtils.isEmpty(user.getOrgIdList())) {
+            List<SysRoleOrg> roleOrgList = user.getOrgIdList().stream().map(o -> {
+                SysRoleOrg roleOrg = new SysRoleOrg(user.getUserId(), o);
+                roleOrg.setCreateBy(user.getLastUpdateBy());
+                roleOrg.setCreateDate(user.getLastUpdateDate());
+                roleOrg.setLastUpdateLogin(user.getLastUpdateLogin());
+                return roleOrg;
+            }).collect(Collectors.toList());
+            roleOrgMapper.insert(roleOrgList);
+        }
+        //12.修改用户信息
+        return userMapper.update(user);
+    }
+
+    /**
+     * 用户删除
+     *
+     * @param userIds 用户ID
+     * @return 结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int delete(List<Long> userIds) {
+        for (Long userId : userIds) {
+            //删除用户角色中间表数据
+            userRoleMapper.deleteByUserId(userId);
+        }
+        //删除用户数据权限值
+        dataAuthValueMapper.deleteByObjectIds(userIds);
+        //删除用户数据权限
+        dataAuthMapper.deleteByObjectIds(userIds);
+        //删除用户
+        return userMapper.delete(userIds);
+    }
+
+    /**
+     * 根据用户ID查询用户
+     *
+     * @param userId   用户ID
+     * @param language 语言
+     * @return 用户信息
+     */
+    @Override
+    public SysUser findById(long userId, String language) {
+        //根据用户ID查询用户
+        SysUser user = userMapper.findById(userId);
+        if (ObjectUtils.isEmpty(user)) {
+            throw new BizException("用户不存在!");
+        }
+        //根据用户ID查询拥有的角色ID集合
+        List<SysRole> roleList = userRoleMapper.findByUserId(userId, language);
+        user.setRoleList(roleList);
+        //根据用户ID查询组织列表
+        //根据用户ID查询该用户数据权限
+        List<SysDataAuth> dataAuthList = dataAuthMapper.findByObjectId(userId);
+        if (!CollectionUtils.isEmpty(dataAuthList)) {
+            List<Long> authIdList = dataAuthList.stream().map(SysDataAuth::getAuthId).collect(Collectors.toList());
+            List<SysDataAuthValue> dataAuthValueList = dataAuthValueMapper.findByAuthIds(authIdList);
+            dataAuthList.forEach(o -> {
+                o.setDataAuthValueList(dataAuthValueList.stream().filter(i -> i.getAuthId().equals(o.getAuthId())).collect(Collectors.toList()));
+            });
+            user.setDataAuthList(dataAuthList);
+        }
+        return user;
+    }
+
+    /**
+     * 密码错误次数保存
+     *
+     * @param errorUser 错误次数记录
+     * @return 结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int updateLoginError(SysUser errorUser) {
+        return userMapper.updateLoginError(errorUser);
+    }
+
+    /**
+     * 根据用户ID集合查询用户信息
+     *
+     * @param userIds 用户ID集合
+     * @return 结果
+     */
+    @Override
+    public List<SysUser> findByUserIds(List<Long> userIds) {
+        return userMapper.findByUserIds(userIds);
+    }
+
+    /**
+     * 密码修改
+     *
+     * @param user 用户信息
+     * @return 结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int updatePassword(SysUser user) {
+        long userId = user.getUserId();
+        String password = user.getPassword();
+        Date passwordUpdateDate = user.getPasswordUpdateDate();
+        //修改密码
+        int result = userMapper.updatePassword(userId, password, passwordUpdateDate);
+        if (result > 0) {
+            //重置当前用户缓存信息
+            ResultData<Boolean> resultData = authClient.updateCurrentUser(user.getCurrentRoleId(), user.getCurrentOrgId());
+            if (!resultData.getSuccess()) {
+                throw new BizException(resultData.getCode(), resultData.getMessage());
+            }
+        }
+        return 1;
+    }
+
+    /**
+     * 根据用户关联ID(员工ID/供应商ID/客户ID)查询用户信息
+     *
+     * @param relationIdList 用户关联ID(员工ID/供应商ID/客户ID)
+     * @return 用户信息
+     */
+    @Override
+    public List<SysUser> findByRelationIds(List<Long> relationIdList) {
+        return userMapper.findByRelationIds(relationIdList);
+    }
+
+    /**
+     * 根据用户名集合查询用户信息
+     *
+     * @param userNameList 用户名集合
+     * @return 用户信息
+     */
+    @Override
+    public List<SysUser> findByUserNameList(List<String> userNameList) {
+        return userMapper.findByUserNameList(userNameList);
+    }
+
+    /**
+     * 根据用户名查询用户信息(包含角色信息)
+     *
+     * @param userName 用户名
+     * @param language 语言
+     * @return 用户信息
+     */
+    @Override
+    public SysUser findRoleByUserName(String userName, String language) {
+        SysUser sysUser = userMapper.findByUserName(userName);
+        if (!ObjectUtils.isEmpty(sysUser)) {
+            List<SysRole> roleList = userRoleMapper.findByUserId(sysUser.getUserId(), language);
+            sysUser.setRoleList(roleList);
+        }
+        return sysUser;
+    }
+
+    /**
+     * 用户添加(批量)
+     *
+     * @param list 用户信息
+     * @return 结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean addList(List<SysUser> list) {
+        ArrayList<SysUserRole> userRoleList = new ArrayList<>();
+        list.forEach(user -> {
+            if (!CollectionUtils.isEmpty(user.getUserRoleList())) {
+                userRoleList.addAll(user.getUserRoleList());
+            }
+        });
+        if (!CollectionUtils.isEmpty(userRoleList)) {
+            // 保存用户分配角色
+            userRoleMapper.insert(userRoleList);
+        }
+        // 保存用户信息
+        return userMapper.insertAll(list);
+    }
+}

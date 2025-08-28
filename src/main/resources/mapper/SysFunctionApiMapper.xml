@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysFunctionApiMapper" >
+
+    <resultMap id="functionApiMap" type="com.yunling.sys.entity.function.SysFunctionApiBO">
+        <id column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
+        <collection property="apiList" resultMap="apiMap" />
+    </resultMap>
+
+    <resultMap id="apiMap" type="com.yunling.sys.entity.api.SysApi">
+        <id column="API_ID" property="id" jdbcType="NUMERIC" />
+        <result column="API_NAME" property="apiName" jdbcType="VARCHAR" />
+        <result column="API_URI" property="apiUri" jdbcType="VARCHAR" />
+        <result column="API_METHOD" property="apiMethod" jdbcType="VARCHAR" />
+        <result column="API_DESC" property="apiDesc" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <resultMap id="functionApi" type="com.yunling.sys.entity.function.SysFunctionApi">
+        <result column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
+        <result column="API_ID" property="apiId" jdbcType="NUMERIC" />
+        <result column="API_NAME" property="apiName" jdbcType="VARCHAR" />
+        <result column="API_URI" property="apiUri" jdbcType="VARCHAR" />
+        <result column="API_METHOD" property="apiMethod" jdbcType="VARCHAR" />
+        <result column="API_DESC" property="apiDesc" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <!--根据功能ID删除功能接口数据-->
+    <delete id="deleteByFunctionId" parameterType="java.lang.Long">
+        delete from sys_function_api where function_id = #{functionId}
+    </delete>
+
+    <!--根据功能ID删除功能接口数据(批量)-->
+    <delete id="deleteByFunctionIds">
+        delete from sys_function_api where function_id in
+        <foreach collection="functionIdList" item="functionId" open="(" separator="," close=")">
+            #{functionId}
+        </foreach>
+    </delete>
+
+    <!--功能接口保存-->
+    <insert id="insert" parameterType="java.util.List">
+        insert into sys_function_api (function_id,api_id,create_by,create_date) values
+        <foreach collection="functionApiList" item="item" separator=",">
+            (#{item.functionId},#{item.apiId},#{item.createBy},#{item.createDate})
+        </foreach>
+    </insert>
+
+    <!--根据功能ID查询接口权限-->
+    <select id="findByFunctionIds" resultMap="functionApiMap">
+        select fa.function_id, a.api_id, a.api_name, a.api_uri, a.api_method, a.api_desc
+        from sys_api a
+        join sys_function_api fa on a.api_id = fa.api_id
+        <if test="functionIdList != null">
+            where fa.function_id in
+            <foreach collection="functionIdList" item="functionId" open="(" separator="," close=")">
+                #{functionId}
+            </foreach>
+        </if>
+    </select>
+
+    <!--根据功能ID集合查询接口权限-->
+    <select id="findByFunctionId" resultMap="functionApiMap">
+        select fa.function_id, a.api_id, a.api_name, a.api_uri, a.api_method, a.api_desc
+        from sys_api a
+        join sys_function_api fa on a.api_id = fa.api_id
+        where fa.function_id  = #{functionId}
+    </select>
+
+    <!--查询所有功能API总数-->
+    <select id="findAllFunctionApi" resultType="java.lang.Integer">
+        select count(1)
+        from sys_api a
+        join sys_function_api fa on a.api_id = fa.api_id
+    </select>
+
+    <!--分页查询功能API列表-->
+    <select id="findPageFunctionApi" resultMap="functionApi">
+      select fa.function_id, a.api_id, a.api_name, a.api_uri, a.api_method, a.api_desc
+      from sys_api a
+      join sys_function_api fa on a.api_id = fa.api_id
+      order by a.api_id
+      LIMIT #{offset}, #{endset}
+    </select>
+
+    <!--根据API_ID删除功能接口数据-->
+    <delete id="deleteByApiIds">
+        delete from sys_function_api where api_id in
+        <foreach collection="apiIdList" item="apiId" open="(" separator="," close=")">
+            #{apiId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunling.sys.mapper.SysHomePageComponentMapper">
+
+	<resultMap id="homePageMap" type="com.yunling.sys.entity.homepage.SysHomePageComponent">
+
+		<id column="component_id" property="componentId" jdbcType="NUMERIC" />
+		<result column="home_page_title" property="homePageTitle" jdbcType="VARCHAR" />
+		<result column="function_name" property="functionName" jdbcType="VARCHAR" />
+		<result column="business_area_id" property="businessAreaId" jdbcType="NUMERIC" />
+		<result column="function_code" property="functionCode" jdbcType="VARCHAR" />
+		<result column="refresh_rate" property="refreshRate" jdbcType="NUMERIC" />
+		<result column="loading_type" property="loadingType" jdbcType="NUMERIC" />
+		<result column="user_type" property="userType" jdbcType="VARCHAR" />
+		<result column="remarks" property="remarks" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="show_status" property="showStatus" jdbcType="VARCHAR" />
+		<result column="function_url" property="functionUrl" jdbcType="VARCHAR" />
+		<result column="create_date" property="createDate" jdbcType="TIMESTAMP" />
+		<result column="create_by" property="createBy" jdbcType="NUMERIC" />
+		<result column="last_update_date" property="lastUpdateDate" jdbcType="TIMESTAMP" />
+		<result column="last_update_by" property="lastUpdateBy" jdbcType="NUMERIC" />
+		<result column="last_update_login" property="lastUpdateLogin" jdbcType="NUMERIC" />
+
+	</resultMap>
+
+	<sql id="base_sql">
+			t.component_id,
+  			t.home_page_title,
+  			t.function_name,
+  			t.business_area_id,
+  			t.function_code,
+  			t.refresh_rate,
+  			t.loading_type,
+  			t.user_type,
+  			t.remarks,
+  			t.status,
+  			t.show_status,
+  			t.function_url,
+  			t.create_date,
+  			t.create_by,
+  			t.last_update_date,
+  			t.last_update_by,
+  			t.last_update_login
+	</sql>
+
+	<insert id="add" parameterType="com.yunling.sys.entity.homepage.SysHomePageComponent">
+	insert into
+		sys_home_page_component t
+		(
+			<include refid="base_sql"/>
+		)
+	values
+		(
+			#{componentId},#{homePageTitle}
+			,#{functionName},#{businessAreaId}
+			,#{functionCode},#{refreshRate}
+			,#{loadingType}
+			,#{userType},#{remarks}
+			,#{status},#{showStatus}
+			,#{functionUrl},#{createDate}
+			,#{createBy},#{lastUpdateDate}
+			,#{lastUpdateBy},#{lastUpdateLogin}
+		)
+	</insert>
+
+	<delete id="deleteById" parameterType="java.lang.Long">
+		delete from sys_home_page_component where component_id = #{componentId}
+	</delete>
+
+	<select id="findList" resultMap="homePageMap" parameterType="com.yunling.sys.entity.homepage.HomePageParam">
+		select
+			<include refid="base_sql"/>
+		from sys_home_page_component t
+		<where>
+			<if test="homePageTitle != null and homePageTitle!=''">
+				t.home_page_title like CONCAT( CONCAT('%',#{homePageTitle} ),'%')
+			</if>
+			<if test="functionName != null and functionName!=''">
+				and t.function_name like CONCAT( CONCAT('%',#{functionName} ),'%')
+			</if>
+			<if test="businessAreaId != null">
+				and t.business_area_id = #{businessAreaId}
+			</if>
+			<if test="status != null and status!=''">
+				and t.status = #{status}
+			</if>
+		</where>
+	</select>
+
+	<update id="updateById" parameterType="com.yunling.sys.entity.homepage.SysHomePageComponent">
+		update
+			sys_home_page_component
+		<set>
+			home_page_title=#{homePageTitle},
+			function_name = #{functionName},
+			business_area_id = #{businessAreaId},
+			function_code = #{functionCode},
+			refresh_rate = #{refreshRate},
+			loading_type = #{loadingType},
+			user_type=#{userType},
+			remarks = #{remarks},
+			status=#{status},
+			show_status=#{showStatus},
+			function_url=#{functionUrl},
+			last_update_date=#{lastUpdateDate},
+			last_update_by=#{lastUpdateBy},
+			last_update_login=#{lastUpdateLogin}
+		</set>
+		where component_id = #{componentId}
+	</update>
+
+	<insert id="addUser" parameterType="java.util.List">
+		insert into sys_home_page_component_user(component_user_id,component_id,user_id,create_by,create_date) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.componentUserId},#{item.componentId},#{item.userId},#{item.createBy},#{item.createDate})
+		</foreach>
+	</insert>
+
+	<select id="findUserByComponentId" parameterType="java.lang.Long" resultType="java.lang.Long">
+		select user_id from sys_home_page_component_user where component_id = #{componentId}
+	</select>
+
+	<select id="findComponentByUserId" parameterType="java.lang.Long" resultMap="homePageMap">
+		select
+			<include refid="base_sql"/>
+		from sys_home_page_component_user t1
+       	inner join sys_home_page_component t
+       	on t1.component_id = t.component_id
+		where t.loading_type= '2' and t1.user_id = #{userId}
+	</select>
+
+	<select id="findComponentByUserType" resultMap="homePageMap" parameterType="java.lang.String">
+		select
+			<include refid="base_sql"/>
+		from sys_home_page_component t
+		where t.loading_type= '1' and t.user_type like CONCAT( CONCAT('%',#{userType} ),'%')
+	</select>
+
+	<delete id="deleteUserByComponentId" parameterType="java.lang.Long">
+		delete from sys_home_page_component_user  where component_id =#{componentId}
+	</delete>
+</mapper>

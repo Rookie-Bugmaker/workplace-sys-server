@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--该日志将日志级别不同的log信息保存到不同的文件中 -->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+
+    <springProperty scope="context" name="name" source="spring.application.name" />
+    <springProperty scope="context" name="host" source="spring.cloud.client.ipAddress" />
+    <springProperty scope="context" name="port" source="server.port" />
+    <springProperty scope="context" name="level" source="${root.log.level}" />
+    <conversionRule conversionWord="ip" converterClass="com.yunling.sys.common.LogIpConfig" />
+
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
+    <property name="LOG_HOME" value="${BUILD_FOLDER:-build}/${name}" />
+
+    <!-- 控制台的日志输出样式 [%logger{80} %line] 打印类名及日志输出代码的具体行数-->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}" />
+    <!--写入文件输出格式-->
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%15.15t] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}" />
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 日志输出编码 -->
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ALL级别的文件输出(ZIP归档) -->
+    <appender name="FILE_INFO_DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>
+            ${LOG_HOME}/runtime.log
+        </file>
+        <!-- 定义归档 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/runtime.%i.log.zip</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>12</maxIndex>
+        </rollingPolicy>
+        <!-- 定义文件大小 -->
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>50MB</maxFileSize>
+        </triggeringPolicy>
+        <!-- 格式化输出 -->
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ERROR级别的文件输出(ZIP归档) -->
+    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/runtime_error.log</file>
+        <!-- 定义归档 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/runtime_error.%i.log.zip</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>12</maxIndex>
+        </rollingPolicy>
+        <!-- 定义文件大小 -->
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>50MB</maxFileSize>
+        </triggeringPolicy>
+        <!-- 格式化输出 -->
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!-- 临界值过滤器，过滤掉低于指定临界值的日志。当日志级别等于或高于临界值时，过滤器返回NEUTRAL；当日志级别低于临界值时，日志会被拒绝,OFF>ERROR>WARN>INFO>DEBUG>TRACE>ALL -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <springProfile name="dev | demo">
+        <logger name="com.yunling.sys" level="debug" />
+        <!-- 日志输出级别 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE_INFO_DEBUG" />
+            <appender-ref ref="FILE_ERROR" />
+        </root>
+    </springProfile>
+
+    <springProfile name="test | product">
+        <logger name="com.yunling.sys" level="debug" />
+        <!-- logstash 设置 -->
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <param name="Encoding" value="UTF-8"/>
+            <!-- logstash 服务器 ip -->
+            <remoteHost>@logstash.host@</remoteHost>
+            <!-- logstash tcp 端口-->
+            <port>@logstash.port@</port>
+            <!-- encoder is required -->
+            <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <timeZone>UTC</timeZone>
+                    </timestamp>
+                    <pattern>
+                        <pattern>
+                            {
+                            "host": "%ip",
+                            "projectName": "v5",
+                            "profile": "@env@",
+                            "serviceName": "${name}",
+                            "level": "%level",
+                            "message": "%message",
+                            "stack_trace": "%exception{5}",
+                            "pid": "${PID:-}",
+                            "thread": "%thread",
+                            "class": "%logger"
+                            }
+                        </pattern>
+                    </pattern>
+                </providers>
+            </encoder>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>@logstash.log.level@</level>
+            </filter>
+        </appender>
+
+        <!--异步发送日志-->
+        <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="LOGSTASH" />
+        </appender>
+
+        <!-- 日志输出级别 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE_INFO_DEBUG" />
+            <appender-ref ref="FILE_ERROR" />
+            <appender-ref ref="ASYNC" />
+        </root>
+    </springProfile>
+</configuration>

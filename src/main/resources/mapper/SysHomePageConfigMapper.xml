@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunling.sys.mapper.SysHomePageUserConfigMapper">
+
+	<resultMap id="userConfigMap" type="com.yunling.sys.entity.homepage.SysHomePageUserConfig">
+		<result column="config_id" property="configId" jdbcType="NUMERIC" />
+		<result column="user_config" property="userConfig" jdbcType="VARCHAR" />
+		<result column="user_id" property="userId" jdbcType="NUMERIC" />
+		<result column="create_date" property="createDate" jdbcType="TIMESTAMP" />
+		<result column="create_by" property="createBy" jdbcType="NUMERIC" />
+		<result column="last_update_date" property="lastUpdateDate" jdbcType="TIMESTAMP" />
+		<result column="last_update_by" property="lastUpdateBy" jdbcType="NUMERIC" />
+		<result column="last_update_login" property="lastUpdateLogin" jdbcType="NUMERIC" />
+	</resultMap>
+
+
+	<insert id="add" parameterType="com.yunling.sys.entity.homepage.SysHomePageUserConfig">
+		insert into
+			sys_home_page_user_config
+			(
+				config_id,
+				user_config,
+				user_id,
+				create_date,
+  				create_by
+			)
+		values
+			(
+				#{configId},
+				#{userConfig},
+				#{userId},
+				#{createDate},
+				#{createBy}
+			)
+	</insert>
+
+	<select id="findByUserId" resultMap="userConfigMap" parameterType="java.lang.Long">
+		select
+			config_id,user_config,user_id,create_date,create_by,last_update_date,last_update_by,last_update_login
+		from
+			sys_home_page_user_config
+		where user_id = #{userId}
+	</select>
+
+	<delete id="deleteByUserId" parameterType="java.lang.Long">
+		delete from sys_home_page_user_config where user_id = #{userId}
+	</delete>
+
+</mapper>

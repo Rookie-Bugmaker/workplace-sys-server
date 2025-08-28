@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yunling.sys.mapper.SysRoleColumnValueSetMapper" >
+
+	<resultMap id="roleColumnValueSetMap" type="com.yunling.sys.entity.role.SysRoleColumnValueSet">
+		<result column="ROLE_ID" property="roleId" jdbcType="NUMERIC" />
+		<result column="BLOCK_ID" property="blockId" jdbcType="NUMERIC" />
+		<result column="FC_ID" property="fcId" jdbcType="NUMERIC" />
+		<result column="VS_ID" property="vsId" jdbcType="NUMERIC" />
+		<result column="FC_CODE" property="fcCode" jdbcType="VARCHAR" />
+		<result column="VS_CODE" property="vsCode" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!--添加角色列权限值集数据-->
+	<insert id="insert" parameterType="java.util.List">
+		into sys_role_column_value_set (role_id,block_id,fc_id,vs_id,create_by,create_date) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.roleId},#{item.blockId},#{item.fcId},#{item.vsId},#{item.createBy},#{item.createDate})
+		</foreach>
+	</insert>
+
+	<!--删除角色列权限值集数据-->
+	<delete id="deleteByRoleIds" parameterType="java.util.List">
+		delete from sys_role_column_value_set where role_id in
+		<foreach collection="roleIdList" item="roleId" open="(" separator="," close=")">
+			#{roleId}
+		</foreach>
+	</delete>
+
+	<!--根据角色ID查询列权限值集-->
+	<select id="findByRoleId" resultMap="roleColumnValueSetMap" parameterType="java.lang.Long">
+		select * from sys_role_column_value_set where role_id = #{roleId}
+	</select>
+
+	<!--根据角色ID和块编码查询值集信息-->
+	<select id="findByRoleIdAndBlockCode" resultMap="roleColumnValueSetMap">
+		select fcb.fc_id,fcb.fc_code,vsb.vs_id,vsb.vs_code
+		from sys_role_column_value_set cvs
+	    join sys_value_set_b vsb on vsb.vs_id = cvs.vs_id
+	    join sys_function_column_b fcb on fcb.fc_id = cvs.fc_id
+	    join sys_function_column_b pa on pa.fc_id = fcb.parent_id
+		where cvs.role_id = #{roleId} and pa.fc_code = #{blockCode}
+	</select>
+</mapper>
