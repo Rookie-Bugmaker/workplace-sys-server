@@ -14,7 +14,7 @@ pipeline {
       }
       steps {
         container('maven') {
-          git(url: 'http://10.212.21.94:9528/beacon/rear-end/basic-source/scps-sys-server.git', credentialsId: 'gitlab', branch: 'master', changelog: true, poll: false)
+          git(url: 'http://172.22.212.45/workplace-new/rear-end/basic/scps-sys-server.git', credentialsId: 'gitlab', branch: 'master', changelog: true, poll: false)
         }
       }
     }
