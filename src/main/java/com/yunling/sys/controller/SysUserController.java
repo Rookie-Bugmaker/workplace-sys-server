@@ -655,12 +655,6 @@ public class SysUserController {
                 }
             }
         }
-        if (ObjectUtils.isEmpty(user.getUserDescription())) {
-            throw new ParamValidateException("用户描述不能为空!");
-        }
-        if (user.getUserDescription().length() > 50) {
-            throw new ParamValidateException("用户描述超长(最大50)!");
-        }
     }
 
     /**
