@@ -1,12 +1,15 @@
 package com.crrc.sys.common;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.pagehelper.PageInfo;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 分页信息封装
+ * 此实体可以兼容多种分页返回，建议所有接口都使用
  *
  * @author 谭永强
  * @date 2022-08-04
@@ -70,7 +73,7 @@ public class PaginationGrid<T> {
     }
 
     /**
-     * 分页信息结果返回
+     * 分页信息结果返回（mybatis分頁）
      *
      * @param pageInfo 当前页数据
      * @return 分页数据
@@ -79,6 +82,22 @@ public class PaginationGrid<T> {
         PaginationGrid<T> page = new PaginationGrid<>(pageInfo.getPageNum(), pageInfo.getPageSize());
         page.setTotal(pageInfo.getTotal());
         page.setRows(pageInfo.getList());
+        return page;
+    }
+
+    /**
+     * 分页信息结果返回（mybatis plus分頁）
+     *
+     * @param iPage 当前页数据
+     * @return 分页数据
+     */
+    public static <T> PaginationGrid<T> success(IPage<T> iPage) {
+        if (ObjectUtils.isEmpty(iPage)) {
+            return null;
+        }
+        PaginationGrid<T> page = new PaginationGrid<>((int) iPage.getCurrent(), (int) iPage.getSize());
+        page.setTotal(iPage.getTotal());
+        page.setRows(iPage.getRecords());
         return page;
     }
 
