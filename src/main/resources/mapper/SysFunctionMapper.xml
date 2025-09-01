@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.cccr.sys.mapper.SysFunctionMapper" >
+<mapper namespace="com.crrc.sys.mapper.SysFunctionMapper" >
 
-    <resultMap id="functionMap" type="com.cccr.sys.entity.function.SysFunction">
+    <resultMap id="functionMap" type="com.crrc.sys.entity.function.SysFunction">
         <id column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
         <result column="PARENT_ID" property="parentId" jdbcType="NUMERIC" />
         <result column="FUNCTION_CODE" property="functionCode" jdbcType="VARCHAR" />
@@ -31,7 +31,7 @@
     </resultMap>
 
     <!--功能查询-->
-    <select id="findByFuzzy" resultMap="functionMap" parameterType="com.cccr.sys.entity.function.SysFunctionFindByPageParam">
+    <select id="findByFuzzy" resultMap="functionMap" parameterType="com.crrc.sys.entity.function.SysFunctionFindByPageParam">
         select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
         from sys_function_b fb
         left join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
@@ -84,7 +84,7 @@
     </insert>
 
     <!--功能新增-->
-    <insert id="insert" parameterType="com.cccr.sys.entity.function.SysFunction">
+    <insert id="insert" parameterType="com.crrc.sys.entity.function.SysFunction">
         insert into sys_function_b (function_id,parent_id,function_code,function_type,path,parameters,open_method,keep_alive,component,name,redirect,hide_children_in_menu,hide_in_menu,lock_in_tab,merge_tab,icon,vs_id,create_by,create_date,page_id)
         values (#{functionId},#{parentId},#{functionCode},#{functionType},#{path},#{parameters},#{openMethod},#{keepAlive},#{component},#{name},#{redirect},#{hideChildrenInMenu},#{hideInMenu},#{lockInTab},#{mergeTab},#{icon},#{vsId},#{createBy},#{createDate},#{pageId})
     </insert>
@@ -106,7 +106,7 @@
     </select>
 
     <!--修改功能语言信息-->
-    <update id="updateTl" parameterType="com.cccr.sys.entity.function.SysFunctionTl">
+    <update id="updateTl" parameterType="com.crrc.sys.entity.function.SysFunctionTl">
         update sys_function_tl
         <set>
             FUNCTION_NAME = #{functionName},
@@ -119,7 +119,7 @@
     </update>
 
     <!--修改功能信息-->
-    <update id="update" parameterType="com.cccr.sys.entity.function.SysFunction">
+    <update id="update" parameterType="com.crrc.sys.entity.function.SysFunction">
         update sys_function_b
         <set>
             PARENT_ID = #{parentId},

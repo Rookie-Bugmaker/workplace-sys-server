@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.cccr.sys.mapper.SysOrgPersonMapper" >
+<mapper namespace="com.crrc.sys.mapper.SysOrgPersonMapper" >
 
-	<resultMap id="personMap" type="com.cccr.sys.entity.org.person.SysOrgPerson">
+	<resultMap id="personMap" type="com.crrc.sys.entity.org.person.SysOrgPerson">
 		<id column="PERSON_ID" property="personId" jdbcType="NUMERIC" />
 		<result column="FULL_NAME" property="fullName" jdbcType="VARCHAR" />
 		<result column="GENDER" property="gender" jdbcType="VARCHAR" />
@@ -16,7 +16,7 @@
 	</resultMap>
 
 	<!--人员查询-->
-	<select id="findByFuzzy" resultMap="personMap" parameterType="com.cccr.sys.entity.org.person.SysOrgPersonFindByPageParam">
+	<select id="findByFuzzy" resultMap="personMap" parameterType="com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam">
 		select b.person_id,full_name,gender,job_no,person_type,phone,email,status,induction_date,quit_date
 		from sys_org_person_b b
 		join sys_org_person_tl tl on tl.person_id = b.person_id and tl.language = #{language}
@@ -51,7 +51,7 @@
 	</select>
 
 	<!--人员新增-->
-	<insert id="insert" parameterType="com.cccr.sys.entity.org.person.SysOrgPerson">
+	<insert id="insert" parameterType="com.crrc.sys.entity.org.person.SysOrgPerson">
 		insert into sys_org_person_b (person_id,gender,job_no,person_type,phone,email,status,induction_date,quit_date,create_by,create_date)
 		values (#{personId},#{gender},#{jobNo},#{personType},#{phone},#{email},#{status},#{inductionDate},#{quitDate},#{createBy},#{createDate})
 	</insert>
@@ -66,7 +66,7 @@
 	</insert>
 
 	<!--人员修改-->
-	<update id="update" parameterType="com.cccr.sys.entity.org.person.SysOrgPerson">
+	<update id="update" parameterType="com.crrc.sys.entity.org.person.SysOrgPerson">
 		update sys_org_person_b
 		<set>
 			gender = #{gender},
@@ -91,7 +91,7 @@
 		join sys_org_person_tl tl on tl.person_id = b.person_id and tl.language = #{language}
 		where b.person_id = #{personId}
 	</select>
-    <select id="findByJobNo" resultType="com.cccr.sys.entity.org.person.SysOrgPerson">
+    <select id="findByJobNo" resultType="com.crrc.sys.entity.org.person.SysOrgPerson">
 		select *
 		from SYS_ORG_PERSON_B
 		where JOB_NO = #{jobNo}

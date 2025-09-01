@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.cccr.sys.mapper.SysProfileMapper">
+<mapper namespace="com.crrc.sys.mapper.SysProfileMapper">
 
-	<resultMap id="profileMap" type="com.cccr.sys.entity.profile.SysProfile">
+	<resultMap id="profileMap" type="com.crrc.sys.entity.profile.SysProfile">
 		<id column="PROFILE_ID" property="profileId" jdbcType="NUMERIC" />
 		<result column="PROFILE_NAME" property="profileName" jdbcType="VARCHAR" />
 		<result column="PROFILE_CODE" property="profileCode" jdbcType="VARCHAR" />
@@ -17,7 +17,7 @@
 		<result column="PROFILE_FIELD_ALIAS" property="fieldAlias" jdbcType="VARCHAR" />
 	</resultMap>
 
-	<resultMap id="valueSetMap" type="com.cccr.sys.entity.profile.ValueSet">
+	<resultMap id="valueSetMap" type="com.crrc.sys.entity.profile.ValueSet">
 		<result column="ID" property="id" jdbcType="VARCHAR" />
 		<result column="CODE" property="code" jdbcType="VARCHAR" />
 		<result column="DESC" property="desc" jdbcType="VARCHAR" />
@@ -25,7 +25,7 @@
 	</resultMap>
 
 	<!--配置文件查询-->
-	<select id="findByFuzzy" resultMap="profileMap" parameterType="com.cccr.sys.entity.profile.SysProfileFindByPageParam">
+	<select id="findByFuzzy" resultMap="profileMap" parameterType="com.crrc.sys.entity.profile.SysProfileFindByPageParam">
 		select b.*,tl.profile_name
 		from sys_profile_b b
 		join sys_profile_tl tl on tl.profile_id = b.profile_id and tl.language = #{language}
@@ -44,7 +44,7 @@
 	</select>
 
 	<!--配置文件新增-->
-	<insert id="insert" parameterType="com.cccr.sys.entity.profile.SysProfile">
+	<insert id="insert" parameterType="com.crrc.sys.entity.profile.SysProfile">
 		insert into sys_profile_b (
 		    profile_id,profile_code,profile_source_type,profile_source,profile_value_column,profile_code_column,profile_desc_column,
 		    profile_parent_column,profile_component_type,profile_type,profile_field_alias,create_by,create_date)
@@ -54,7 +54,7 @@
 	</insert>
 
 	<!--配置文件修改-->
-	<update id="update" parameterType="com.cccr.sys.entity.profile.SysProfile">
+	<update id="update" parameterType="com.crrc.sys.entity.profile.SysProfile">
 		update sys_profile_b
 		<set>
 			profile_code = #{profileCode},
@@ -96,7 +96,7 @@
 	</select>
 
 	<!--执行sql-->
-	<select id="executeSql" resultMap="valueSetMap" parameterType="com.cccr.sys.entity.profile.SysProfileValuePageSearch">
+	<select id="executeSql" resultMap="valueSetMap" parameterType="com.crrc.sys.entity.profile.SysProfileValuePageSearch">
 		select
 	   <trim suffixOverrides=",">
 		   <if test="profileValueColumn != null and profileValueColumn != ''">

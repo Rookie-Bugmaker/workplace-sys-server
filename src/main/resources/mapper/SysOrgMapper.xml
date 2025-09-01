@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.cccr.sys.mapper.SysOrgMapper" >
+<mapper namespace="com.crrc.sys.mapper.SysOrgMapper" >
 
-    <resultMap id="orgMap" type="com.cccr.sys.entity.org.SysOrg">
+    <resultMap id="orgMap" type="com.crrc.sys.entity.org.SysOrg">
         <id column="ORG_ID" property="orgId" jdbcType="NUMERIC" />
         <result column="ORG_CODE" property="orgCode" jdbcType="VARCHAR" />
         <result column="ORG_STATUS" property="orgStatus" jdbcType="NUMERIC" />
@@ -15,7 +15,7 @@
         <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
     </resultMap>
 
-    <resultMap id="roleOrgMap" type="com.cccr.sys.entity.role.SysRoleOrg">
+    <resultMap id="roleOrgMap" type="com.crrc.sys.entity.role.SysRoleOrg">
         <result column="ROLE_ID" property="roleId" jdbcType="VARCHAR" />
         <result column="ORG_ID" property="orgId" jdbcType="NUMERIC" />
     </resultMap>
@@ -48,18 +48,18 @@
     </insert>
 
     <!--组织新增-->
-    <insert id="insert" parameterType="com.cccr.sys.entity.org.SysOrg">
+    <insert id="insert" parameterType="com.crrc.sys.entity.org.SysOrg">
         insert into sys_org_b (org_id,org_code,org_status,create_by,create_date)
         values (#{orgId},#{orgCode},#{orgStatus},#{createBy},#{createDate})
     </insert>
     <!-- 组织新增（erp同步使用） -->
-    <insert id="insertOrg" parameterType="com.cccr.sys.entity.org.SysOrg">
+    <insert id="insertOrg" parameterType="com.crrc.sys.entity.org.SysOrg">
         insert into sys_org_b (org_id,org_code,org_status,create_by,create_date)
         values (#{orgId},#{orgCode},#{orgStatus},#{createBy},#{createDate})
     </insert>
 
     <!-- 组织-多语言修改 -->
-    <update id="updateTl" parameterType="com.cccr.sys.entity.org.SysOrg">
+    <update id="updateTl" parameterType="com.crrc.sys.entity.org.SysOrg">
         update sys_org_tl
         <set>
             org_name = #{orgName},
@@ -72,7 +72,7 @@
     </update>
 
     <!--组织修改-->
-    <update id="update" parameterType="com.cccr.sys.entity.org.SysOrg">
+    <update id="update" parameterType="com.crrc.sys.entity.org.SysOrg">
         update sys_org_b
         <set>
             org_status = #{orgStatus},
@@ -83,7 +83,7 @@
         where org_id = #{orgId}
     </update>
     <!-- 修改组织（erp使用） -->
-    <update id="updateOrg" parameterType="com.cccr.sys.entity.org.SysOrg">
+    <update id="updateOrg" parameterType="com.crrc.sys.entity.org.SysOrg">
         update sys_org_b
         <set>
             org_status = #{orgStatus},

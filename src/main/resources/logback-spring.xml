@@ -7,7 +7,7 @@
     <springProperty scope="context" name="host" source="spring.cloud.client.ipAddress" />
     <springProperty scope="context" name="port" source="server.port" />
     <springProperty scope="context" name="level" source="${root.log.level}" />
-    <conversionRule conversionWord="ip" converterClass="com.cccr.sys.common.LogIpConfig" />
+    <conversionRule conversionWord="ip" converterClass="com.crrc.sys.common.LogIpConfig" />
 
     <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
     <property name="LOG_HOME" value="${BUILD_FOLDER:-build}/${name}" />
@@ -75,7 +75,7 @@
     </appender>
 
     <springProfile name="dev | test">
-        <logger name="com.cccr.sys" level="debug" />
+        <logger name="com.crrc.sys" level="debug" />
         <!-- 日志输出级别 -->
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
@@ -85,7 +85,7 @@
     </springProfile>
 
     <springProfile name="product">
-        <logger name="com.cccr.sys" level="debug" />
+        <logger name="com.crrc.sys" level="debug" />
         <!-- logstash 设置 -->
         <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
             <param name="Encoding" value="UTF-8"/>

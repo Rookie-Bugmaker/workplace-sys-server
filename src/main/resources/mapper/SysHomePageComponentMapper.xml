@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.cccr.sys.mapper.SysHomePageComponentMapper">
+<mapper namespace="com.crrc.sys.mapper.SysHomePageComponentMapper">
 
-	<resultMap id="homePageMap" type="com.cccr.sys.entity.homepage.SysHomePageComponent">
+	<resultMap id="homePageMap" type="com.crrc.sys.entity.homepage.SysHomePageComponent">
 
 		<id column="component_id" property="componentId" jdbcType="NUMERIC" />
 		<result column="home_page_title" property="homePageTitle" jdbcType="VARCHAR" />
@@ -44,7 +44,7 @@
   			t.last_update_login
 	</sql>
 
-	<insert id="add" parameterType="com.cccr.sys.entity.homepage.SysHomePageComponent">
+	<insert id="add" parameterType="com.crrc.sys.entity.homepage.SysHomePageComponent">
 	insert into
 		sys_home_page_component t
 		(
@@ -68,7 +68,7 @@
 		delete from sys_home_page_component where component_id = #{componentId}
 	</delete>
 
-	<select id="findList" resultMap="homePageMap" parameterType="com.cccr.sys.entity.homepage.HomePageParam">
+	<select id="findList" resultMap="homePageMap" parameterType="com.crrc.sys.entity.homepage.HomePageParam">
 		select
 			<include refid="base_sql"/>
 		from sys_home_page_component t
@@ -88,7 +88,7 @@
 		</where>
 	</select>
 
-	<update id="updateById" parameterType="com.cccr.sys.entity.homepage.SysHomePageComponent">
+	<update id="updateById" parameterType="com.crrc.sys.entity.homepage.SysHomePageComponent">
 		update
 			sys_home_page_component
 		<set>

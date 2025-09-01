@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.cccr.sys.mapper.SysOrgPersonTlMapper" >
+<mapper namespace="com.crrc.sys.mapper.SysOrgPersonTlMapper" >
 
 	<!--人员-国际化新增-->
 	<insert id="insertList" parameterType="java.util.List">
@@ -11,7 +11,7 @@
 	</insert>
 
 	<!--人员-国际化修改-->
-	<update id="update" parameterType="com.cccr.sys.entity.org.person.SysOrgPerson">
+	<update id="update" parameterType="com.crrc.sys.entity.org.person.SysOrgPerson">
 		update sys_org_person_tl
 		<set>
 			full_name = #{fullName},

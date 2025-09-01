@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.cccr.sys.mapper.SysRoleMapper" >
+<mapper namespace="com.crrc.sys.mapper.SysRoleMapper" >
 
-    <resultMap id="roleMap" type="com.cccr.sys.entity.role.SysRole">
+    <resultMap id="roleMap" type="com.crrc.sys.entity.role.SysRole">
         <id column="ROLE_ID" property="roleId" jdbcType="NUMERIC" />
         <result column="ROLE_CODE" property="roleCode" jdbcType="VARCHAR" />
         <result column="ROLE_NAME" property="roleName" jdbcType="VARCHAR" />
@@ -17,7 +17,7 @@
     </resultMap>
 
     <!--角色信息分页查询-->
-    <select id="findByFuzzy" resultMap="roleMap" parameterType="com.cccr.sys.entity.role.SysRoleFindByPageParam">
+    <select id="findByFuzzy" resultMap="roleMap" parameterType="com.crrc.sys.entity.role.SysRoleFindByPageParam">
         select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,rb.create_by,rb.create_date,rb.last_update_by,rb.last_update_date,rb.last_update_login,
                rtl.role_name,rtl.role_description,rtl.language
         from sys_role_b rb
@@ -42,7 +42,7 @@
     </select>
 
     <!--添加角色-国际化数据-->
-    <insert id="addTl" parameterType="com.cccr.sys.entity.role.SysRoleTl">
+    <insert id="addTl" parameterType="com.crrc.sys.entity.role.SysRoleTl">
         insert into sys_role_tl (role_id,role_name,role_description,language,create_by,create_date) values
         <foreach collection="roleTlList" item="item" separator=",">
             (#{item.roleId},#{item.roleName},#{item.roleDescription},#{item.language},#{item.createBy},#{item.createDate})
@@ -50,13 +50,13 @@
     </insert>
 
     <!--添加角色主表数据-->
-    <insert id="addB" parameterType="com.cccr.sys.entity.role.SysRole">
+    <insert id="addB" parameterType="com.crrc.sys.entity.role.SysRole">
         insert into sys_role_b (role_id,role_code,menu_id,enable_flag,create_by,create_date)
         values (#{roleId},#{roleCode},#{menuId},#{enableFlag},#{createBy},#{createDate})
     </insert>
 
     <!--角色国际化修改-->
-    <update id="updateTl" parameterType="com.cccr.sys.entity.role.SysRoleTl">
+    <update id="updateTl" parameterType="com.crrc.sys.entity.role.SysRoleTl">
         update sys_role_tl
         <set>
             role_name = #{roleName},
@@ -69,7 +69,7 @@
     </update>
 
     <!--角色主表修改-->
-    <update id="updateB" parameterType="com.cccr.sys.entity.role.SysRole">
+    <update id="updateB" parameterType="com.crrc.sys.entity.role.SysRole">
         update sys_role_b
         <set>
             role_code = #{roleCode},
