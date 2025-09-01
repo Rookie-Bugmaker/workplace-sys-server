@@ -14,6 +14,6 @@ ADD @project.artifactId@-@project.version@-@env@.jar app.jar
 RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo 'Asia/Shanghai' >/etc/timezone
 # jvm参数设置
 ENV JAVA_OPTS="-Xmx3700m -Xms3700m -Duser.timezone=GMT+8"
-#ENV AGENT_OPTS="-javaagent:/skywalking-agent/skywalking-agent.jar -Dskywalking.agent.service_name=scps-sys-server -Dskywalking.collector.backend_service=10.212.21.100:11800"
+#ENV AGENT_OPTS="-javaagent:/skywalking-agent/skywalking-agent.jar -Dskywalking.agent.service_name=workplace-sys-server -Dskywalking.collector.backend_service=10.212.21.100:11800"
 # 配置容器启动后执行的命令
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app.jar"]

@@ -63,7 +63,7 @@ spring:
       password: @spring.redis.sentinel.password@
 mybatis:
   #实体扫描
-  type-aliases-package: com.yunling.sys.entity
+  type-aliases-package: com.cccr.sys.entity
   #指向mapper的xml文件位置
   mapper-locations: classpath:mapper/**/*.xml
   #mybatis配置
@@ -76,7 +76,7 @@ pagehelper:
   pageSizeZero: true
 mybatis-plus:
   #实体扫描
-  type-aliases-package: com.yunling.sys.entity
+  type-aliases-package: com.cccr.sys.entity
   #指向mapper的xml文件位置
   mapper-locations: classpath:mapper/**/*.xml
   # 对应之前使用mybatis中mybatis-spring.xml中的配置

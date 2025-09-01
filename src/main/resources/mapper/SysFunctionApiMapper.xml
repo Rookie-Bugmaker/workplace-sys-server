@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.yunling.sys.mapper.SysFunctionApiMapper" >
+<mapper namespace="com.cccr.sys.mapper.SysFunctionApiMapper" >
 
-    <resultMap id="functionApiMap" type="com.yunling.sys.entity.function.SysFunctionApiBO">
+    <resultMap id="functionApiMap" type="com.cccr.sys.entity.function.SysFunctionApiBO">
         <id column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
         <collection property="apiList" resultMap="apiMap" />
     </resultMap>
 
-    <resultMap id="apiMap" type="com.yunling.sys.entity.api.SysApi">
+    <resultMap id="apiMap" type="com.cccr.sys.entity.api.SysApi">
         <id column="API_ID" property="id" jdbcType="NUMERIC" />
         <result column="API_NAME" property="apiName" jdbcType="VARCHAR" />
         <result column="API_URI" property="apiUri" jdbcType="VARCHAR" />
@@ -15,7 +15,7 @@
         <result column="API_DESC" property="apiDesc" jdbcType="VARCHAR" />
     </resultMap>
 
-    <resultMap id="functionApi" type="com.yunling.sys.entity.function.SysFunctionApi">
+    <resultMap id="functionApi" type="com.cccr.sys.entity.function.SysFunctionApi">
         <result column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
         <result column="API_ID" property="apiId" jdbcType="NUMERIC" />
         <result column="API_NAME" property="apiName" jdbcType="VARCHAR" />

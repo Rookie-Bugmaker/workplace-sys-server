@@ -9,7 +9,7 @@ pipeline {
       agent none
       steps {
         container('maven') {
-          git(url: 'http://172.22.212.45/workplace-new/rear-end/basic/scps-sys-server.git', credentialsId: 'gitlab', branch: 'dev', changelog: true, poll: false)
+          git(url: 'http://172.22.212.45/workplace-new/rear-end/basic/workplace-sys-server.git', credentialsId: 'gitlab', branch: 'dev', changelog: true, poll: false)
         }
       }
     }
@@ -65,7 +65,7 @@ pipeline {
     KUBECONFIG_CREDENTIAL_ID = 'demo-kubeconfig'
     REGISTRY = '10.151.129.200:180'
     DOCKERHUB_NAMESPACE = 'dev'
-    APP_NAME = 'scps-sys-server'
+    APP_NAME = 'workplace-sys-server'
     APP_VERSION = '5.0.0'
     PROFILE = 'dev'
   }

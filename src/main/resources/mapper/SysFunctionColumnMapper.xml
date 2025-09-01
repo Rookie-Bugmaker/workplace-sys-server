@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.yunling.sys.mapper.SysFunctionColumnMapper" >
+<mapper namespace="com.cccr.sys.mapper.SysFunctionColumnMapper" >
 
-	<resultMap id="functionColumnMap" type="com.yunling.sys.entity.function.column.SysFunctionColumn">
+	<resultMap id="functionColumnMap" type="com.cccr.sys.entity.function.column.SysFunctionColumn">
 		<id column="FC_ID" property="fcId" jdbcType="NUMERIC" />
 		<result column="FUNCTION_ID" property="functionId" jdbcType="NUMERIC" />
 		<result column="FC_CODE" property="fcCode" jdbcType="VARCHAR" />
@@ -37,7 +37,7 @@
 	</insert>
 
 	<!--列权限新增-->
-	<insert id="insert" parameterType="com.yunling.sys.entity.function.column.SysFunctionColumn">
+	<insert id="insert" parameterType="com.cccr.sys.entity.function.column.SysFunctionColumn">
 		insert into sys_function_column_b (fc_id,function_id,fc_code,fc_display_flag,fc_editable_flag,parent_id,vs_id,fc_type,create_by,create_date)
 		values (#{fcId},#{functionId},#{fcCode},#{fcDisplayFlag},#{fcEditableFlag},#{parentId},#{vsId},#{fcType},#{createBy},#{createDate})
 	</insert>
@@ -59,7 +59,7 @@
 	</select>
 
 	<!--列权限-多语言修改-->
-	<update id="updateTl" parameterType="com.yunling.sys.entity.function.column.SysFunctionColumn">
+	<update id="updateTl" parameterType="com.cccr.sys.entity.function.column.SysFunctionColumn">
 		update sys_function_column_tl
 		<set>
 			fc_name = #{fcName},
@@ -72,7 +72,7 @@
 	</update>
 
 	<!--列权限修改-->
-	<update id="update" parameterType="com.yunling.sys.entity.function.column.SysFunctionColumn">
+	<update id="update" parameterType="com.cccr.sys.entity.function.column.SysFunctionColumn">
 		update sys_function_column_b
 		<set>
 			fc_code = #{fcCode},

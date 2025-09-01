@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.yunling.sys.mapper.SysDataAuthValueMapper" >
+<mapper namespace="com.cccr.sys.mapper.SysDataAuthValueMapper" >
 
-	<resultMap id="dataAuthValueMap" type="com.yunling.sys.entity.auth.SysDataAuthValue">
+	<resultMap id="dataAuthValueMap" type="com.cccr.sys.entity.auth.SysDataAuthValue">
 		<id column="AUTH_ID" property="authId" jdbcType="NUMERIC" />
 		<result column="AUTH_VALUE" property="authValue" jdbcType="VARCHAR" />
 		<result column="AUTH_VALUE_DESC" property="authValueDesc" jdbcType="VARCHAR" />

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.yunling.sys.mapper.SysRoleMenuMapper" >
+<mapper namespace="com.cccr.sys.mapper.SysRoleMenuMapper" >
 
-    <resultMap id="roleMenuMap" type="com.yunling.sys.entity.role.SysRoleMenu">
+    <resultMap id="roleMenuMap" type="com.cccr.sys.entity.role.SysRoleMenu">
         <result column="ROLE_ID" property="roleId" jdbcType="NUMERIC" />
         <result column="MENU_ID" property="menuId" jdbcType="NUMERIC" />
         <result column="HALF_CHECKED" property="halfChecked" jdbcType="BOOLEAN" />

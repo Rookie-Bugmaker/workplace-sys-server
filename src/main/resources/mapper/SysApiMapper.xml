@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.yunling.sys.mapper.SysApiMapper" >
+<mapper namespace="com.cccr.sys.mapper.SysApiMapper" >
 
-    <resultMap id="apiMap" type="com.yunling.sys.entity.api.SysApi">
+    <resultMap id="apiMap" type="com.cccr.sys.entity.api.SysApi">
         <id column="API_ID" property="id" jdbcType="NUMERIC" />
         <result column="API_NAME" property="apiName" jdbcType="VARCHAR" />
         <result column="API_URI" property="apiUri" jdbcType="VARCHAR" />
@@ -16,7 +16,7 @@
     </resultMap>
 
     <!--API查询-->
-    <select id="findByFuzzy" resultMap="apiMap" parameterType="com.yunling.sys.entity.api.SysApiFindByPageParam">
+    <select id="findByFuzzy" resultMap="apiMap" parameterType="com.cccr.sys.entity.api.SysApiFindByPageParam">
         select * from sys_api
         <trim prefix="where" prefixOverrides="and">
             <if test="apiName !=null and apiName != ''">
@@ -33,13 +33,13 @@
     </select>
 
     <!--API新增-->
-    <insert id="insert" parameterType="com.yunling.sys.entity.api.SysApi">
+    <insert id="insert" parameterType="com.cccr.sys.entity.api.SysApi">
         insert into sys_api (API_ID,API_NAME,API_URI,API_METHOD,API_DESC,CREATE_BY,CREATE_DATE)
         values (#{id},#{apiName},#{apiUri},#{apiMethod},#{apiDesc},#{createBy},#{createDate})
     </insert>
 
     <!--API修改-->
-    <update id="update" parameterType="com.yunling.sys.entity.api.SysApi">
+    <update id="update" parameterType="com.cccr.sys.entity.api.SysApi">
         update sys_api
         <set>
             API_NAME = #{apiName},
