@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.menu;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 菜单-多语言
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2022-09-21
  */
-public class SysMenuTl extends BaseEntity {
+public class SysMenuTl extends BaseEntityYunLing {
 
     /**
      * 菜单ID

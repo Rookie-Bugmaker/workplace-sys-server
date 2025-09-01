@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.homepage;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * <p>
@@ -10,7 +10,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author fucheng
  * @since 2023-05-19
  */
-public class SysHomePageComponent extends BaseEntity {
+public class SysHomePageComponent extends BaseEntityYunLing {
 
     /**
      * 主键id

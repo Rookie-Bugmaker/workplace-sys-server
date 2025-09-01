@@ -1,7 +1,7 @@
 package com.crrc.sys.entity.menu;
 
 import com.crrc.sys.entity.function.SysFunction;
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
  * @author 谭永强
  * @date 2022-09-19
  */
-public class SysMenu extends BaseEntity {
+public class SysMenu extends BaseEntityYunLing {
 
     /**
      * 菜单ID

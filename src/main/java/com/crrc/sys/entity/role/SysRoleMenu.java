@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.role;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 角色菜单
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2022-09-22
  */
-public class SysRoleMenu extends BaseEntity {
+public class SysRoleMenu extends BaseEntityYunLing {
 
     /**
      * 角色ID

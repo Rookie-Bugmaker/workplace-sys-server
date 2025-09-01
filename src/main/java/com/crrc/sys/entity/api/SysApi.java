@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.api;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * API实体
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2022-09-13
  */
-public class SysApi extends BaseEntity {
+public class SysApi extends BaseEntityYunLing {
 
     /**
      * 主键

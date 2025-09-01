@@ -1,6 +1,6 @@
 package com.crrc.sys.model.user;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 import java.util.Date;
 
@@ -10,7 +10,7 @@ import java.util.Date;
  * @author 谭永强
  * @date 2024-01-30
  */
-public class SysUserPO extends BaseEntity {
+public class SysUserPO extends BaseEntityYunLing {
 
     /**
      * 用户ID

@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.role;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 import com.crrc.sys.entity.auth.SysDataAuth;
 
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.List;
  * @author 谭永强
  * @date 2022-09-07
  */
-public class SysRole extends BaseEntity {
+public class SysRole extends BaseEntityYunLing {
 
     /**
      * 角色ID

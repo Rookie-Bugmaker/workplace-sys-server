@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.function.column;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 列权限-多语言
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2022-10-31
  */
-public class SysFunctionColumnTl extends BaseEntity {
+public class SysFunctionColumnTl extends BaseEntityYunLing {
 
     /**
      * 主键

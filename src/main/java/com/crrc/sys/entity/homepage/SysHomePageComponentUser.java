@@ -1,13 +1,13 @@
 package com.crrc.sys.entity.homepage;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 1 * @Author: fucheng
  * 2 * @Description:
  * 3 * @Date: 2023/5/19
  */
-public class SysHomePageComponentUser extends BaseEntity {
+public class SysHomePageComponentUser extends BaseEntityYunLing {
 	/*
 	  主键
 	 */

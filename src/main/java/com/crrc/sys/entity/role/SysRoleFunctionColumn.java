@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.role;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 角色列权限
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2022-11-03
  */
-public class SysRoleFunctionColumn extends BaseEntity {
+public class SysRoleFunctionColumn extends BaseEntityYunLing {
 
     /**
      * 角色ID

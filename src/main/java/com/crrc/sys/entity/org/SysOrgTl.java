@@ -1,13 +1,13 @@
 package com.crrc.sys.entity.org;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 组织-多语言
  * @author 谭永强
  * @date 2022-10-15
  */
-public class SysOrgTl extends BaseEntity {
+public class SysOrgTl extends BaseEntityYunLing {
 
     /**
      * 组织ID

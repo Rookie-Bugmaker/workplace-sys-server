@@ -1,6 +1,6 @@
 package com.crrc.sys.model.org.dept;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 部门组织
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2024-09-03
  */
-public class SysOrgDeptOrgPO extends BaseEntity {
+public class SysOrgDeptOrgPO extends BaseEntityYunLing {
 
     /**
      * 主键

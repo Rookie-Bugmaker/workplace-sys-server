@@ -1,12 +1,12 @@
 package com.crrc.sys.entity.org.person;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * @author 谭永强
  * @date 2022-12-09
  */
-public class SysOrgPersonTl extends BaseEntity {
+public class SysOrgPersonTl extends BaseEntityYunLing {
 
 	/**
 	 * 人员ID

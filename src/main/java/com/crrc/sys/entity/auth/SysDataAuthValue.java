@@ -1,12 +1,12 @@
 package com.crrc.sys.entity.auth;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * @author 谭永强
  * @date 2023-03-22
  */
-public class SysDataAuthValue extends BaseEntity {
+public class SysDataAuthValue extends BaseEntityYunLing {
 
     /**
      * 数据权限ID

@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.auth;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import java.util.List;
  * @author 谭永强
  * @date 2023-03-22
  */
-public class SysDataAuth extends BaseEntity {
+public class SysDataAuth extends BaseEntityYunLing {
 
 	/**
 	 * 主键

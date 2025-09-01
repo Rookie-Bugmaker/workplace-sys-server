@@ -1,6 +1,6 @@
 package com.crrc.sys.model.entity;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 业务实体PO
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2024-11-13
  */
-public class SysEntityPO extends BaseEntity {
+public class SysEntityPO extends BaseEntityYunLing {
 
     /**
      * 主键

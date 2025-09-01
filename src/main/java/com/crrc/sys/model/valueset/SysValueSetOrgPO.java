@@ -1,12 +1,12 @@
 package com.crrc.sys.model.valueset;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * @author 谭永强
  * @date 2024-12-23
  */
-public class SysValueSetOrgPO extends BaseEntity {
+public class SysValueSetOrgPO extends BaseEntityYunLing {
 
     /**
      * 主键

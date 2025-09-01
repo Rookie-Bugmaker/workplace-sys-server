@@ -1,6 +1,6 @@
 package com.crrc.sys.model.oauth;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 import java.util.Date;
 
@@ -10,7 +10,7 @@ import java.util.Date;
  * @author 谭永强
  * @date 2024-12-06
  */
-public class OauthClientApi extends BaseEntity {
+public class OauthClientApi extends BaseEntityYunLing {
 
     /**
      * 客户端ID

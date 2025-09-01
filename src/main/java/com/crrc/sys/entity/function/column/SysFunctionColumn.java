@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.function.column;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import java.util.List;
  * @author 谭永强
  * @date 2022-10-31
  */
-public class SysFunctionColumn extends BaseEntity {
+public class SysFunctionColumn extends BaseEntityYunLing {
 
     /**
      * 主键

@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.role;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 组织权限关联表
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2022-10-15
  */
-public class SysRoleOrg extends BaseEntity {
+public class SysRoleOrg extends BaseEntityYunLing {
 
     /**
      * 角色ID或用户ID

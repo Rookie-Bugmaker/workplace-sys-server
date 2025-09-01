@@ -1,72 +1,43 @@
 package com.crrc.sys.entity;
 
-import java.util.Date;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.crrc.sys.handler.SerializableHandler;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
-/**
- * 公共实体
- * @author 谭永强
- * @date 2022-09-07
- */
-public class BaseEntity {
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
-    /**
-     * 创建人
-     */
+@Data
+@Schema(description = "基础实体类")
+@JsonSerialize(using = SerializableHandler.EntitySerializer.class)
+public abstract class BaseEntity implements Serializable {
+    @TableField(fill = FieldFill.INSERT)
+    @Schema(description = "创建人", example = "1")
     private Long createBy;
-    /**
-     * 创建时间
-     */
-    private Date createDate;
-    /**
-     * 最后修改人
-     */
-    private Long lastUpdateBy;
-    /**
-     * 最后修改时间
-     */
-    private Date lastUpdateDate;
-    /**
-     * 最后修改的登录信息ID
-     */
-    private Long lastUpdateLogin;
+    @TableField(fill = FieldFill.INSERT)
+    @Schema(description = "创建时间", example = "2024-01-01 00:00:00")
+    private LocalDateTime createTime;
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @Schema(description = "更新人", example = "1")
+    private Long updateBy;
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @Schema(description = "更新时间", example = "2024-01-01 00:00:00")
+    private LocalDateTime updateTime;
 
-    public Long getCreateBy() {
-        return createBy;
-    }
+    @TableField(exist = false)
+    @Schema(description = "创建人名称", example = "admin")
+    private String createPerson;
 
-    public void setCreateBy(Long createBy) {
-        this.createBy = createBy;
-    }
+    @TableField(exist = false)
+    @Schema(description = "更新人名称", example = "admin")
+    private String updatePerson;
 
-    public Date getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(Date createDate) {
-        this.createDate = createDate;
-    }
-
-    public Long getLastUpdateBy() {
-        return lastUpdateBy;
-    }
-
-    public void setLastUpdateBy(Long lastUpdateBy) {
-        this.lastUpdateBy = lastUpdateBy;
-    }
-
-    public Date getLastUpdateDate() {
-        return lastUpdateDate;
-    }
-
-    public void setLastUpdateDate(Date lastUpdateDate) {
-        this.lastUpdateDate = lastUpdateDate;
-    }
-
-    public Long getLastUpdateLogin() {
-        return lastUpdateLogin;
-    }
-
-    public void setLastUpdateLogin(Long lastUpdateLogin) {
-        this.lastUpdateLogin = lastUpdateLogin;
-    }
+    // 动态字段存储
+    @TableField(exist = false)
+    private Map<String, Object> dynamicFields = new HashMap<>();
 }

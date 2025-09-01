@@ -1,6 +1,6 @@
 package com.crrc.sys.model.oauth;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 客户端信息
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2024-12-06
  */
-public class OauthClientDetailsPO extends BaseEntity {
+public class OauthClientDetailsPO extends BaseEntityYunLing {
 
     /**
      * 用户关联ID

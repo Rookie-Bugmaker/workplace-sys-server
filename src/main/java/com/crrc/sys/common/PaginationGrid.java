@@ -1,6 +1,7 @@
 package com.crrc.sys.common;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.pagehelper.PageInfo;
 import org.springframework.util.ObjectUtils;
 
@@ -99,6 +100,22 @@ public class PaginationGrid<T> {
         page.setTotal(iPage.getTotal());
         page.setRows(iPage.getRecords());
         return page;
+    }
+
+    /**
+     * 分页信息结果返回（mybatis plus分頁）
+     *
+     * @param page 当前页数据
+     * @return 分页数据
+     */
+    public static <T> PaginationGrid<T> success(Page<T> page) {
+        if (ObjectUtils.isEmpty(page)) {
+            return null;
+        }
+        PaginationGrid<T> page1 = new PaginationGrid<>((int) page.getCurrent(), (int) page.getSize());
+        page1.setTotal(page.getTotal());
+        page1.setRows(page.getRecords());
+        return page1;
     }
 
     public Integer getPage() {

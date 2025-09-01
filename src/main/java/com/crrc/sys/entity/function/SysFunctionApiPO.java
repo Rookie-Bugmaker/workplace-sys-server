@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.function;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 功能接口绑定信息
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2024-01-11
  */
-public class SysFunctionApiPO extends BaseEntity {
+public class SysFunctionApiPO extends BaseEntityYunLing {
 
     /**
      * 功能ID

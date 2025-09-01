@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.user;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 用户角色中间表
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2022-09-09
  */
-public class SysUserRole extends BaseEntity {
+public class SysUserRole extends BaseEntityYunLing {
 
     /**
      * 主键

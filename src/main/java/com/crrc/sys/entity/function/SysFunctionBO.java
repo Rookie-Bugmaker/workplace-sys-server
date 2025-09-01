@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.function;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 import com.crrc.sys.entity.api.SysApi;
 
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.List;
  * @author 谭永强
  * @date 2024-01-11
  */
-public class SysFunctionBO extends BaseEntity {
+public class SysFunctionBO extends BaseEntityYunLing {
 
     /**
      * 主键ID

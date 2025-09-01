@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.role;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 角色-国际化
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2022-09-09
  */
-public class SysRoleTl extends BaseEntity {
+public class SysRoleTl extends BaseEntityYunLing {
 
     /**
      * 角色ID

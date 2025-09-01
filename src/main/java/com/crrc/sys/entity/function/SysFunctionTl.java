@@ -1,6 +1,6 @@
 package com.crrc.sys.entity.function;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * 功能-多语言
@@ -8,7 +8,7 @@ import com.crrc.sys.entity.BaseEntity;
  * @author 谭永强
  * @date 2022-09-15
  */
-public class SysFunctionTl extends BaseEntity {
+public class SysFunctionTl extends BaseEntityYunLing {
 
     /**
      * 功能ID

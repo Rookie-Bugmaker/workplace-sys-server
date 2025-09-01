@@ -1,12 +1,12 @@
 package com.crrc.sys.entity.profile;
 
-import com.crrc.sys.entity.BaseEntity;
+import com.crrc.sys.entity.BaseEntityYunLing;
 
 /**
  * @author 谭永强
  * @date 2022-12-19
  */
-public class SysProfile extends BaseEntity {
+public class SysProfile extends BaseEntityYunLing {
 
     /**
      * 主键
