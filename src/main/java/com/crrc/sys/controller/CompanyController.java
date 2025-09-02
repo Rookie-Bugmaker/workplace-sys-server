@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -87,7 +86,7 @@ public class CompanyController {
 
     @GetMapping("/list")
     @Operation(summary = "获取公司信息list")
-    public List<CompanyGetRespVO> getCompany(HttpServletRequest request) {
+    public List<CompanyGetRespVO> getCompany() {
         LambdaQueryWrapper<Company> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Company::getStatus, "0");
         List<Company> companies = companyService.list(wrapper);
