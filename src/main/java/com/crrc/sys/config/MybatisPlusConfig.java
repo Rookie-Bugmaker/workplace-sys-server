@@ -41,7 +41,7 @@ public class MybatisPlusConfig {
         // 转义插件
         interceptor.addInnerInterceptor(new EscapeLikeSqlInterceptor());
         //分页插件
-        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.ORACLE));
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
         //防全表更新与删除插件
         interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
         //乐观锁插件
