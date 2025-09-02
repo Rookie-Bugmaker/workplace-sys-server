@@ -38,7 +38,7 @@ public class CompanyController {
     @PostMapping("/create")
     @Operation(summary = "创建公司")
     @AuditLog(value = "创建公司", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_ADD)
-    public Long createCompany(HttpServletRequest request, @Valid @RequestBody CompanyCreateReqVO createReqVO) {
+    public Long createCompany(@Valid @RequestBody CompanyCreateReqVO createReqVO) {
         Company company = BeanUtils.toBean(createReqVO, Company.class);
         companyService.save(company);
         return company.getId();
@@ -47,7 +47,7 @@ public class CompanyController {
     @PostMapping("/update")
     @Operation(summary = "修改公司信息")
     @AuditLog(value = "修改公司信息", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_ADD)
-    public Long updateCompany(HttpServletRequest request, @Valid @RequestBody CompanyUpdateReqVO updateReqVO) {
+    public Long updateCompany(@Valid @RequestBody CompanyUpdateReqVO updateReqVO) {
         Company company = BeanUtils.toBean(updateReqVO, Company.class);
         Company companyInDB = companyService.getById(company.getId());
         if (companyInDB == null) {
@@ -60,7 +60,7 @@ public class CompanyController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除公司信息")
     @AuditLog(value = "删除公司信息", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_DELETE)
-    public void deleteCompany(HttpServletRequest request, @NotNull @RequestParam Long id) {
+    public void deleteCompany(@NotNull @RequestParam Long id) {
         Company companyInDB = companyService.getById(id);
         if (companyInDB == null) {
             log.warn("[deleteCompany] 公司不存在 {}", id);
@@ -93,13 +93,12 @@ public class CompanyController {
         List<Company> companies = companyService.list(wrapper);
         CompanyGetRespVO companyGetRespVO = new CompanyGetRespVO();
         org.springframework.beans.BeanUtils.copyProperties(companies, companyGetRespVO);
-        List<CompanyGetRespVO> companyList = BeanUtils.toBean(companies, CompanyGetRespVO.class);
-        return companyList;
+        return BeanUtils.toBean(companies, CompanyGetRespVO.class);
     }
 
     @GetMapping("/page")
     @Operation(summary = "获取公司信息page")
-    public PaginationGrid<CompanyGetRespVO> getCompany(HttpServletRequest request, CompanyPageReqVO pageReqVO) {
+    public PaginationGrid<CompanyGetRespVO> getCompany(CompanyPageReqVO pageReqVO) {
         LambdaQueryWrapper<Company> wapper = new LambdaQueryWrapper<>();
         wapper.eq(!StrUtil.isEmpty(pageReqVO.getCompanyName()), Company::getCompanyName, pageReqVO.getCompanyName());
         wapper.eq(!Objects.isNull(pageReqVO.getCompanyId()), Company::getCompanyId, pageReqVO.getCompanyId());
@@ -118,7 +117,7 @@ public class CompanyController {
 
     @GetMapping("/simple")
     @Operation(summary = "获取公司简单信息")
-    public List<CompanyGetRespVO> getSimpleCompany(HttpServletRequest request, CompanyPageReqVO pageReqVO) {
+    public List<CompanyGetRespVO> getSimpleCompany(CompanyPageReqVO pageReqVO) {
         LambdaQueryWrapper<Company> wapper = new LambdaQueryWrapper<>();
         wapper.select(Company::getCompanyId, Company::getCompanyName, Company::getId, Company::getOrgCode);
         wapper.eq(!StrUtil.isEmpty(pageReqVO.getCompanyName()), Company::getCompanyName, pageReqVO.getCompanyName());

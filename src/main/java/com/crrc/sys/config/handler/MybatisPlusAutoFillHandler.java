@@ -13,7 +13,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * Mybatis Plus自动填充处理器
@@ -52,7 +52,7 @@ public class MybatisPlusAutoFillHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         //创建时间
-        this.setFieldValByName(CREATE_TIME, new Date(), metaObject);
+        this.setFieldValByName(CREATE_TIME, LocalDateTime.now(), metaObject);
         //如果返回值为false，说明没有token，直接将创建人设置为-1
         if (checkRequestToken()) {
             //创建人
@@ -72,7 +72,7 @@ public class MybatisPlusAutoFillHandler implements MetaObjectHandler {
     @Override
     public void updateFill(MetaObject metaObject) {
         //最后修改时间
-        this.setFieldValByName(UPDATE_TIME, new Date(), metaObject);
+        this.setFieldValByName(UPDATE_TIME, LocalDateTime.now(), metaObject);
         //如果返回值为true，说明没有token，直接将修改人设置为-1
         if (checkRequestToken()) {
             //最后修改人
