@@ -28,7 +28,7 @@ import java.util.Objects;
 @Tag(name = "系统管理 - 公司管理")
 @RestController
 @Slf4j
-@RequestMapping("/sys/company")
+@RequestMapping("company")
 public class CompanyController {
     @Autowired
     CompanyService companyService;
