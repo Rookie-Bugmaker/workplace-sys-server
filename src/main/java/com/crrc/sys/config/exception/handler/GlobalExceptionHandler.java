@@ -8,8 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.util.ObjectUtils;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
+import javax.validation.ValidationException;
 
 /**
  * 自定义全局异常处理
@@ -44,6 +51,53 @@ public class GlobalExceptionHandler {
     public ResultData<String> pvExceptionHandler(ParamValidateException e) {
         logger.error("参数校验异常-->原因是：{}", e.getErrorMsg(), e);
         return ResultData.fail(e.getErrorCode(), e.getErrorMsg());
+    }
+
+    /**
+     * 参数校验异常
+     *
+     * @param e 方法参数不合法异常
+     * @return 统一返回结果
+     */
+    @ExceptionHandler(value = {MethodArgumentNotValidException.class, BindException.class})
+    public ResultData<String> handleParamValidException(Exception e, HttpServletResponse response) {
+        BindingResult bindingResult = null;
+        if (e instanceof MethodArgumentNotValidException) {
+            bindingResult = ((MethodArgumentNotValidException) e).getBindingResult();
+        } else if (e instanceof BindException) {
+            bindingResult = ((BindException) e).getBindingResult();
+        }
+        if (bindingResult == null) {
+            return ResultData.fail(ReturnCode.RC205.getCode(), "参数校验异常");
+        }
+        StringBuilder builder = new StringBuilder();
+        bindingResult.getFieldErrors().forEach(item -> {
+            //获取错误信息
+            builder.append(item.getDefaultMessage()).append(" ");
+        });
+        return ResultData.fail(ReturnCode.RC205.getCode(), builder + "");
+    }
+
+    /**
+     * 参数校验异常
+     *
+     * @param e 方法参数不合法异常
+     * @return 统一返回结果
+     */
+    @ExceptionHandler(value = ConstraintViolationException.class)
+    public ResultData<String> handleParamValidException(ConstraintViolationException e, HttpServletResponse response) {
+        return ResultData.fail(ReturnCode.RC205.getCode(), e.getMessage());
+    }
+
+    /**
+     * Validation参数校验异常
+     *
+     * @param e 方法参数不合法异常
+     * @return 统一返回结果
+     */
+    @ExceptionHandler(value = ValidationException.class)
+    public ResultData<String> handleParamValidException(ValidationException e, HttpServletResponse response) {
+        return ResultData.fail(ReturnCode.RC205.getCode(), e.getMessage());
     }
 
     /**
