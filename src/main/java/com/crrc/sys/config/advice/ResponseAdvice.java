@@ -8,11 +8,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * 全局响应类
@@ -59,6 +62,10 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
+        }
+        if(Collection.class.isAssignableFrom(methodParameter.getParameterType()) && ObjectUtils.isEmpty(o)){
+            //根据前端需求，如果返回值是集合且没有数据，统一返回空数组，而不是返回null
+            return ResultData.success(new ArrayList<>());
         }
         if (o instanceof SseEmitter) {
             return o;

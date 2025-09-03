@@ -112,4 +112,8 @@ public class SysDeptPersonController {
         }
         deptPersonService.removeBatchByIds(ids);
     }
+
+    public List<SysDeptPersonPO> findByCompanyId(){
+        return null;
+    }
 }
