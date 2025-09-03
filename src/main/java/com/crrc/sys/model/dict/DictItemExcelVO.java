@@ -28,7 +28,7 @@ public class DictItemExcelVO {
     private String sorted;
 
     /**
-     * lombok和easyexcel不兼容
+     * lombok和easyexcel不兼容(或使用非链式)
      * @return
      */
     public String getDictCode() {
