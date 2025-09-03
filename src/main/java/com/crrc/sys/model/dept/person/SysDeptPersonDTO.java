@@ -46,5 +46,5 @@ public class SysDeptPersonDTO {
     /**
      * 员工编号
      */
-    private String personNo;
+    private String jobNo;
 }

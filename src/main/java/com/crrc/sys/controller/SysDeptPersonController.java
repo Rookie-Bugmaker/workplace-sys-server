@@ -219,7 +219,7 @@ public class SysDeptPersonController {
             SysOrgPerson person = personList.stream().filter(o -> o.getPersonId().equals(personDto.getPersonId())).findFirst().orElse(null);
             if (!ObjectUtils.isEmpty(person)) {
                 personDto.setPersonName(person.getFullName());
-                personDto.setPersonNo(person.getJobNo());
+                personDto.setJobNo(person.getJobNo());
             }
             //查找人员信息
             person = personList.stream().filter(o -> o.getPersonId().equals(personDto.getParentPersonId())).findFirst().orElse(null);
