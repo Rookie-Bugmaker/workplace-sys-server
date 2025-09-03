@@ -203,7 +203,7 @@ public class SysDeptPersonController {
      * @return DTO集合
      */
     private List<SysDeptPersonDTO> poToDto(List<SysDeptPersonPO> personPoList) {
-        List<SysDeptPersonDTO> personDtoList = SysDeptPersonConvert.INSTANCE.poListToDtoList(personPoList);
+        List<SysDeptPersonDTO> personDtoList = SysDeptPersonConvert.INSTANCE.poToDto(personPoList);
         List<Long> personIdList1 = personDtoList.stream().map(SysDeptPersonDTO::getPersonId).collect(Collectors.toList());
         List<Long> personIdList2 = personDtoList.stream().map(SysDeptPersonDTO::getParentPersonId).filter(o -> !ObjectUtils.isEmpty(o)).collect(Collectors.toList());
         if (!ObjectUtils.isEmpty(personIdList2)) {

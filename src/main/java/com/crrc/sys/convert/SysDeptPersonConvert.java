@@ -34,6 +34,6 @@ public abstract class SysDeptPersonConvert {
      * @param poList SysDeptPersonPO集合
      * @return List<SysDeptPersonDTO>
      */
-    public abstract List<SysDeptPersonDTO> poListToDtoList(List<SysDeptPersonPO> poList);
+    public abstract List<SysDeptPersonDTO> poToDto(List<SysDeptPersonPO> poList);
 
 }
