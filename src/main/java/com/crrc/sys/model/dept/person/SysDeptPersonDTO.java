@@ -43,4 +43,8 @@ public class SysDeptPersonDTO {
      * 上级人员姓名
      */
     private String parentPersonName;
+    /**
+     * 员工编号
+     */
+    private String personNo;
 }
