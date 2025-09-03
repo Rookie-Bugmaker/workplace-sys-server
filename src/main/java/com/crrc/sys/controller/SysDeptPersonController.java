@@ -142,8 +142,8 @@ public class SysDeptPersonController {
         if (ObjectUtils.isEmpty(page) || page <= 0) {
             throw new ParamValidateException("page不能为空且必须>0");
         }
-        if (ObjectUtils.isEmpty(pageSize) || pageSize < 0) {
-            throw new ParamValidateException("pageSize不能为空且必须>=0");
+        if (ObjectUtils.isEmpty(pageSize)) {
+            throw new ParamValidateException("pageSize不能为空");
         }
         //根据公司ID查询部门列表
         List<Dept> deptList = deptService.getDeptListByCompanyId(companyId);
@@ -176,6 +176,12 @@ public class SysDeptPersonController {
      */
     @GetMapping("findByDeptId/{deptId}")
     public PaginationGrid<SysDeptPersonDTO> findByDeptId(@PathVariable("deptId") Long deptId, Long page, Long pageSize) {
+        if (ObjectUtils.isEmpty(page) || page <= 0) {
+            throw new ParamValidateException("page不能为空且必须>0");
+        }
+        if (ObjectUtils.isEmpty(pageSize)) {
+            throw new ParamValidateException("pageSize不能为空");
+        }
         LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(!ObjectUtils.isEmpty(deptId), SysDeptPersonPO::getDeptId, deptId);
         IPage<SysDeptPersonPO> iPage = new Page<>(page, pageSize);
