@@ -1,6 +1,5 @@
 package com.crrc.sys.controller;
 
-import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -76,21 +75,21 @@ public class DeptController {
     @PostMapping("/list")
     @Operation(summary = "获取部门列表")
     public List<DeptListRespVO> listDept(@Valid @RequestBody DeptqueryVo deptqueryVo) {
-        deptqueryVo.getCompanyIds().add(0L);
-        LambdaQueryWrapper<Dept> deptLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        if (StrUtil.isNotBlank(deptqueryVo.getKeywords())) {
-            deptLambdaQueryWrapper.like(Dept::getDepartmentName, deptqueryVo.getKeywords());
-        }
-        // 剔除临时部门
-        deptLambdaQueryWrapper.ne(Dept::getCompanyId, 0L);
-        deptLambdaQueryWrapper.ne(Dept::getOrgCode, "0");
-        deptLambdaQueryWrapper.in(!Objects.isNull(deptqueryVo.getDeptIds()) && !deptqueryVo.getDeptIds().isEmpty(), Dept::getId, deptqueryVo.getDeptIds());
-        deptLambdaQueryWrapper.in(Dept::getCompanyId, deptqueryVo.getCompanyIds());
-        deptLambdaQueryWrapper.orderByAsc(Dept::getCompanyId, Dept::getOrgCode);
-        List<Dept> deptList = deptService.list(deptLambdaQueryWrapper);
+        LambdaQueryWrapper<Dept> queryWrapper = new LambdaQueryWrapper<>();
+        //部门名称模糊查询
+        queryWrapper.like(!ObjectUtils.isEmpty(deptqueryVo.getKeywords()), Dept::getDepartmentName, deptqueryVo.getKeywords());
+        //根据部门ID集合查询
+        queryWrapper.in(!ObjectUtils.isEmpty(deptqueryVo.getDeptIds()), Dept::getId, deptqueryVo.getDeptIds());
+        //根据公司ID集合查询
+        queryWrapper.in(!ObjectUtils.isEmpty(deptqueryVo.getCompanyIds()), Dept::getCompanyId, deptqueryVo.getCompanyIds());
+        //排序
+        queryWrapper.orderByAsc(Dept::getCompanyId, Dept::getOrgCode);
+        List<Dept> deptList = deptService.list(queryWrapper);
         if (ObjectUtils.isEmpty(deptList)) {
             return null;
         }
+        // 剔除临时部门
+        deptList.removeIf(o -> o.getCompanyId() == 0 || o.getOrgCode().equals("0"));
         return deptService.getDeptListResp(deptList);
     }
 

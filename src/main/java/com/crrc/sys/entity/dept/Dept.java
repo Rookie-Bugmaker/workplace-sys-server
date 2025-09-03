@@ -6,8 +6,15 @@ import com.crrc.sys.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+
+/**
+ * 部门实体
+ * 注意：部门与部门之间的上下级关系通过org_code与parent_org_code体现。
+ */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,7 +30,7 @@ public class Dept extends BaseEntity {
     private String orgCode;
 
     @Schema(description = "父组织编码", example = "2")
-    @TableField(updateStrategy=FieldStrategy.ALWAYS)
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String parentOrgCode;
 
     @Schema(description = "部门名称", example = "流程与信息化")
@@ -40,11 +47,10 @@ public class Dept extends BaseEntity {
 
     @Schema(description = "备注", example = "备注")
     private String remark;
-
     /**
      * 是否删除
      */
-    @TableLogic(value = "0",delval = "id")
+    @TableLogic(value = "0", delval = "id")
     @Schema(description = "删除", example = "false")
     private Integer deleted;
 }
