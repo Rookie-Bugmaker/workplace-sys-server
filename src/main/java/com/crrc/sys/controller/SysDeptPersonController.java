@@ -211,7 +211,7 @@ public class SysDeptPersonController {
         }
         //根据人员ID查询人员信息
         List<SysOrgPerson> personList = personService.findByIds(personIdList1);
-        if(!CollectionUtils.isEmpty(personList)){
+        if(CollectionUtils.isEmpty(personList)){
             return personDtoList;
         }
         for (SysDeptPersonDTO personDto : personDtoList) {
