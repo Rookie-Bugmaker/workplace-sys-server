@@ -16,7 +16,7 @@
 	</resultMap>
 
 	<!--人员查询-->
-	<select id="findByFuzzy" resultMap="personMap" parameterType="com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam">
+	<select id="findByFuzzy" resultMap="personMap">
 		select b.person_id,full_name,gender,job_no,person_type,phone,email,status,induction_date,quit_date
 		from sys_org_person_b b
 		join sys_org_person_tl tl on tl.person_id = b.person_id and tl.language = #{language}
@@ -51,22 +51,22 @@
 	</select>
 
 	<!--人员新增-->
-	<insert id="insert" parameterType="com.crrc.sys.entity.org.person.SysOrgPerson">
+	<insert id="insert">
 		insert into sys_org_person_b (person_id,gender,job_no,person_type,phone,email,status,induction_date,quit_date,create_by,create_date)
 		values (#{personId},#{gender},#{jobNo},#{personType},#{phone},#{email},#{status},#{inductionDate},#{quitDate},#{createBy},#{createDate})
 	</insert>
+
 	<!-- 人员批量新增 -->
 	<insert id="insertBatch">
-		insert into sys_org_person_b (person_id,gender,job_no,person_type,phone,email,status,induction_date,quit_date,create_by,create_date)
-
-		<foreach collection="persons" item="item" separator="union all">
-			select  #{item.personId},#{item.gender},#{item.jobNo},#{item.personType},#{item.phone},#{item.email},#{item.status},#{item.inductionDate},#{item.quitDate},#{item.createBy},#{item.createDate} from dual
+		insert into sys_org_person_b (person_id,gender,job_no,person_type,phone,email,status,induction_date,quit_date,create_by,create_date) values
+		<foreach collection="persons" item="item" separator=",">
+			(#{item.personId},#{item.gender},#{item.jobNo},#{item.personType},#{item.phone},#{item.email},#{item.status},#{item.inductionDate},#{item.quitDate},#{item.createBy},#{item.createDate})
 		</foreach>
 
 	</insert>
 
 	<!--人员修改-->
-	<update id="update" parameterType="com.crrc.sys.entity.org.person.SysOrgPerson">
+	<update id="update">
 		update sys_org_person_b
 		<set>
 			gender = #{gender},
@@ -91,14 +91,14 @@
 		join sys_org_person_tl tl on tl.person_id = b.person_id and tl.language = #{language}
 		where b.person_id = #{personId}
 	</select>
-    <select id="findByJobNo" resultType="com.crrc.sys.entity.org.person.SysOrgPerson">
-		select *
-		from SYS_ORG_PERSON_B
-		where JOB_NO = #{jobNo}
+
+	<!--根据工号查询人员信息-->
+    <select id="findByJobNo" resultMap="personMap">
+		select * from sys_org_person_b where JOB_NO = #{jobNo}
 	</select>
 
     <!--根据人员ID删除-->
-	<delete id="delete" parameterType="java.util.List">
+	<delete id="delete">
 		delete from sys_org_person_b where person_id in
 		<foreach collection="personIdList" item="personId" open="(" separator="," close=")">
 			#{personId}
@@ -127,8 +127,7 @@
 		</foreach>
 	</select>
 	<select id="findByJobNos" resultMap="personMap">
-		select *
-		from SYS_ORG_PERSON_B
+		select * from sys_org_person_b
 		<if test="jobNos != null">
 			where JOB_NO in
 			<foreach collection="jobNos" item="item" separator="," open="(" close=")">

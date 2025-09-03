@@ -294,14 +294,6 @@ public class SysOrgPersonController {
             if (ObjectUtils.isEmpty(person.getPersonId())) {
                 throw new ParamValidateException("personId不能为空!");
             }
-            if (ObjectUtils.isEmpty(person.getLanguage())) {
-                throw new ParamValidateException("language不能为空");
-            }
-            //处理前端请求，无缘无故多个逗号的问题
-            person.setLanguage(person.getLanguage().substring(0, 5));
-            if (!LanguageEnum.contains(person.getLanguage())) {
-                throw new ParamValidateException("language参数错误");
-            }
         }
         if (ObjectUtils.isEmpty(person.getFullName())) {
             throw new ParamValidateException("姓名不能为空!");
