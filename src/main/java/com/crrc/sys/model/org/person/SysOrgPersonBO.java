@@ -1,9 +1,6 @@
 package com.crrc.sys.model.org.person;
 
-import com.crrc.sys.model.org.dept.SysOrgDeptBO;
-
 import java.util.Date;
-import java.util.List;
 
 /**
  * 员工信息业务对象
@@ -53,10 +50,6 @@ public class SysOrgPersonBO {
      * 离职日期
      */
     private Date quitDate;
-    /**
-     * 所属部门
-     */
-    private List<SysOrgDeptBO> deptList;
 
     public Long getPersonId() {
         return personId;
@@ -136,13 +129,5 @@ public class SysOrgPersonBO {
 
     public void setQuitDate(Date quitDate) {
         this.quitDate = quitDate;
-    }
-
-    public List<SysOrgDeptBO> getDeptList() {
-        return deptList;
-    }
-
-    public void setDeptList(List<SysOrgDeptBO> deptList) {
-        this.deptList = deptList;
     }
 }

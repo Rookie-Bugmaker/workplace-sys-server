@@ -1,10 +1,7 @@
 package com.crrc.sys.entity.dept;
 
 import com.alibaba.excel.annotation.ExcelIgnore;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.crrc.sys.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -26,6 +23,7 @@ public class Dept extends BaseEntity {
     private String orgCode;
 
     @Schema(description = "父组织编码", example = "2")
+    @TableField(updateStrategy=FieldStrategy.ALWAYS)
     private String parentOrgCode;
 
     @Schema(description = "部门名称", example = "流程与信息化")
