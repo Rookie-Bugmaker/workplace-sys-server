@@ -141,6 +141,62 @@ public class SysOrgPersonController {
     }
 
     /**
+     * 公共参数校验
+     *
+     * @param operation 新增或修改
+     * @param person    人员
+     */
+    private void verification(String operation, SysOrgPerson person) {
+        if (ObjectUtils.isEmpty(person)) {
+            throw new ParamValidateException("参数错误");
+        }
+        if (ObjectUtils.isEmpty(person.getJobNo())) {
+            throw new ParamValidateException("工号不能为空!");
+        }
+        if (person.getJobNo().length() > 20) {
+            throw new ParamValidateException("工号超长(最大20)!");
+        }
+        // 根据工号查询人员信息
+        SysOrgPerson byJobNo = orgPersonService.findByJobNo(person.getJobNo());
+        if (OperationTypeEnum.ADD.getValue().equals(operation)) {
+            if (!ObjectUtils.isEmpty(byJobNo)) {
+                throw new ParamValidateException("工号已存在");
+            }
+        }
+        if (OperationTypeEnum.UPDATE.getValue().equals(operation)) {
+            if (ObjectUtils.isEmpty(person.getPersonId())) {
+                throw new ParamValidateException("personId不能为空!");
+            }
+        }
+        if (ObjectUtils.isEmpty(person.getFullName())) {
+            throw new ParamValidateException("姓名不能为空!");
+        }
+        if (person.getFullName().length() > 30) {
+            throw new ParamValidateException("姓名超长(最大30)!");
+        }
+        if (ObjectUtils.isEmpty(person.getGender())) {
+            throw new ParamValidateException("性别不能为空!");
+        }
+        if (!GenderEnum.contains(person.getGender())) {
+            throw new ParamValidateException("性别参数错误!");
+        }
+        if (!ObjectUtils.isEmpty(person.getPhone()) && person.getPhone().length() > 11) {
+            throw new ParamValidateException("手机超长(最大11)!");
+        }
+        //邮箱校验
+        String emailReg = "^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z0-9]{2,6}$";
+        if (!ObjectUtils.isEmpty(person.getEmail()) && !person.getEmail().matches(emailReg)) {
+            throw new ParamValidateException("邮箱格式错误!");
+        }
+        if (person.getEmail().length() > 50) {
+            throw new ParamValidateException("邮箱超长(最大50)!");
+        }
+        if (ObjectUtils.isEmpty(person.getStatus())) {
+            throw new ParamValidateException("人员状态不能为空");
+        }
+    }
+
+    /**
      * 人员删除
      *
      * @param personIds 人员ID，多个以逗号","拼接
@@ -268,58 +324,16 @@ public class SysOrgPersonController {
     }
 
     /**
-     * 公共参数校验
+     * 根据人员ID查询人员信息(批量)
      *
-     * @param operation 新增或修改
-     * @param person    人员
+     * @param personIdList 人员ID集合
+     * @return 人员列表
      */
-    private void verification(String operation, SysOrgPerson person) {
-        if (ObjectUtils.isEmpty(person)) {
-            throw new ParamValidateException("参数错误");
+    @PostMapping("findByIds")
+    public List<SysOrgPerson> findByIds(@RequestBody List<Long> personIdList) {
+        if (CollectionUtils.isEmpty(personIdList)) {
+            throw new ParamValidateException("参数不能为空");
         }
-        if (ObjectUtils.isEmpty(person.getJobNo())) {
-            throw new ParamValidateException("工号不能为空!");
-        }
-        if (person.getJobNo().length() > 20) {
-            throw new ParamValidateException("工号超长(最大20)!");
-        }
-        // 根据工号查询人员信息
-        SysOrgPerson byJobNo = orgPersonService.findByJobNo(person.getJobNo());
-        if (OperationTypeEnum.ADD.getValue().equals(operation)) {
-            if (!ObjectUtils.isEmpty(byJobNo)) {
-                throw new ParamValidateException("工号已存在");
-            }
-        }
-        if (OperationTypeEnum.UPDATE.getValue().equals(operation)) {
-            if (ObjectUtils.isEmpty(person.getPersonId())) {
-                throw new ParamValidateException("personId不能为空!");
-            }
-        }
-        if (ObjectUtils.isEmpty(person.getFullName())) {
-            throw new ParamValidateException("姓名不能为空!");
-        }
-        if (person.getFullName().length() > 30) {
-            throw new ParamValidateException("姓名超长(最大30)!");
-        }
-        if (ObjectUtils.isEmpty(person.getGender())) {
-            throw new ParamValidateException("性别不能为空!");
-        }
-        if (!GenderEnum.contains(person.getGender())) {
-            throw new ParamValidateException("性别参数错误!");
-        }
-        if (!ObjectUtils.isEmpty(person.getPhone()) && person.getPhone().length() > 11) {
-            throw new ParamValidateException("手机超长(最大11)!");
-        }
-        //邮箱校验
-        String emailReg = "^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z0-9]{2,6}$";
-        if (!ObjectUtils.isEmpty(person.getEmail()) && !person.getEmail().matches(emailReg)) {
-            throw new ParamValidateException("邮箱格式错误!");
-        }
-        if (person.getEmail().length() > 50) {
-            throw new ParamValidateException("邮箱超长(最大50)!");
-        }
-        if (ObjectUtils.isEmpty(person.getStatus())) {
-            throw new ParamValidateException("人员状态不能为空");
-        }
+        return orgPersonService.findByIds(personIdList);
     }
 }
