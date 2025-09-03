@@ -38,7 +38,7 @@ import java.util.Objects;
 @RequestMapping("dept")
 public class DeptController {
     @Autowired
-    DeptService deptService;
+    private DeptService deptService;
     /*@Autowired
     DeptRoleService deptRoleService;
     @Autowired

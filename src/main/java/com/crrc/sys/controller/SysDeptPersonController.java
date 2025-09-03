@@ -1,16 +1,23 @@
 package com.crrc.sys.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.common.IdKeyGenerator;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
+import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.enums.OperationTypeEnum;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.service.DeptService;
 import com.crrc.sys.service.SysDeptPersonService;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 部门人员管理-控制器
@@ -26,6 +33,8 @@ public class SysDeptPersonController {
     private IdKeyGenerator idKeyGenerator;
     @Resource
     private SysDeptPersonService deptPersonService;
+    @Resource
+    private DeptService deptService;
 
 
     /**
@@ -107,13 +116,56 @@ public class SysDeptPersonController {
      */
     @DeleteMapping
     public void delete(@RequestBody List<Long> ids) {
-        if(ObjectUtils.isEmpty(ids)){
+        if (ObjectUtils.isEmpty(ids)) {
             throw new ParamValidateException("参数不能为空!");
         }
         deptPersonService.removeBatchByIds(ids);
     }
 
-    public List<SysDeptPersonPO> findByCompanyId(){
-        return null;
+    /**
+     * 根据公司ID查询部门人员列表
+     *
+     * @param companyId 公司ID
+     * @param page      当前页码
+     * @param pageSize  查询数据条数
+     * @return 部门人员列表
+     */
+    @GetMapping("findByCompanyId/{companyId}")
+    public PaginationGrid<SysDeptPersonPO> findByCompanyId(@PathVariable("companyId") Long companyId, Long page, Long pageSize) {
+        if (ObjectUtils.isEmpty(page) || page <= 0) {
+            throw new ParamValidateException("page不能为空且必须>0");
+        }
+        if (ObjectUtils.isEmpty(pageSize) || pageSize < 0) {
+            throw new ParamValidateException("pageSize不能为空且必须>=0");
+        }
+        //根据公司ID查询部门列表
+        List<Dept> deptList = deptService.getDeptListByCompanyId(companyId);
+        if (ObjectUtils.isEmpty(deptList)) {
+            return null;
+        }
+        List<Long> deptIdList = deptList.stream().map(Dept::getId).collect(Collectors.toList());
+        //根据部门ID集合查询部门人员列表
+        LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(!ObjectUtils.isEmpty(deptIdList), SysDeptPersonPO::getDeptId, deptIdList);
+        IPage<SysDeptPersonPO> iPage = new Page<>(page, pageSize);
+        iPage = deptPersonService.page(iPage, queryWrapper);
+        return PaginationGrid.success(iPage);
+    }
+
+    /**
+     * 根据部门ID查询部门人员列表
+     *
+     * @param deptId   部门ID
+     * @param page     当前页码
+     * @param pageSize 查询数据条数
+     * @return 部门人员列表
+     */
+    @GetMapping("findByDeptId/{deptId}")
+    public PaginationGrid<SysDeptPersonPO> findByDeptId(@PathVariable("deptId") Long deptId, Long page, Long pageSize) {
+        LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(!ObjectUtils.isEmpty(deptId), SysDeptPersonPO::getDeptId, deptId);
+        IPage<SysDeptPersonPO> iPage = new Page<>(page, pageSize);
+        iPage = deptPersonService.page(iPage, queryWrapper);
+        return PaginationGrid.success(iPage);
     }
 }
