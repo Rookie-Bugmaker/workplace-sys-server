@@ -88,8 +88,8 @@ public class DeptController {
         deptLambdaQueryWrapper.in(Dept::getCompanyId, deptqueryVo.getCompanyIds());
         deptLambdaQueryWrapper.orderByAsc(Dept::getCompanyId, Dept::getOrgCode);
         List<Dept> deptList = deptService.list(deptLambdaQueryWrapper);
-        if (deptList == null || deptList.isEmpty()) {
-            throw new BizException("部门不能为空");
+        if (ObjectUtils.isEmpty(deptList)) {
+            return null;
         }
         return deptService.getDeptListResp(deptList);
     }
@@ -108,8 +108,8 @@ public class DeptController {
         deptLambdaQueryWrapper.in(!Objects.isNull(ids) && !ids.isEmpty(), Dept::getId, ids);
         deptLambdaQueryWrapper.orderByAsc(Dept::getCompanyId, Dept::getOrgCode);
         List<Dept> deptList = deptService.list(deptLambdaQueryWrapper);
-        if (deptList == null || deptList.isEmpty()) {
-            throw new BizException("部门为空");
+        if (ObjectUtils.isEmpty(deptList)) {
+            return null;
         }
         return deptList;
     }
@@ -119,7 +119,7 @@ public class DeptController {
     public DeptRespVO getDept(@Valid @NotNull Long id) {
         Dept dept = deptService.getById(id);
         if (Objects.isNull(dept)) {
-            throw new BizException("部门不能为空");
+            return null;
         }
         DeptRespVO deptResp = BeanUtils.toBean(dept, DeptRespVO.class);
         /*List<Role> roles = roleService.getRoleByDeptId(id);
@@ -133,8 +133,8 @@ public class DeptController {
     @AuditLog(value = "删除部门", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_DELETE)
     public void deleteDept(@NotNull @RequestParam Long id) {
         Dept dept = deptService.getById(id);
-        if(ObjectUtils.isEmpty(dept)){
-            throw new BizException("部门ID不存在");
+        if (ObjectUtils.isEmpty(dept)) {
+            throw new BizException("部门不存在");
         }
         deptService.removeById(id);
         /*LambdaQueryWrapper<DeptRole> deptRoleQueryWrapper = new LambdaQueryWrapper<>();
