@@ -283,7 +283,6 @@ public class SysOrgPersonController {
         if (person.getJobNo().length() > 20) {
             throw new ParamValidateException("工号超长(最大20)!");
         }
-        // modified by jiangshitao 20221216
         // 根据工号查询人员信息
         SysOrgPerson byJobNo = orgPersonService.findByJobNo(person.getJobNo());
         if (OperationTypeEnum.ADD.getValue().equals(operation)) {
@@ -315,9 +314,6 @@ public class SysOrgPersonController {
         }
         if (!GenderEnum.contains(person.getGender())) {
             throw new ParamValidateException("性别参数错误!");
-        }
-        if (ObjectUtils.isEmpty(person.getPersonType())) {
-            throw new ParamValidateException("人员类型不能为空!");
         }
         if (!ObjectUtils.isEmpty(person.getPhone()) && person.getPhone().length() > 11) {
             throw new ParamValidateException("手机超长(最大11)!");
