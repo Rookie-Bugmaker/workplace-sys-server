@@ -13,6 +13,7 @@ import com.crrc.sys.mapper.SysOrgPersonTlMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
@@ -98,7 +99,24 @@ public class SysOrgPersonServiceImpl implements SysOrgPersonService {
      */
     @Override
     public SysOrgPerson findById(long personId, String language) {
+        if (ObjectUtils.isEmpty(language)) {
+            language = "zh-CN";
+        }
         return personMapper.findById(personId, language);
+    }
+
+    /**
+     * 根据人员ID查询人员信息(批量)
+     *
+     * @param personIdList 人员ID集合
+     * @return 结果
+     */
+    @Override
+    public List<SysOrgPerson> findByIds(List<Long> personIdList) {
+        if (CollectionUtils.isEmpty(personIdList)) {
+            return null;
+        }
+        return personMapper.findByIds(personIdList, "zh-CN");
     }
 
     /**
@@ -156,7 +174,7 @@ public class SysOrgPersonServiceImpl implements SysOrgPersonService {
     @Transactional(rollbackFor = Exception.class)
     public boolean addList(List<SysOrgPerson> persons) {
         // 构建国际化数据
-        List<SysOrgPersonTl> personTlList = persons.stream().map(o->{
+        List<SysOrgPersonTl> personTlList = persons.stream().map(o -> {
             List<SysOrgPersonTl> tlList = new ArrayList<>(2);
             SysOrgPersonTl personTl = new SysOrgPersonTl();
             BeanUtils.copyProperties(o, personTl);
