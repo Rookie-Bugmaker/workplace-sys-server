@@ -71,9 +71,6 @@ public class DictItemController {
     private DictCacheService dictCacheService;
 
     @Autowired
-    private RedissonClient redissonClient;
-
-    @Autowired
     private RedisCache redisCache;
 
     @GetMapping("/page")

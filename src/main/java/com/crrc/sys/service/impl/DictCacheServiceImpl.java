@@ -4,6 +4,7 @@ import com.alibaba.nacos.shaded.com.google.common.collect.Sets;
 import com.crrc.sys.cache.CacheKeyGenerator;
 import com.crrc.sys.cache.LockUtil;
 import com.crrc.sys.cache.RedisCache;
+import com.crrc.sys.config.redisson.RedissonManager;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.dict.Dict;
 import com.crrc.sys.entity.dict.DictItem;
@@ -28,8 +29,6 @@ import java.util.stream.Collectors;
 public class DictCacheServiceImpl implements DictCacheService {
     @Autowired
     private RedisCache redisCache;
-    @Autowired
-    private RedissonClient redissonClient;
 
     @Override
     public boolean needUpdateDict(Dict dict) {
@@ -88,7 +87,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         String dictKey = CacheKeyGenerator.getDictKey(dict.getDictCode());
         String lockKey = CacheKeyGenerator.getLockKey(dictKey);
 
-        LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             // 更新字典索引
             redisCache.setCacheMapValue(CacheKeyGenerator.getDictIndexKey(),
                     dict.getDictCode(), dict.getDictName());
@@ -106,7 +105,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         String dictKey = CacheKeyGenerator.getDictKey(dict.getDictCode());
         String lockKey = CacheKeyGenerator.getLockKey(dictKey);
         
-        LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             // 删除字典索引
             redisCache.delCacheMapValue(CacheKeyGenerator.getDictIndexKey(), dict.getDictCode());
             // 删除字典数据
@@ -133,7 +132,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         String itemKey = CacheKeyGenerator.getDictItemKey(dict.getDictCode(), dictItem.getItemCode());
         String lockKey = CacheKeyGenerator.getLockKey(itemKey);
 
-        LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             redisCache.setCacheMap(itemKey, convertDictItemToMap(dictItem));
         });
     }
@@ -149,7 +148,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         String itemKey = CacheKeyGenerator.getDictItemKey(dict.getDictCode(), dictItem.getItemCode());
         String lockKey = CacheKeyGenerator.getLockKey(itemKey);
         
-        LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             redisCache.deleteObject(itemKey);
             log.info("字典项缓存删除成功，dictCode: {}, itemCode: {}", 
                     dict.getDictCode(), dictItem.getItemCode());
@@ -179,7 +178,7 @@ public class DictCacheServiceImpl implements DictCacheService {
             String dictKey = CacheKeyGenerator.getDictKey(dictCode);
             String lockKey = CacheKeyGenerator.getLockKey(dictKey);
             
-            LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+            LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
                 itemList.forEach(item -> {
                     String itemKey = CacheKeyGenerator.getDictItemKey(dictCode, item.getItemCode());
                     redisCache.setCacheMap(itemKey, convertDictItemToMap(item));
@@ -199,7 +198,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         String dictKey = CacheKeyGenerator.getDictKey(dictCode);
         String lockKey = CacheKeyGenerator.getLockKey(dictKey);
         
-        LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             // 删除字典数据
             redisCache.deleteObject(dictKey);
             // 删除关联的所有字典项
@@ -352,7 +351,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         String dictKey = CacheKeyGenerator.getDictKey(dictVO.getDictCode());
         String lockKey = CacheKeyGenerator.getLockKey(dictKey);
 
-        LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             // 更新字典索引
             redisCache.setCacheMapValue(CacheKeyGenerator.getDictIndexKey(),
                     dictVO.getDictCode(), dictVO.getDictName());
@@ -380,7 +379,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         String itemKey = CacheKeyGenerator.getDictItemKey(dictCode, itemVO.getItemCode());
         String lockKey = CacheKeyGenerator.getLockKey(itemKey);
 
-        LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             Map<String, String> itemMap = new HashMap<>();
             itemMap.put("itemCode", itemVO.getItemCode());
             itemMap.put("itemName", itemVO.getItemName());
@@ -452,7 +451,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         String userKey = CacheKeyGenerator.getUserExtendKey(user.getUserId().toString());
         String lockKey = CacheKeyGenerator.getLockKey(userKey);
 
-        LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             Map<String, String> userMap = new HashMap<>();
             userMap.put("userId", String.valueOf(user.getUserId()));
             userMap.put("userName", StringUtils.defaultIfBlank(user.getUserName(), ""));
@@ -470,7 +469,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         String deptKey = CacheKeyGenerator.getDeptExtendKey(dept.getId().toString());
         String lockKey = CacheKeyGenerator.getLockKey(deptKey);
 
-        LockUtil.executeWithLock(redissonClient, lockKey, () -> {
+        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             Map<String, String> deptMap = new HashMap<>();
             deptMap.put("deptId", String.valueOf(dept.getId()));
             deptMap.put("orgCode", StringUtils.defaultIfBlank(dept.getOrgCode(), ""));

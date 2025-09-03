@@ -1,5 +1,6 @@
 package com.crrc.sys.cache;
 
+import com.crrc.sys.config.redisson.RedissonManager;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +12,6 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings(value = {"unchecked", "rawtypes"})
 @Component
 public class RedisCache {
-    @Autowired
-    private RedissonClient redissonClient;
 
     /**
      * 缓存基本的对象，Integer、String、实体类等
@@ -21,7 +20,7 @@ public class RedisCache {
      * @param value 缓存的值
      */
     public <T> void setCacheObject(final String key, final T value) {
-        redissonClient.getBucket(key).set(value);
+        RedissonManager.getRedissonClient().getBucket(key).set(value);
     }
 
     /**
@@ -33,7 +32,7 @@ public class RedisCache {
      * @param timeUnit 时间颗粒度
      */
     public <T> void setCacheObject(final String key, final T value, final Integer timeout, final TimeUnit timeUnit) {
-        redissonClient.getBucket(key).set(value, timeout, timeUnit);
+        RedissonManager.getRedissonClient().getBucket(key).set(value, timeout, timeUnit);
     }
 
     /**
@@ -56,7 +55,7 @@ public class RedisCache {
      * @return true=设置成功；false=设置失败
      */
     public boolean expire(final String key, final long timeout, final TimeUnit unit) {
-        return redissonClient.getBucket(key).expire(timeout, unit);
+        return RedissonManager.getRedissonClient().getBucket(key).expire(timeout, unit);
     }
 
     /**
@@ -67,7 +66,7 @@ public class RedisCache {
      */
     public <T> T getCacheObject(final String key) {
 
-        return (T) redissonClient.getBucket(key).get();
+        return (T) RedissonManager.getRedissonClient().getBucket(key).get();
     }
 
     /**
@@ -76,7 +75,7 @@ public class RedisCache {
      * @param key
      */
     public boolean deleteObject(final String key) {
-        return redissonClient.getBucket(key).delete();
+        return RedissonManager.getRedissonClient().getBucket(key).delete();
     }
 
 
@@ -88,7 +87,7 @@ public class RedisCache {
      * @return 缓存的对象
      */
     public <T> boolean setCacheList(final String key, final List<T> dataList) {
-        return redissonClient.getList(key).addAll(dataList);
+        return RedissonManager.getRedissonClient().getList(key).addAll(dataList);
     }
 
     /**
@@ -98,7 +97,7 @@ public class RedisCache {
      * @return 缓存键值对应的数据
      */
     public <T> List<T> getCacheList(final String key) {
-        return (List<T>) redissonClient.getList(key).readAll();
+        return (List<T>) RedissonManager.getRedissonClient().getList(key).readAll();
     }
 
     /**
@@ -109,7 +108,7 @@ public class RedisCache {
      * @return 缓存数据的对象
      */
     public <T> boolean setCacheSet(final String key, final Set<T> dataSet) {
-        return redissonClient.getSet(key).addAll(dataSet);
+        return RedissonManager.getRedissonClient().getSet(key).addAll(dataSet);
     }
 
     /**
@@ -119,7 +118,7 @@ public class RedisCache {
      * @return
      */
     public <T> Set<T> getCacheSet(final String key) {
-        return (Set<T>) redissonClient.getSet(key).readAll();
+        return (Set<T>) RedissonManager.getRedissonClient().getSet(key).readAll();
     }
 
     /**
@@ -130,9 +129,9 @@ public class RedisCache {
      */
     public <T> void setCacheMapSync(final String key, final Map<String, T> dataMap) {
         if (dataMap != null) {
-            RLock lock = redissonClient.getLock(key + "_lock");
+            RLock lock = RedissonManager.getRedissonClient().getLock(key + "_lock");
             if (lock.tryLock()) {
-                redissonClient.getMapCache(key).putAll(dataMap);
+                RedissonManager.getRedissonClient().getMapCache(key).putAll(dataMap);
             }
         }
     }
@@ -145,7 +144,7 @@ public class RedisCache {
      */
     public <T> void setCacheMap(final String key, final Map<String, T> dataMap) {
         if (dataMap != null) {
-            redissonClient.getMapCache(key).putAll(dataMap);
+            RedissonManager.getRedissonClient().getMapCache(key).putAll(dataMap);
         }
     }
 
@@ -157,7 +156,7 @@ public class RedisCache {
      */
     public <T> void setCacheMap(final String key, final Map<String, T> dataMap, final long ttl, TimeUnit timeUnit) {
         if (dataMap != null) {
-            redissonClient.getMapCache(key).putAll(dataMap, ttl, timeUnit);
+            RedissonManager.getRedissonClient().getMapCache(key).putAll(dataMap, ttl, timeUnit);
         }
     }
 
@@ -168,7 +167,7 @@ public class RedisCache {
      * @return
      */
     public <T> Map<String, T> getCacheMap(final String key) {
-        return redissonClient.getMapCache(key);
+        return RedissonManager.getRedissonClient().getMapCache(key);
     }
 
     /**
@@ -179,7 +178,7 @@ public class RedisCache {
      * @param value 值
      */
     public <T> void setCacheMapValue(final String key, final String hKey, final T value) {
-        redissonClient.getMapCache(key).put(hKey, value);
+        RedissonManager.getRedissonClient().getMapCache(key).put(hKey, value);
     }
 
     /**
@@ -190,7 +189,7 @@ public class RedisCache {
      * @param value 值
      */
     public <T> void setCacheMapValue(final String key, final String hKey, final T value, final long ttl, TimeUnit timeUnit) {
-        redissonClient.getMapCache(key).put(hKey, value, ttl, timeUnit);
+        RedissonManager.getRedissonClient().getMapCache(key).put(hKey, value, ttl, timeUnit);
     }
 
     /**
@@ -202,7 +201,7 @@ public class RedisCache {
      */
     public <T> T getCacheMapValue(final String key, final String hKey) {
 
-        return (T) redissonClient.getMapCache(key).get(hKey);
+        return (T) RedissonManager.getRedissonClient().getMapCache(key).get(hKey);
     }
 
     /**
@@ -212,7 +211,7 @@ public class RedisCache {
      * @param hkey
      */
     public void delCacheMapValue(final String key, final String hkey) {
-        redissonClient.getMapCache(key).remove(hkey);
+        RedissonManager.getRedissonClient().getMapCache(key).remove(hkey);
     }
 
     /**
@@ -223,7 +222,7 @@ public class RedisCache {
      * @return Hash对象集合
      */
     public <T> Map<Object, Object> getMultiCacheMapValue(final String key, final Set<Object> hKeys) {
-        return redissonClient.getMapCache(key).getAll(hKeys);
+        return RedissonManager.getRedissonClient().getMapCache(key).getAll(hKeys);
     }
 
     /**
@@ -233,6 +232,6 @@ public class RedisCache {
      * @return 对象列表
      */
     public Iterable<String> keys(final String pattern) {
-        return redissonClient.getKeys().getKeysByPattern(pattern);
+        return RedissonManager.getRedissonClient().getKeys().getKeysByPattern(pattern);
     }
 }
