@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.BaseEntity;
 import com.crrc.sys.entity.dict.Dict;
@@ -187,7 +188,7 @@ public class DictItemServiceImpl extends ServiceImpl<DictItemMapper, DictItem> i
     }
 
     @Override
-    public IPage<DictItem> page(DictItemPageReqVO pageReqVO) {
+    public PaginationGrid<DictItem> page(DictItemPageReqVO pageReqVO) {
         pageReqVO = (pageReqVO == null) ? new DictItemPageReqVO() : pageReqVO;
         IPage<DictItem> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
         LambdaQueryWrapper<DictItem> queryWrapper = new LambdaQueryWrapper<>();
@@ -195,7 +196,8 @@ public class DictItemServiceImpl extends ServiceImpl<DictItemMapper, DictItem> i
         queryWrapper.like(StringUtils.isNotBlank(pageReqVO.getItemName()), DictItem::getItemName, pageReqVO.getItemName());
         queryWrapper.eq(StringUtils.isNotBlank(pageReqVO.getSorted()), DictItem::getSorted, pageReqVO.getSorted());
         queryWrapper.orderByDesc(DictItem::getSorted);
-        return this.page(page, queryWrapper);
+        page = this.page(page, queryWrapper);
+        return PaginationGrid.success(page);
     }
 
     @Override
