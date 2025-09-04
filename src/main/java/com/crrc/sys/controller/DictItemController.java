@@ -13,6 +13,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.annotation.AuditLog;
 import com.crrc.sys.cache.RedisCache;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.dict.Dict;
 import com.crrc.sys.entity.dict.DictItem;
@@ -76,7 +77,7 @@ public class DictItemController {
     @GetMapping("/page")
     @Operation(summary = "获取字典项列表 page")
     @AuditLog(value = "获取字典项列表 page", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_QUERY)
-    public IPage page(DictItemPageReqVO pageReqVO) {
+    public PaginationGrid<DictItem> page(DictItemPageReqVO pageReqVO) {
         return dictItemService.page(pageReqVO);
     }
 
@@ -99,23 +100,23 @@ public class DictItemController {
     @PostMapping("/create")
     @Operation(summary = "创建字典项")
     @AuditLog(value = "创建字典项", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_ADD)
-    public Boolean create(@Valid @RequestBody DictItem createReqVO) {
+    public Long create(@Valid @RequestBody DictItem createReqVO) {
         LambdaQueryWrapper<DictItem> wrapper = new LambdaQueryWrapper<DictItem>()
                 .eq(DictItem::getItemCode, createReqVO.getItemCode())
                 .eq(DictItem::getDictId, createReqVO.getDictId());
         if(dictItemService.count(wrapper) > 0){
-            return false;
+           throw new BizException("字典项已存在");
         }
         Dict dict = dictService.getById(createReqVO.getDictId());
         if (dict == null) {
-            return false;
+            throw new BizException("关联字典不存在");
         }
 
         boolean result = dictItemService.save(createReqVO);
         if (result) {
             dictCacheService.setDictItemCache(createReqVO, dict);
         }
-        return result;
+        return result ? createReqVO.getId() : null;
     }
 
 
@@ -125,7 +126,7 @@ public class DictItemController {
     public Boolean update(@Valid @RequestBody DictItem updateReqVO) {
         Dict dict = dictService.getById(updateReqVO.getDictId());
         if (dict == null) {
-            return false;
+            throw new BizException("关联字典不存在");
         }
 
         if (updateReqVO.getId() != null) {
@@ -159,6 +160,7 @@ public class DictItemController {
         }
         return result;
     }
+
     @GetMapping("/export")
     @AuditLog(value = "导出字典项", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
     @Operation(summary = "导出字典项")

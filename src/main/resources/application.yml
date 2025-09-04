@@ -61,6 +61,15 @@ spring:
       master: @spring.redis.sentinel.master@
       nodes: @spring.redis.sentinel.nodes@
       password: @spring.redis.sentinel.password@
+  data:
+    mongodb:
+      host: @spring.data.mongodb.host@
+      port: @spring.data.mongodb.port@
+      database: @spring.data.mongodb.database@
+      username: @spring.data.mongodb.username@
+      password: @spring.data.mongodb.password@
+      authentication-database: @spring.data.mongodb.authenticationDatabase@ # 验证数据库，一般不修改
+      connectTimeoutMS: @spring.data.mongodb.connectTimeoutMS@ # 等待连接最大超时时间
 mybatis:
   #实体扫描
   type-aliases-package: com.crrc.sys.entity

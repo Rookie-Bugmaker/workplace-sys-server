@@ -3,6 +3,7 @@ package com.crrc.sys.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.dict.Dict;
 import com.crrc.sys.entity.user.SysUser;
@@ -24,7 +25,7 @@ import java.util.List;
  * @since 2025-01-10
  */
 public interface DictService extends IService<Dict> {
-    IPage<Dict> page(DictPageReqVO pageReqVO);
+    PaginationGrid<Dict> page(DictPageReqVO pageReqVO);
 
     List<Dict> query(DictListReqVO queryReqVO);
     Dict getByCode(String dictCode);
