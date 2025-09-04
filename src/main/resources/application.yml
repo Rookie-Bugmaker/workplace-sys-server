@@ -107,6 +107,9 @@ feign:
   sentinel:
     enabled: true
 crrc:
+  config:
+    captcha:
+      enable: true
   service:
     name: workplace-core
     sys_name: workplace
@@ -115,3 +118,8 @@ crrc:
     decrypt:
       type: aes
       key: lfJRbW42v1tqd8cpAMNLXj1eGUEP8d5DHt61vBH4oYw=
+springdoc:
+  swagger-ui:
+    host: 10.151.255.79
+    port: 9091
+    url: /${spring.application.name}/v3/api-docs
