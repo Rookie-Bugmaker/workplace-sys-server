@@ -106,3 +106,8 @@ feign:
         read-timeout: 60000
   sentinel:
     enabled: true
+crrc:
+  datasource:
+    decrypt:
+      type: aes
+      key: lfJRbW42v1tqd8cpAMNLXj1eGUEP8d5DHt61vBH4oYw=

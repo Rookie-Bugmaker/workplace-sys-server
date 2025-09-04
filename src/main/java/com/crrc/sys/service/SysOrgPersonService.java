@@ -47,6 +47,14 @@ public interface SysOrgPersonService {
     SysOrgPerson findById(long personId, String language);
 
     /**
+     * 根据人员ID查询人员信息(批量)
+     *
+     * @param personIdList 人员ID集合
+     * @return 结果
+     */
+    List<SysOrgPerson> findByIds(List<Long> personIdList);
+
+    /**
      * 人员删除
      *
      * @param personIdList 人员ID集合

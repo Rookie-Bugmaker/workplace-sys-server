@@ -14,7 +14,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 
@@ -37,7 +36,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = BizException.class)
     public ResultData<String> bizExceptionHandler(BizException e) {
-        logger.error("发生业务异常-->原因是：{}", e.getErrorMsg(), e);
+        logger.error("发生业务异常-->原因是：{}", e.getErrorMsg());
         return ResultData.fail(e.getErrorCode(), e.getErrorMsg());
     }
 
@@ -49,7 +48,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = ParamValidateException.class)
     public ResultData<String> pvExceptionHandler(ParamValidateException e) {
-        logger.error("参数校验异常-->原因是：{}", e.getErrorMsg(), e);
+        logger.error("参数校验异常-->原因是：{}", e.getErrorMsg());
         return ResultData.fail(e.getErrorCode(), e.getErrorMsg());
     }
 
@@ -60,7 +59,7 @@ public class GlobalExceptionHandler {
      * @return 统一返回结果
      */
     @ExceptionHandler(value = {MethodArgumentNotValidException.class, BindException.class})
-    public ResultData<String> handleParamValidException(Exception e, HttpServletResponse response) {
+    public ResultData<String> handleParamValidException(Exception e) {
         BindingResult bindingResult = null;
         if (e instanceof MethodArgumentNotValidException) {
             bindingResult = ((MethodArgumentNotValidException) e).getBindingResult();
@@ -85,7 +84,7 @@ public class GlobalExceptionHandler {
      * @return 统一返回结果
      */
     @ExceptionHandler(value = ConstraintViolationException.class)
-    public ResultData<String> handleParamValidException(ConstraintViolationException e, HttpServletResponse response) {
+    public ResultData<String> handleParamValidException(ConstraintViolationException e) {
         return ResultData.fail(ReturnCode.RC205.getCode(), e.getMessage());
     }
 
@@ -96,7 +95,7 @@ public class GlobalExceptionHandler {
      * @return 统一返回结果
      */
     @ExceptionHandler(value = ValidationException.class)
-    public ResultData<String> handleParamValidException(ValidationException e, HttpServletResponse response) {
+    public ResultData<String> handleParamValidException(ValidationException e) {
         return ResultData.fail(ReturnCode.RC205.getCode(), e.getMessage());
     }
 
