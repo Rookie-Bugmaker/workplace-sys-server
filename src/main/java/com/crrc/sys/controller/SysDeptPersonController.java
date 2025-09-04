@@ -141,7 +141,7 @@ public class SysDeptPersonController {
      *
      * @param companyId 公司ID
      * @param page      当前页码
-     * @param pageSize  查询数据条数
+     * @param pageSize  查询数据条数(pageSize<=0查询所有)
      * @return 部门人员列表
      */
     @GetMapping("findByCompanyId/{companyId}")
@@ -178,7 +178,7 @@ public class SysDeptPersonController {
      *
      * @param deptId   部门ID
      * @param page     当前页码
-     * @param pageSize 查询数据条数
+     * @param pageSize 查询数据条数(pageSize<=0查询所有)
      * @return 部门人员列表
      */
     @GetMapping("findByDeptId/{deptId}")
