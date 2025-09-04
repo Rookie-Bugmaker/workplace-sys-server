@@ -4,8 +4,12 @@ package com.crrc.sys.controller;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.server.ServiceAccessManagementConfig;
 import com.crrc.sys.model.server.ServiceListReqVO;
 import com.crrc.sys.model.server.ServiceSysListRespVO;
@@ -14,6 +18,7 @@ import com.crrc.sys.service.ServiceAccessManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -29,6 +34,34 @@ import java.util.Objects;
 public class ServiceController {
     @Resource
     private ServiceAccessManagementService serviceAccessManagementService;
+
+
+    /**
+     * 服务信息分页擦好像
+     *
+     * @param reqVO    查询参数
+     * @param page     当前页码
+     * @param pageSize 查询数据条数
+     * @return 结果
+     */
+    @GetMapping("page")
+    public PaginationGrid<ServiceAccessManagementConfig> page(ServiceListReqVO reqVO, Long page, Long pageSize) {
+        if (ObjectUtils.isEmpty(page) || page <= 0) {
+            throw new ParamValidateException("page不能为空且必须>0");
+        }
+        if (ObjectUtils.isEmpty(pageSize)) {
+            throw new ParamValidateException("pageSize不能为空");
+        }
+        LambdaQueryWrapper<ServiceAccessManagementConfig> wapper = new LambdaQueryWrapper<>();
+        wapper.like(!StrUtil.isEmpty(reqVO.getName()), ServiceAccessManagementConfig::getName, reqVO.getName());
+        wapper.like(!StrUtil.isEmpty(reqVO.getNameCn()), ServiceAccessManagementConfig::getNameCn, reqVO.getNameCn());
+        wapper.eq(!StrUtil.isEmpty(reqVO.getStatus()), ServiceAccessManagementConfig::getStatus, reqVO.getStatus());
+        wapper.like(!StrUtil.isEmpty(reqVO.getSysName()), ServiceAccessManagementConfig::getSysName, reqVO.getSysName());
+        wapper.eq(!Objects.isNull(reqVO.getSysService()), ServiceAccessManagementConfig::getSysService, reqVO.getSysService());
+        IPage<ServiceAccessManagementConfig> iPage = Page.of(page, pageSize);
+        iPage = serviceAccessManagementService.page(iPage, wapper);
+        return PaginationGrid.success(iPage);
+    }
 
     @GetMapping("/get")
     @Operation(summary = "查询服务 - id")
@@ -89,6 +122,4 @@ public class ServiceController {
             throw new BizException("删除失败");
         }
     }
-
-
 }
