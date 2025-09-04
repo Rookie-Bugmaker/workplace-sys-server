@@ -126,9 +126,13 @@ public class SysDeptPersonController {
         if (ObjectUtils.isEmpty(ids)) {
             throw new ParamValidateException("参数不能为空!");
         }
-        boolean result = deptPersonService.removeBatchByIds(ids);
+        ids.removeIf(ObjectUtils::isEmpty);
+        if (ObjectUtils.isEmpty(ids)) {
+            throw new ParamValidateException("参数不能传null");
+        }
+        boolean result = deptPersonService.removeByIds(ids);
         if (!result) {
-            throw new BizException("删除失败");
+            throw new BizException("删除失败,没有可删除的数据!");
         }
     }
 
