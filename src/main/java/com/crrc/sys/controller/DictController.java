@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.annotation.AuditLog;
 import com.crrc.sys.cache.RedisCache;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.PaginationGrid;
+import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.dict.Dict;
 import com.crrc.sys.entity.dict.DictItem;
 import com.crrc.sys.enums.LogType;
@@ -61,7 +63,7 @@ public class DictController {
     @GetMapping("/page")
     @Operation(summary = "获取字典列表 page")
     @AuditLog(value = "获取字典列表 page", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_QUERY)
-    public IPage pageDict(DictPageReqVO pageReqVO) {
+    public PaginationGrid<Dict> pageDict(DictPageReqVO pageReqVO) {
         return dictService.page(pageReqVO);
     }
 
@@ -82,15 +84,15 @@ public class DictController {
     @PostMapping("/create")
     @Operation(summary = "创建字典")
     @AuditLog(value = "创建字典", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_ADD)
-    public Boolean createDict(@Valid @RequestBody Dict createReqVO) {
+    public Long createDict(@Valid @RequestBody Dict createReqVO) {
         if(dictService.count(new LambdaQueryWrapper<Dict>().eq(Dict::getDictCode, createReqVO.getDictCode())) > 0){
-            return false;
+            throw new BizException("字典已存在");
         }
         boolean result = dictService.save(createReqVO);
         if (result) {
             dictCacheService.setDictCache(createReqVO);
         }
-        return result;
+        return result ? createReqVO.getId() : null;
     }
 
     @PostMapping("/update")
@@ -125,7 +127,7 @@ public class DictController {
     public Boolean deleteDict(@NotNull @RequestParam Long id) {
         Dict dict = dictService.getById(id);
         if (dict == null) {
-            return false;
+            throw new BizException("字典不存在");
         }
         // 先删除关联的字典项
         LambdaUpdateWrapper<DictItem> queryWrapper = new LambdaUpdateWrapper<>();
@@ -139,7 +141,7 @@ public class DictController {
         }
         return result;
     }
-    @PostMapping("/export")
+    @GetMapping("/export")
     @Operation(summary = "导出字典")
     @AuditLog(value = "导出字典", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
     public void exportDict(@Validated @RequestBody(required = false) DictExcelVO exportReqVO, HttpServletResponse response){
@@ -156,8 +158,11 @@ public class DictController {
         List<DictExcelVO> importReqVO = dictService.reads(file);
         Set<String> codeSet = importReqVO.stream().map(DictExcelVO::getDictCode).collect(Collectors.toSet());
         LambdaQueryWrapper<Dict> wrapper = new LambdaQueryWrapper<Dict>().in(Dict::getDictCode, codeSet);
-        if(dictService.count(wrapper) > 0 || importReqVO == null || importReqVO.size() == 0) {
-            return false;
+        if(dictService.count(wrapper) > 0) {
+            throw new BizException("存在重复字典编码");
+        }
+        if(importReqVO == null || importReqVO.size() == 0) {
+            throw new BizException("不存在可以导入的字典数据");
         }
         importReqVO.forEach(data -> {
             dictCacheService.setDictCache(BeanUtils.toBean(data, Dict.class));

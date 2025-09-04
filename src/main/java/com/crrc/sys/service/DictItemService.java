@@ -2,6 +2,7 @@ package com.crrc.sys.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.dict.Dict;
 import com.crrc.sys.entity.dict.DictItem;
 import com.crrc.sys.model.dict.*;
@@ -18,7 +19,7 @@ import java.util.List;
  */
 public interface DictItemService extends IService<DictItem> {
 
-    IPage<DictItem> page(DictItemPageReqVO pageReqVO);
+    PaginationGrid<DictItem> page(DictItemPageReqVO pageReqVO);
 
     List<DictItem> query(DictItemListReqVO queryReqVO);
     public Boolean saveDictItemExcelVO(List<DictItemExcelVO> list);
