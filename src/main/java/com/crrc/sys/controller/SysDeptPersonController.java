@@ -126,7 +126,10 @@ public class SysDeptPersonController {
         if (ObjectUtils.isEmpty(ids)) {
             throw new ParamValidateException("参数不能为空!");
         }
-        deptPersonService.removeBatchByIds(ids);
+        boolean result = deptPersonService.removeBatchByIds(ids);
+        if (!result) {
+            throw new BizException("删除失败");
+        }
     }
 
     /**
@@ -211,7 +214,7 @@ public class SysDeptPersonController {
         }
         //根据人员ID查询人员信息
         List<SysOrgPerson> personList = personService.findByIds(personIdList1);
-        if(CollectionUtils.isEmpty(personList)){
+        if (CollectionUtils.isEmpty(personList)) {
             return personDtoList;
         }
         for (SysDeptPersonDTO personDto : personDtoList) {
