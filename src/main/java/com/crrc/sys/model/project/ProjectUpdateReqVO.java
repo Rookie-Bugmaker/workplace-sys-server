@@ -1,0 +1,40 @@
+package com.crrc.sys.model.project;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+import javax.validation.constraints.NotNull;
+
+@Data
+public class ProjectUpdateReqVO {
+    @Schema(description = "项目id" ,example = "1")
+    @NotNull(message = "项目id不能为空")
+    private Long id;
+
+    /**
+     * 项目名
+     */
+    @Schema(description = "项目名称 对应服务管理中的系统名称" ,example = "1")
+    private String name;
+
+    /**
+     * 项目中文名称
+     */
+    @Schema(description = "项目中文名称" ,example = "1")
+    private String nameCn;
+
+    /**
+     * 前端访问url
+     */
+    @Schema(description = "项目入口url" ,example = "1")
+    private String url;
+
+    /**
+     * 项目描述
+     */
+    @Schema(description = "项目描述" ,example = "1")
+    private String description;
+
+    @Schema(description = "项目状态" ,example = "1")
+    private String status;
+}

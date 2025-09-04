@@ -98,6 +98,10 @@ feign:
   sentinel:
     enabled: true
 crrc:
+  service:
+    name: workplace-core
+    sys_name: workplace
+    sys_service: true
   datasource:
     decrypt:
       type: aes
