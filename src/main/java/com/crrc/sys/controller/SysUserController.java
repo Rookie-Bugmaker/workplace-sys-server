@@ -1133,4 +1133,63 @@ public class SysUserController {
         }
         return dtoList;
     }
+
+    /**
+     * 根据用户ID查询用户信息(批量)
+     *
+     * @param ids 用户ID集合
+     * @return 结果
+     */
+    @GetMapping("get_user_lists")
+    public List<SysUserCompatibilityDTO> getUserList(@RequestParam List<Long> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            throw new ParamValidateException("参数必填");
+        }
+        List<SysUser> userList = userService.findByUserIds(ids);
+        if (CollectionUtils.isEmpty(userList)) {
+            return null;
+        }
+        return setUserProperties(userList);
+    }
+
+    /**
+     * 设置用户的其他属性：是否部门领导、用户姓名、手机号码、性别、邮箱
+     *
+     * @param userList 用户集合
+     * @return 结果
+     */
+    private List<SysUserCompatibilityDTO> setUserProperties(List<SysUser> userList) {
+        //用户关联的人员ID
+        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+        //根据人员ID查询人员信息
+        List<SysOrgPerson> personList = personService.findByIds(personIdList);
+        //根据人员ID查询部门人员
+        List<SysDeptPersonPO> deptPersonList = deptPersonService.findByPersonId(personIdList);
+        List<SysUserCompatibilityDTO> dtoList = new ArrayList<>();
+        //属性设置
+        for (SysUser user : userList) {
+            SysUserCompatibilityDTO dto = new SysUserCompatibilityDTO();
+            dto.setId(user.getUserId());
+            dto.setUserName(user.getUserName());
+            dto.setStatus("Y".equals(user.getDisableState()) ? 1 : 0);
+            dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            //部门人员信息
+            SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(deptPerson)) {
+                dto.setLeader(ObjectUtils.isEmpty(deptPerson.getParentPersonId()));
+            }
+            //关联人员信息
+            if (!CollectionUtils.isEmpty(personList)) {
+                SysOrgPerson person = personList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+                if (!ObjectUtils.isEmpty(person)) {
+                    dto.setNickName(person.getFullName());
+                    dto.setPhonenumber(person.getPhone());
+                    dto.setSex("M".equals(person.getGender()) ? 0 : 1);
+                    dto.setEmail(person.getEmail());
+                }
+            }
+            dtoList.add(dto);
+        }
+        return dtoList;
+    }
 }

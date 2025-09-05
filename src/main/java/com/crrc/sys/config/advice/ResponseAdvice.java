@@ -33,7 +33,13 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
     /**
      * 不进行全局响应处理的URI地址
      */
-    private final String[] IGNORE_URI = {"/user/get_dept_users"};
+    private final String[] IGNORE_URI = {
+            "/user/get_dept_users","/user/get_user_lists","/user/get_user_lists_by_user_name","/user/get_user","/user/get_user_with_role_by_username",
+            "/user/get_users_by_usernames","/user/get_user_page","/user/delete_dept_of_usernames","/user/create_user_dept_relative","/dept/get_depts_by_user_id",
+            "/dept/get_depts_by_user_name","/menu/auto_config","/role/get_role_users_by_roleid","/dept/list","/dept/get_list","/dept/get_subdept_list",
+            "/dept/get_depts_by_company_id","/dept/get_dept_by_org_code","/dept/get_dept_and_subDepts_by_orgCode","/company/get_company_by_ids","/company/get_all_company",
+            "/company/get_company_by_plants","/company/get_company_by_orgCodes","/role/get_role_by_role_key","/role/set_role_users"
+    };
 
     /**
      * 全局响应
@@ -60,7 +66,6 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
     @Override
     public Object beforeBodyWrite(Object o, MethodParameter methodParameter, MediaType mediaType, Class<? extends HttpMessageConverter<?>> aClass, ServerHttpRequest request, ServerHttpResponse response) {
         String rawPath = request.getURI().getRawPath();
-        System.out.println(rawPath);
         String uri = Arrays.stream(IGNORE_URI).filter(p -> rawPath.equals(p)).findFirst().orElse(null);
         if (!ObjectUtils.isEmpty(uri)) {
             return o;

@@ -1,10 +1,14 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.mapper.SysDeptPersonMapper;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.service.SysDeptPersonService;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
 
 /**
  * 部门人员接口实现类
@@ -14,4 +18,20 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SysDeptPersonServiceImpl extends ServiceImpl<SysDeptPersonMapper, SysDeptPersonPO> implements SysDeptPersonService {
+
+    /**
+     * 根据人员ID查询部门人员信息(批量)
+     *
+     * @param personIdList 人员ID集合
+     * @return 结果
+     */
+    @Override
+    public List<SysDeptPersonPO> findByPersonId(List<Long> personIdList) {
+        if (CollectionUtils.isEmpty(personIdList)) {
+            return null;
+        }
+        LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(SysDeptPersonPO::getPersonId, personIdList);
+        return super.baseMapper.selectList(queryWrapper);
+    }
 }
