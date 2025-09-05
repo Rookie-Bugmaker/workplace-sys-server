@@ -660,7 +660,12 @@ public class SysUserController {
             //根据人员ID查询用户
             List<SysUser> userList = userService.findByRelationIds(Collections.singletonList(user.getUserRelationId()));
             if (!CollectionUtils.isEmpty(userList)) {
-                throw new BizException("该人员已绑定用户");
+                if (OperationTypeEnum.ADD.getValue().equals(operation)) {
+                    throw new BizException("该人员已绑定用户");
+                }
+                if (OperationTypeEnum.UPDATE.getValue().equals(operation) && !userList.get(0).getUserId().equals(user.getUserId())) {
+                    throw new BizException("该人员已绑定用户");
+                }
             }
         }
     }
