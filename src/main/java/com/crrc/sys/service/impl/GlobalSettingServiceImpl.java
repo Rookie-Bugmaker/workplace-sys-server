@@ -10,7 +10,6 @@ import com.crrc.sys.mapper.mongodb.GlobalSettingRepository;
 import com.crrc.sys.model.parameter.MongoPage;
 import com.crrc.sys.service.GlobalSettingService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -31,8 +30,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Pattern;
-
-import org.apache.poi.ss.usermodel.Cell;
 
 @Service
 @Slf4j
@@ -532,11 +529,7 @@ public class GlobalSettingServiceImpl implements GlobalSettingService {
         if (cell == null) {
             return null;
         }
-        CellType cellType;
-        // 旧版本POI (3.x) 获取方式
-        cellType = CellType.forInt(cell.getCellType());
-
-        switch (cellType) {
+        switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue().trim();
             case NUMERIC:

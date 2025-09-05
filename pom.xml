@@ -66,7 +66,7 @@
         <logstash.version>6.4</logstash.version>
         <fastjson.version>1.2.75</fastjson.version>
         <!--EasyExcel-->
-        <easy.excel.version>2.2.10</easy.excel.version>
+        <easy.excel.version>3.3.4</easy.excel.version>
         <!--hutool工具类-->
         <hutool.version>5.8.5</hutool.version>
         <!--Redisson-->
