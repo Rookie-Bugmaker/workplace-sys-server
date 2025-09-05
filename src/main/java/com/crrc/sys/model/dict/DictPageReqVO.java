@@ -35,7 +35,7 @@ public class DictPageReqVO {
     @Min(value = 0, message = "页码最小值为 0")
     @Schema(description = "页码，从 0 开始", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @Parameter(name = "pageNo", description = "页码", required = false, example = "0")
-    private Integer pageNo = PAGE_NO;
+    private Integer page = PAGE_NO;
 
 
     @Min(value = 1, message = "每页条数最小值为 1")
