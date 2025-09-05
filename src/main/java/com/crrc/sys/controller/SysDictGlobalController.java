@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * @since 2025-01-10
  */
 @RestController
-@RequestMapping("/sys/global/dict")
+@RequestMapping("global/dict")
 @Tag(name = "字典", description = "字典")
 @Slf4j
 public class SysDictGlobalController {

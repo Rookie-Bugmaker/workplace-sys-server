@@ -56,7 +56,7 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
     @Override
     public PaginationGrid<Dict> page(DictPageReqVO pageReqVO) {
         pageReqVO = (pageReqVO == null) ? new DictPageReqVO() : pageReqVO;
-        IPage<Dict> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
+        IPage<Dict> page = new Page<>(pageReqVO.getPage(), pageReqVO.getPageSize());
         LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(pageReqVO.getId() != null, Dict::getId, pageReqVO.getId());
         queryWrapper.like(StringUtils.isNotBlank(pageReqVO.getDictName()), Dict::getDictName, pageReqVO.getDictName());
@@ -196,7 +196,7 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
         if(userId != null) {
             return userService.findById(userId, null);
         }
-        if(com.alibaba.cloud.commons.lang.StringUtils.isNotBlank(userName)) {
+        if(StringUtils.isNotBlank(userName)) {
             return userService.findByUserName(userName);
         }
         return null;

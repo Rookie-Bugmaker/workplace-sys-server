@@ -105,10 +105,10 @@ public class CompanyController {
         // 剔除临时公司
         wapper.ne(Company::getCompanyId, 0L);
         wapper.ne(Company::getOrgCode, "0");
-        IPage<Company> pageReq = Page.of(pageReqVO.getPageNo(), pageReqVO.getPageSize());
+        IPage<Company> pageReq = Page.of(pageReqVO.getPage(), pageReqVO.getPageSize());
         IPage<Company> companyPage = companyService.page(pageReq, wapper);
         List<CompanyGetRespVO> companyList = BeanUtils.toBean(companyPage.getRecords(), CompanyGetRespVO.class);
-        PaginationGrid<CompanyGetRespVO> paginationGrid =new PaginationGrid<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
+        PaginationGrid<CompanyGetRespVO> paginationGrid =new PaginationGrid<>(pageReqVO.getPage(), pageReqVO.getPageSize());
         paginationGrid.setTotal(companyPage.getTotal());
         paginationGrid.setRows(companyList);
         return paginationGrid;
