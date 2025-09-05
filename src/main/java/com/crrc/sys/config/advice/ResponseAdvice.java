@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -29,6 +30,10 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Resource
     private ObjectMapper objectMapper;
+    /**
+     * 不进行全局响应处理的URI地址
+     */
+    private final String[] IGNORE_URI = {"/user/get_dept_users"};
 
     /**
      * 全局响应
@@ -54,16 +59,22 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
      */
     @Override
     public Object beforeBodyWrite(Object o, MethodParameter methodParameter, MediaType mediaType, Class<? extends HttpMessageConverter<?>> aClass, ServerHttpRequest request, ServerHttpResponse response) {
+        String rawPath = request.getURI().getRawPath();
+        System.out.println(rawPath);
+        String uri = Arrays.stream(IGNORE_URI).filter(p -> rawPath.equals(p)).findFirst().orElse(null);
+        if (!ObjectUtils.isEmpty(uri)) {
+            return o;
+        }
         //当返回类型是String时，用的是StringHttpMessageConverter转换器，无法转换为Json格式
-		//必须在方法体上标注@RequestMapping(produces = "application/json; charset=UTF-8")
-		if (o instanceof String) {
+        //必须在方法体上标注@RequestMapping(produces = "application/json; charset=UTF-8")
+        if (o instanceof String) {
             try {
                 return objectMapper.writeValueAsString(ResultData.success(o));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
         }
-        if(Collection.class.isAssignableFrom(methodParameter.getParameterType()) && ObjectUtils.isEmpty(o)){
+        if (Collection.class.isAssignableFrom(methodParameter.getParameterType()) && ObjectUtils.isEmpty(o)) {
             //根据前端需求，如果返回值是集合且没有数据，统一返回空数组，而不是返回null
             return ResultData.success(new ArrayList<>());
         }
