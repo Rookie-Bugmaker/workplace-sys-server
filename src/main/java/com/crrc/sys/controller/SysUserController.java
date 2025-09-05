@@ -1153,6 +1153,40 @@ public class SysUserController {
     }
 
     /**
+     * 根据用户名查询用户信息(批量)
+     *
+     * @param usernames 用户名列表
+     * @return 结果
+     */
+    @GetMapping("get_user_lists_by_user_name")
+    public List<SysUserCompatibilityDTO> getUserListByUserName(@RequestParam List<String> usernames) {
+        if (CollectionUtils.isEmpty(usernames)) {
+            throw new ParamValidateException("参数必填");
+        }
+        List<SysUser> userList = userService.findByUserNameList(usernames);
+        if (CollectionUtils.isEmpty(userList)) {
+            return null;
+        }
+        return setUserProperties(userList);
+    }
+
+    /**
+     * 根据用户ID获取用户信息
+     *
+     * @param id 用户ID
+     * @return 结果
+     */
+    @GetMapping("get_user")
+    public SysUserCompatibilityDTO getUser(@RequestParam Long id) {
+        SysUser user = userService.findById(id, "zh-CN");
+        if (Objects.isNull(user)) {
+            return null;
+        }
+        List<SysUser> userList = Collections.singletonList(user);
+        return setUserProperties(userList).get(0);
+    }
+
+    /**
      * 设置用户的其他属性：是否部门领导、用户姓名、手机号码、性别、邮箱
      *
      * @param userList 用户集合
