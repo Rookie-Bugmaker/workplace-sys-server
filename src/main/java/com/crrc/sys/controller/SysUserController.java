@@ -2,14 +2,9 @@ package com.crrc.sys.controller;
 
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
+import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.*;
-import com.crrc.sys.entity.user.*;
-import com.crrc.sys.enums.*;
-import com.crrc.sys.excel.ExcelExport;
-import com.crrc.sys.excel.ExcelImport;
-import com.crrc.sys.annotation.AutoIdempotent;
-import com.crrc.sys.service.*;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
@@ -20,9 +15,10 @@ import com.crrc.sys.entity.org.SysOrg;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.SysRole;
-import com.crrc.sys.common.*;
 import com.crrc.sys.entity.user.*;
 import com.crrc.sys.enums.*;
+import com.crrc.sys.excel.ExcelExport;
+import com.crrc.sys.excel.ExcelImport;
 import com.crrc.sys.service.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
@@ -657,6 +653,14 @@ public class SysUserController {
                         throw new ParamValidateException("用户权限值不能为空!");
                     }
                 }
+            }
+        }
+        //校验一个人员只能绑定一个用户
+        if (UserTypeEnum.EMPLOYEE.getValue().equals(user.getUserType()) && !ObjectUtils.isEmpty(user.getUserRelationId())) {
+            //根据人员ID查询用户
+            List<SysUser> userList = userService.findByRelationIds(Collections.singletonList(user.getUserRelationId()));
+            if (!CollectionUtils.isEmpty(userList)) {
+                throw new BizException("该人员已绑定用户");
             }
         }
     }
