@@ -1,5 +1,8 @@
 package com.crrc.sys.model.dict;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,6 +12,11 @@ import javax.validation.constraints.Min;
 
 @Data
 public class DictItemPageReqVO {
+
+    @JsonSerialize(using = ToStringSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @Schema(description = "所属字典主键")
+    private Long dictId;
     @Schema(description = "字典项编码")
     private String itemCode;
 
@@ -25,7 +33,7 @@ public class DictItemPageReqVO {
     @Min(value = 0, message = "页码最小值为 0")
     @Schema(description = "页码，从 0 开始", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @Parameter(name = "pageNo", description = "页码", required = false, example = "0")
-    private Integer pageNo = PAGE_NO;
+    private Integer page = PAGE_NO;
 
 
     @Min(value = 1, message = "每页条数最小值为 1")
