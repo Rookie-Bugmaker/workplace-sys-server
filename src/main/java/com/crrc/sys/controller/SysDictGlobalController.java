@@ -282,7 +282,7 @@ public class SysDictGlobalController {
     }
 
     @GetMapping("/getDeptNameNameInDictExtends")
-    @Operation(summary = "字典转化拓展-获得对应员工名称")
+    @Operation(summary = "字典转化拓展-获得对应部门名称")
     public String getDeptNameNameInDictExtends(
             @RequestParam(value = "deptId", required = false) Long deptId,
             @RequestParam(value = "orgCode", required = false) String orgCode) {
