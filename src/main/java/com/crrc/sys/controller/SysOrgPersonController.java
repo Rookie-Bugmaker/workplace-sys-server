@@ -150,6 +150,13 @@ public class SysOrgPersonController {
         if (ObjectUtils.isEmpty(person)) {
             throw new ParamValidateException("参数错误");
         }
+        //移除语言中的逗号
+        person.setLanguage(person.getLanguage().contains(",") ? person.getLanguage().replace(",", "") : person.getLanguage());
+        if (OperationTypeEnum.UPDATE.getValue().equals(operation)) {
+            if (ObjectUtils.isEmpty(person.getPersonId())) {
+                throw new ParamValidateException("personId不能为空!");
+            }
+        }
         if (ObjectUtils.isEmpty(person.getJobNo())) {
             throw new ParamValidateException("工号不能为空!");
         }
@@ -163,9 +170,9 @@ public class SysOrgPersonController {
                 throw new ParamValidateException("工号已存在");
             }
         }
-        if (OperationTypeEnum.UPDATE.getValue().equals(operation)) {
-            if (ObjectUtils.isEmpty(person.getPersonId())) {
-                throw new ParamValidateException("personId不能为空!");
+        if (OperationTypeEnum.UPDATE.getValue().equals(operation) && !byJobNo.getPersonId().equals(person.getPersonId())) {
+            if (!ObjectUtils.isEmpty(byJobNo)) {
+                throw new ParamValidateException("工号已存在");
             }
         }
         if (ObjectUtils.isEmpty(person.getFullName())) {

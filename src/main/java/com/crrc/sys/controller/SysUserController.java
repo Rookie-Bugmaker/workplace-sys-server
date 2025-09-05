@@ -2,14 +2,10 @@ package com.crrc.sys.controller;
 
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.*;
-import com.crrc.sys.entity.user.*;
-import com.crrc.sys.enums.*;
-import com.crrc.sys.excel.ExcelExport;
-import com.crrc.sys.excel.ExcelImport;
-import com.crrc.sys.annotation.AutoIdempotent;
-import com.crrc.sys.service.*;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
@@ -20,9 +16,12 @@ import com.crrc.sys.entity.org.SysOrg;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.SysRole;
-import com.crrc.sys.common.*;
 import com.crrc.sys.entity.user.*;
 import com.crrc.sys.enums.*;
+import com.crrc.sys.excel.ExcelExport;
+import com.crrc.sys.excel.ExcelImport;
+import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.service.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
@@ -38,6 +37,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -82,6 +83,8 @@ public class SysUserController {
     private ExcelImport excelImport;
     @Resource
     private ValueOperations<String, Object> valueOperations;
+    @Resource
+    private SysDeptPersonService deptPersonService;
 
     public static void main(String[] args) {
         //PasswordEncoder bcpe = new BCryptPasswordEncoder();
@@ -659,6 +662,19 @@ public class SysUserController {
                 }
             }
         }
+        //校验一个人员只能绑定一个用户
+        if (UserTypeEnum.EMPLOYEE.getValue().equals(user.getUserType()) && !ObjectUtils.isEmpty(user.getUserRelationId())) {
+            //根据人员ID查询用户
+            List<SysUser> userList = userService.findByRelationIds(Collections.singletonList(user.getUserRelationId()));
+            if (!CollectionUtils.isEmpty(userList)) {
+                if (OperationTypeEnum.ADD.getValue().equals(operation)) {
+                    throw new BizException("该人员已绑定用户");
+                }
+                if (OperationTypeEnum.UPDATE.getValue().equals(operation) && !userList.get(0).getUserId().equals(user.getUserId())) {
+                    throw new BizException("该人员已绑定用户");
+                }
+            }
+        }
     }
 
     /**
@@ -1064,5 +1080,116 @@ public class SysUserController {
         if (!result) {
             throw new BizException("入库失败！");
         }
+    }
+
+    /**
+     * 根据部门ID查询用户列表(兼容旧平台)
+     *
+     * @param deptId 部门ID
+     */
+    @GetMapping("get_dept_users")
+    public List<SysUserCompatibilityDTO> getUserByDeptId(Long deptId) {
+        if (ObjectUtils.isEmpty(deptId)) {
+            throw new ParamValidateException("部门ID不能为空!");
+        }
+        //根据部门ID查询人员列表
+        LambdaQueryWrapper<SysDeptPersonPO> dpQueryWrapper = new LambdaQueryWrapper<>();
+        dpQueryWrapper.eq(SysDeptPersonPO::getDeptId, deptId);
+        List<SysDeptPersonPO> deptPersonList = deptPersonService.list(dpQueryWrapper);
+        if (CollectionUtils.isEmpty(deptPersonList)) {
+            return null;
+        }
+        //人员ID集合
+        List<Long> personIdList = deptPersonList.stream().map(SysDeptPersonPO::getPersonId).collect(Collectors.toList());
+        //根据人员ID查询用户信息
+        List<SysUser> userList = userService.findByRelationIds(personIdList);
+        if (CollectionUtils.isEmpty(userList)) {
+            return null;
+        }
+        //查询人员信息
+        List<SysOrgPerson> personList = personService.findByIds(personIdList);
+        List<SysUserCompatibilityDTO> dtoList = new ArrayList<>();
+        //属性设置
+        for (SysUser user : userList) {
+            SysUserCompatibilityDTO dto = new SysUserCompatibilityDTO();
+            dto.setId(user.getUserId());
+            dto.setUserName(user.getUserName());
+            dto.setStatus("Y".equals(user.getDisableState()) ? 1 : 0);
+            dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            //部门人员信息
+            SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(deptPerson)) {
+                dto.setLeader(ObjectUtils.isEmpty(deptPerson.getParentPersonId()));
+            }
+            //关联人员信息
+            SysOrgPerson person = personList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(person)) {
+                dto.setNickName(person.getFullName());
+                dto.setPhonenumber(person.getPhone());
+                dto.setSex("M".equals(person.getGender()) ? 0 : 1);
+                dto.setEmail(person.getEmail());
+            }
+            dtoList.add(dto);
+        }
+        return dtoList;
+    }
+
+    /**
+     * 根据用户ID查询用户信息(批量)
+     *
+     * @param ids 用户ID集合
+     * @return 结果
+     */
+    @GetMapping("get_user_lists")
+    public List<SysUserCompatibilityDTO> getUserList(@RequestParam List<Long> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            throw new ParamValidateException("参数必填");
+        }
+        List<SysUser> userList = userService.findByUserIds(ids);
+        if (CollectionUtils.isEmpty(userList)) {
+            return null;
+        }
+        return setUserProperties(userList);
+    }
+
+    /**
+     * 设置用户的其他属性：是否部门领导、用户姓名、手机号码、性别、邮箱
+     *
+     * @param userList 用户集合
+     * @return 结果
+     */
+    private List<SysUserCompatibilityDTO> setUserProperties(List<SysUser> userList) {
+        //用户关联的人员ID
+        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+        //根据人员ID查询人员信息
+        List<SysOrgPerson> personList = personService.findByIds(personIdList);
+        //根据人员ID查询部门人员
+        List<SysDeptPersonPO> deptPersonList = deptPersonService.findByPersonId(personIdList);
+        List<SysUserCompatibilityDTO> dtoList = new ArrayList<>();
+        //属性设置
+        for (SysUser user : userList) {
+            SysUserCompatibilityDTO dto = new SysUserCompatibilityDTO();
+            dto.setId(user.getUserId());
+            dto.setUserName(user.getUserName());
+            dto.setStatus("Y".equals(user.getDisableState()) ? 1 : 0);
+            dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            //部门人员信息
+            SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(deptPerson)) {
+                dto.setLeader(ObjectUtils.isEmpty(deptPerson.getParentPersonId()));
+            }
+            //关联人员信息
+            if (!CollectionUtils.isEmpty(personList)) {
+                SysOrgPerson person = personList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+                if (!ObjectUtils.isEmpty(person)) {
+                    dto.setNickName(person.getFullName());
+                    dto.setPhonenumber(person.getPhone());
+                    dto.setSex("M".equals(person.getGender()) ? 0 : 1);
+                    dto.setEmail(person.getEmail());
+                }
+            }
+            dtoList.add(dto);
+        }
+        return dtoList;
     }
 }

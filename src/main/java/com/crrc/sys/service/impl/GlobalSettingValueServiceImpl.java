@@ -788,11 +788,7 @@ public class GlobalSettingValueServiceImpl implements GlobalSettingValueService 
         if (cell == null) {
             return null;
         }
-        CellType cellType;
-        // 旧版本POI (3.x) 获取方式
-        cellType = CellType.forInt(cell.getCellType());
-
-        switch (cellType) {
+        switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue().trim();
             case NUMERIC:
