@@ -4,7 +4,6 @@ import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
-import com.crrc.sys.mapper.*;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
@@ -342,5 +341,20 @@ public class SysUserServiceImpl implements SysUserService {
         }
         // 保存用户信息
         return userMapper.insertAll(list);
+    }
+
+    /**
+     * 查询角色ID绑定的用户列表
+     *
+     * @param roleId 角色ID
+     * @return 结果
+     */
+    @Override
+    public List<SysUser> findUserByRoleId(Long roleId) {
+        List<Long> userIdList = userRoleMapper.findUserIdByRoleId(roleId);
+        if(CollectionUtils.isEmpty(userIdList)){
+            return null;
+        }
+        return userMapper.findByUserIds(userIdList);
     }
 }

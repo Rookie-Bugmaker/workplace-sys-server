@@ -340,7 +340,7 @@ public class SysOrgPersonController {
         if (ObjectUtils.isEmpty(sysUser.getUserRelationId())) {
             throw new BizException("用户未关联员工!");
         }
-        return findByIds(sysUser.getUserRelationId());
+        return findById(sysUser.getUserRelationId());
     }
 
     /**
@@ -350,7 +350,7 @@ public class SysOrgPersonController {
      * @return 人员信息
      */
     @PostMapping("findById")
-    public SysOrgPersonDTO findByIds(Long personId) {
+    public SysOrgPersonDTO findById(Long personId) {
         if (ObjectUtils.isEmpty(personId)) {
             throw new ParamValidateException("参数不能为空");
         }

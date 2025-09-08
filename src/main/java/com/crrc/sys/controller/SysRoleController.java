@@ -1,26 +1,26 @@
 package com.crrc.sys.controller;
 
+import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
-import com.crrc.sys.entity.role.*;
-import com.crrc.sys.enums.DataAuthTypeEnum;
-import com.crrc.sys.enums.EnableFlagEnum;
-import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.enums.OperationTypeEnum;
-import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.org.SysOrg;
 import com.crrc.sys.entity.profile.SysProfile;
+import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.enums.DataAuthTypeEnum;
+import com.crrc.sys.enums.EnableFlagEnum;
+import com.crrc.sys.enums.LanguageEnum;
+import com.crrc.sys.enums.OperationTypeEnum;
 import com.crrc.sys.service.SysOrgService;
 import com.crrc.sys.service.SysProfileService;
 import com.crrc.sys.service.SysRoleService;
-import com.crrc.sys.entity.role.*;
+import com.crrc.sys.service.SysUserService;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +52,8 @@ public class SysRoleController {
     private SysProfileService profileService;
     @Resource
     private SysOrgService orgService;
+    @Resource
+    private SysUserService userService;
 
     /**
      * 角色信息分页查询
@@ -610,5 +612,20 @@ public class SysRoleController {
             return checkRoleName(roleName);
         }
         return roleName;
+    }
+
+
+    /**
+     * 查询角色ID绑定的用户列表
+     *
+     * @param RoleId 角色ID
+     * @return 结果
+     */
+    @GetMapping("get_role_users_by_roleid")
+    public List<SysUser> findUserByRoleId(Long RoleId) {
+        if (ObjectUtils.isEmpty(RoleId)) {
+            throw new ParamValidateException("参数不能为空!");
+        }
+        return userService.findUserByRoleId(RoleId);
     }
 }
