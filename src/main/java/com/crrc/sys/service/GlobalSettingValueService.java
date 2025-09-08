@@ -1,5 +1,6 @@
 package com.crrc.sys.service;
 
+import com.crrc.sys.common.MongoResResult;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.parameter.GlobalSetting;
 import com.crrc.sys.entity.parameter.GlobalSettingValue;
@@ -21,6 +22,6 @@ public interface GlobalSettingValueService {
     void exportTemplate(HttpServletResponse response, String settingId);
     Boolean importData(MultipartFile file, String settingId);
     void exportData(HttpServletResponse response, String settingId);
-    List<Map<String, Object>> getByCode(String settingId, String settingItemId, String settingItemContent, String pattern);
-    List<Map<String, Object>> getByCode(String settingId);
+    MongoResResult getByCode(String settingId, String settingItemId, String settingItemContent, String pattern);
+    MongoResResult getByCode(String settingId);
 }

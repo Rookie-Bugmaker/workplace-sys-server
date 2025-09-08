@@ -1,5 +1,6 @@
 package com.crrc.sys.controller;
 
+import com.crrc.sys.common.MongoResResult;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.parameter.GlobalSettingValue;
 import com.crrc.sys.model.parameter.MongoPage;
@@ -70,19 +71,19 @@ public class GlobalSettingValueController {
 
 
     @GetMapping("/match/all")
-    public List<Map<String, Object>> getAllItem(@RequestParam String settingId) {
+    public MongoResResult getAllItem(@RequestParam String settingId) {
         return globalSettingValueService.getByCode(settingId);
     }
 
     @GetMapping("/match/get")
-    public List<Map<String, Object>> getItemByCode(@RequestParam String settingId,
+    public MongoResResult getItemByCode(@RequestParam String settingId,
                                                    @RequestParam String settingItemId,
                                                    @RequestParam String settingItemContent) {
         return globalSettingValueService.getByCode(settingId, settingItemId, settingItemContent, null);
     }
 
     @GetMapping("/match/like")
-    public List<Map<String, Object>> likeItemByCode(@RequestParam String settingId,
+    public MongoResResult likeItemByCode(@RequestParam String settingId,
                                                     @RequestParam String settingItemId,
                                                     @RequestParam String settingItemContent) {
         return globalSettingValueService.getByCode(settingId, settingItemId, settingItemContent, "like");
