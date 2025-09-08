@@ -103,15 +103,16 @@ public class ServiceController {
 
     @PostMapping("/deploy")
     @Operation(summary = "部署服务")
-    public void deployService(@RequestBody String serviceInfo) {
+    public String deployService(@RequestBody String serviceInfo) {
         ServiceAccessManagementConfig serviceAccessManagementConfig = JSON.parseObject(serviceInfo, ServiceAccessManagementConfig.class);
         LambdaQueryWrapper<ServiceAccessManagementConfig> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ServiceAccessManagementConfig::getName, serviceAccessManagementConfig.getName());
         ServiceAccessManagementConfig configFromDB = serviceAccessManagementService.getOne(queryWrapper);
         if (!Objects.isNull(configFromDB) && Objects.equals(configFromDB.getStatus(), "0")) {
-            return;
+            return "OK";
         }
         serviceAccessManagementService.saveOrUpdate(serviceAccessManagementConfig);
+        return "OK";
     }
 
     @DeleteMapping("/delete")
