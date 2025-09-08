@@ -33,10 +33,15 @@
     </delete>
 
     <!--根据用户ID查询拥有的角色ID集合-->
-    <select id="findRoleIdByUserId" resultType="java.lang.Long" parameterType="java.lang.Long">
+    <select id="findRoleIdByUserId" resultType="java.lang.Long">
 		select r.role_id
 		from sys_user_role ur
 		join sys_role_b r on r.role_id = ur.role_id
 		where ur.user_id = #{userId}
 	</select>
+
+    <!--根据角色ID查询绑定的用户ID集合-->
+    <select id="findUserIdByRoleId" resultType="java.lang.Long">
+        select ur.user_id from sys_user_role ur where ur.role_id = #{roleId}
+    </select>
 </mapper>
