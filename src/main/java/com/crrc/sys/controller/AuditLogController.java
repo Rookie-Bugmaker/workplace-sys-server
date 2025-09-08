@@ -42,12 +42,13 @@ public class AuditLogController {
 
     @Operation(summary = "创建操作日志 - feign接口使用")
     @PostMapping("/create")
-    public void createAuditLog(@RequestBody String auditlog) {
+    public String createAuditLog(@RequestBody String auditlog) {
         AuditLogEntity auditLogEntity = JSON.parseObject(auditlog, AuditLogEntity.class);
         boolean result = auditLogService.save(auditLogEntity);
         if (!result) {
             throw new BizException("保存失败");
         }
+        return "OK";
     }
 
     @Operation(summary = "分页查询操作日志")

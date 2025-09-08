@@ -2,6 +2,7 @@ package com.crrc.sys.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crrc.sys.common.MongoResResult;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.parameter.GlobalSetting;
@@ -659,7 +660,7 @@ public class GlobalSettingValueServiceImpl implements GlobalSettingValueService 
 
 
     @Override
-    public List<Map<String, Object>> getByCode(String settingId) {
+    public MongoResResult getByCode(String settingId) {
         // 获取配置值和配置定义
         List<GlobalSettingValue> values = globalSettingValueRepository.findAllBySettingId(settingId);
         GlobalSetting globalSetting = globalSettingRepository.findBySettingId(settingId);
@@ -696,12 +697,12 @@ public class GlobalSettingValueServiceImpl implements GlobalSettingValueService 
             resultList.add(orderedResult);
         });
 
-        return resultList;
+        return MongoResResult.success("查询成功", resultList);
     }
 
 
     @Override
-    public List<Map<String, Object>> getByCode(String settingId, String settingItemId, String settingItemContent, String pattern) {
+    public MongoResResult getByCode(String settingId, String settingItemId, String settingItemContent, String pattern) {
         List<GlobalSettingValue> values = null;
         if("like".equals(pattern)) {
             values = globalSettingValueRepository.findBySettingIdAndItemResultsWithRegex(settingId, settingItemId, settingItemContent);
@@ -742,7 +743,7 @@ public class GlobalSettingValueServiceImpl implements GlobalSettingValueService 
             resultList.add(orderedResult);
         });
 
-        return resultList;
+        return MongoResResult.success("查询成功", resultList);
     }
 
     private String convertValueByType(String value, Integer type) throws IllegalArgumentException {
