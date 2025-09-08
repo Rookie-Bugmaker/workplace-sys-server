@@ -1,20 +1,26 @@
 package com.crrc.sys.controller;
 
+import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
-import com.crrc.sys.enums.GenderEnum;
-import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.enums.OperationTypeEnum;
-import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
+import com.crrc.sys.convert.DeptConvert;
+import com.crrc.sys.convert.SysOrgPersonConvert;
+import com.crrc.sys.entity.company.Company;
+import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.user.SysUser;
-import com.crrc.sys.service.SysOrgPersonService;
-import com.crrc.sys.service.SysUserService;
+import com.crrc.sys.enums.GenderEnum;
+import com.crrc.sys.enums.LanguageEnum;
+import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.model.dept.DeptInfoDTO;
+import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.model.org.person.SysOrgPersonDTO;
+import com.crrc.sys.service.*;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,6 +50,12 @@ public class SysOrgPersonController {
     private SysOrgPersonService orgPersonService;
     @Resource
     private SysUserService userService;
+    @Resource
+    private SysDeptPersonService deptPersonService;
+    @Resource
+    private DeptService deptService;
+    @Resource
+    private CompanyService companyService;
 
     /**
      * 人员分页查询(Copy)
@@ -287,7 +300,7 @@ public class SysOrgPersonController {
      * @return 结果
      */
     @PostMapping("findByCurrentUser")
-    public SysOrgPerson findByCurrentUser(String language) {
+    public SysOrgPersonDTO findByCurrentUser(String language) {
         if (ObjectUtils.isEmpty(language)) {
             throw new ParamValidateException("language不能为空");
         }
@@ -310,7 +323,7 @@ public class SysOrgPersonController {
      * @return 结果
      */
     @PostMapping("findByUserId")
-    public SysOrgPerson findByUserId(Long userId, String language) {
+    public SysOrgPersonDTO findByUserId(Long userId, String language) {
         if (ObjectUtils.isEmpty(userId)) {
             throw new ParamValidateException("userId不能为空");
         }
@@ -327,7 +340,25 @@ public class SysOrgPersonController {
         if (ObjectUtils.isEmpty(sysUser.getUserRelationId())) {
             throw new BizException("用户未关联员工!");
         }
-        return orgPersonService.findById(sysUser.getUserRelationId(), language);
+        return findByIds(sysUser.getUserRelationId());
+    }
+
+    /**
+     * 根据人员ID查询人员信息
+     *
+     * @param personId 人员ID
+     * @return 人员信息
+     */
+    @PostMapping("findById")
+    public SysOrgPersonDTO findByIds(Long personId) {
+        if (ObjectUtils.isEmpty(personId)) {
+            throw new ParamValidateException("参数不能为空");
+        }
+        List<SysOrgPersonDTO> personList = findByIds(Collections.singletonList(personId));
+        if (CollectionUtils.isEmpty(personList)) {
+            return null;
+        }
+        return personList.get(0);
     }
 
     /**
@@ -337,10 +368,50 @@ public class SysOrgPersonController {
      * @return 人员列表
      */
     @PostMapping("findByIds")
-    public List<SysOrgPerson> findByIds(@RequestBody List<Long> personIdList) {
+    public List<SysOrgPersonDTO> findByIds(@RequestBody List<Long> personIdList) {
         if (CollectionUtils.isEmpty(personIdList)) {
             throw new ParamValidateException("参数不能为空");
         }
-        return orgPersonService.findByIds(personIdList);
+        List<SysOrgPerson> personList = orgPersonService.findByIds(personIdList);
+        if (CollectionUtils.isEmpty(personList)) {
+            return null;
+        }
+        List<SysOrgPersonDTO> personDtoList = SysOrgPersonConvert.INSTANCE.orgPersonToDto(personList);
+        List<Long> nowPersonIdList = personList.stream().map(SysOrgPerson::getPersonId).collect(Collectors.toList());
+        //查询人员部门列表
+        List<SysDeptPersonPO> deptPersonList = deptPersonService.findByPersonId(nowPersonIdList);
+        if (CollectionUtils.isEmpty(deptPersonList)) {
+            return personDtoList;
+        }
+        List<Long> deptIdList = deptPersonList.stream().map(SysDeptPersonPO::getDeptId).distinct().collect(Collectors.toList());
+        //查询部门信息
+        List<Dept> deptList = deptService.findByDeptIds(deptIdList);
+        if (CollectionUtils.isEmpty(deptList)) {
+            return personDtoList;
+        }
+        List<DeptInfoDTO> deptInfoList = DeptConvert.INSTANCE.deptToInfoDto(deptList);
+        //查询公司信息
+        List<Long> companyIdList = deptList.stream().map(Dept::getCompanyId).distinct().collect(Collectors.toList());
+        List<Company> companyList = companyService.listByIds(companyIdList);
+        if (!CollectionUtils.isEmpty(companyList)) {
+            deptInfoList.forEach(p -> {
+                Company company = companyList.stream().filter(o -> o.getCompanyId().equals(p.getCompanyId())).findFirst().orElse(null);
+                if (!ObjectUtils.isEmpty(company)) {
+                    p.setCompany(company);
+                }
+            });
+        }
+        //绑定人员部门
+        personDtoList.forEach(p -> {
+            //查询该人员绑定了哪些部门
+            List<Long> deptIdList1 = deptPersonList.stream().filter(o -> o.getPersonId().equals(p.getPersonId())).map(SysDeptPersonPO::getDeptId).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(deptIdList1)) {
+                List<DeptInfoDTO> deptInfoDtoList = deptInfoList.stream().filter(o -> deptIdList1.contains(o.getId())).collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(deptInfoDtoList)) {
+                    p.setDeptList(deptInfoDtoList);
+                }
+            }
+        });
+        return personDtoList;
     }
 }

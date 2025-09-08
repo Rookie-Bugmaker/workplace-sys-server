@@ -12,6 +12,7 @@ import com.crrc.sys.service.DeptService;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,7 +43,7 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
 
             // 查询当前部门的子部门
             LambdaQueryWrapper<Dept> wrapper = Wrappers.lambdaQuery(Dept.class)
-                    .select(Dept::getId,Dept::getOrgCode)
+                    .select(Dept::getId, Dept::getOrgCode)
                     .eq(Dept::getDeleted, 0)
                     .eq(Dept::getParentOrgCode, currentOrgCode);
 
@@ -77,14 +78,14 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
 
     public List<Dept> getDeptListByCompanyId(Long companyId) {
         LambdaQueryWrapper<Dept> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Dept::getCompanyId,companyId);
+        wrapper.eq(Dept::getCompanyId, companyId);
         return deptMapper.selectList(wrapper);
     }
 
     @Override
     public Dept getDeptByOrgCode(String orgCode) {
         LambdaQueryWrapper<Dept> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Dept::getOrgCode,orgCode);
+        wrapper.eq(Dept::getOrgCode, orgCode);
         Dept dept = deptMapper.selectOne(wrapper);
         return dept;
     }
@@ -131,7 +132,7 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
 
 
     public List<DeptListRespVO> getDeptListResp(List<Dept> deptList) {
-        List<Dept> rootDepts ;
+        List<Dept> rootDepts;
         if (deptList.size() > 1) {
             rootDepts = deptList.stream()
                     .filter(dept -> Strings.isEmpty(dept.getParentOrgCode()))
@@ -167,4 +168,21 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
 
     }
 
+    /**
+     * 根据部门ID查询部门信息
+     *
+     * @param deptIdList 部门ID集合
+     * @return 部门信息
+     */
+    @Override
+    public List<Dept> findByDeptIds(List<Long> deptIdList) {
+        if (CollectionUtils.isEmpty(deptIdList)) {
+            return null;
+        }
+        LambdaQueryWrapper<Dept> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dept::getDeleted, 0);
+        queryWrapper.eq(Dept::getStatus, 0);
+        queryWrapper.in(Dept::getId, deptIdList);
+        return super.list(queryWrapper);
+    }
 }
