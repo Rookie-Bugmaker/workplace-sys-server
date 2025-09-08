@@ -17,10 +17,11 @@
         <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
         <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
         <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+        <result column="PROJECT_ID" property="projectId" jdbcType="NUMERIC" />
     </resultMap>
 
     <!--菜单(根菜单)查询-->
-    <select id="findByFuzzy" resultMap="menuMap" parameterType="com.crrc.sys.entity.menu.SysMenuFindByPageParam">
+    <select id="findByFuzzy" resultMap="menuMap">
         select mb.*,mtl.menu_name,mtl.menu_description
         from sys_menu_b mb
         join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
@@ -47,17 +48,16 @@
 
     <!--菜单新增-->
     <insert id="insert" parameterType="com.crrc.sys.entity.menu.SysMenuPO">
-        insert into sys_menu_b (menu_id,menu_code,menu_sort,function_id,parent_id,child_id,menu_icon,create_by,create_date)
-        values (#{menuId},#{menuCode},#{menuSort},#{functionId},#{parentId},#{childId},#{menuIcon},#{createBy},#{createDate})
+        insert into sys_menu_b (menu_id,menu_code,menu_sort,function_id,parent_id,child_id,menu_icon,create_by,create_date,project_id)
+        values (#{menuId},#{menuCode},#{menuSort},#{functionId},#{parentId},#{childId},#{menuIcon},#{createBy},#{createDate},#{projectId})
     </insert>
 
     <!--菜单新增(批量)-->
     <insert id="insertList" parameterType="java.util.List">
-        INSERT ALL
-        <foreach collection="menuList" item="item">
-            into sys_menu_b (menu_id,menu_code,menu_sort,function_id,parent_id,child_id,menu_icon,create_by,create_date) values (#{item.menuId},#{item.menuCode},#{item.menuSort},#{item.functionId},#{item.parentId},#{item.childId},#{item.menuIcon},#{item.createBy},#{item.createDate})
+        insert into sys_menu_b (menu_id,menu_code,menu_sort,function_id,parent_id,child_id,menu_icon,create_by,create_date,project_id) values
+        <foreach collection="menuList" item="item" separator=",">
+             (#{item.menuId},#{item.menuCode},#{item.menuSort},#{item.functionId},#{item.parentId},#{item.childId},#{item.menuIcon},#{item.createBy},#{item.createDate},#{projectId})
         </foreach>
-        SELECT 1 FROM DUAL
     </insert>
 
     <!--查询所有子菜单-->
@@ -99,6 +99,7 @@
             parent_id = #{parentId},
             child_id = #{childId},
             menu_icon = #{menuIcon},
+            project_id=#{projectId}
             LAST_UPDATE_BY = #{lastUpdateBy},
             LAST_UPDATE_DATE = #{lastUpdateDate},
             LAST_UPDATE_LOGIN = #{lastUpdateLogin}
@@ -168,7 +169,7 @@
 
 	<!--查询角色拥有的菜单-->
 	<select id="findByRoleId" resultMap="menuMap">
-		select mb.menu_id,mb.menu_code,mb.function_id,mb.menu_icon,mb.parent_id,mb.child_id,mb.menu_sort,mtl.menu_name,mtl.menu_description
+		select mb.menu_id,mb.menu_code,mb.function_id,mb.menu_icon,mb.parent_id,mb.child_id,mb.menu_sort,mtl.menu_name,mtl.menu_description,mb.project_id
 		from sys_menu_b mb
 	    join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
 	    join sys_role_menu rm on rm.menu_id = mb.menu_id
@@ -224,12 +225,24 @@
 
     <!--查询角色拥有的菜单(根据起止编号查询)-->
     <select id="findPageByRoleId" resultMap="menuMap">
-      select mb.menu_id,mb.menu_code,mb.function_id,mb.menu_icon,mb.parent_id,mb.child_id,mb.menu_sort,mtl.menu_name,mtl.menu_description
+      select mb.menu_id,mb.menu_code,mb.function_id,mb.menu_icon,mb.parent_id,mb.child_id,mb.menu_sort,mtl.menu_name,mtl.menu_description,mb.project_id
       from sys_menu_b mb
       join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
       join sys_role_menu rm on rm.menu_id = mb.menu_id
       where rm.role_id = #{roleId}
       order by mb.menu_id
       LIMIT #{offset}, #{endset}
+    </select>
+
+    <!--查询跟菜单列表-->
+    <select id="findRootMenu" resultMap="menuMap">
+        select mb.*,mtl.menu_name,mtl.menu_description
+        from sys_menu_b mb
+        join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
+        where mb.parent_id is null
+        <if test="projectId != null">
+            and mb.project_id = #{projectId}
+        </if>
+        order by mb.menu_sort
     </select>
 </mapper>
