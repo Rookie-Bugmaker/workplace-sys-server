@@ -1,10 +1,7 @@
 package com.crrc.sys.controller;
 
-import com.crrc.sys.client.AuthClient;
-import com.crrc.sys.common.*;
-import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.enums.OperationEnum;
 import com.crrc.sys.annotation.AutoIdempotent;
+import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.*;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
@@ -14,9 +11,11 @@ import com.crrc.sys.entity.menu.SysMenu;
 import com.crrc.sys.entity.menu.SysMenuDTO;
 import com.crrc.sys.entity.menu.SysMenuFindByPageParam;
 import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.enums.LanguageEnum;
+import com.crrc.sys.enums.OperationEnum;
+import com.crrc.sys.service.SysMenuService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.crrc.sys.service.SysMenuService;
 import org.springframework.http.MediaType;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -269,18 +268,19 @@ public class SysMenuController {
     /**
      * 查询根菜单列表
      *
-     * @param language 语言
+     * @param projectId 项目ID
+     * @param language  语言
      * @return 结果
      */
     @PostMapping("findRootMenu")
-    public List<SysMenu> findRootMenu(String language) {
+    public List<SysMenu> findRootMenu(Long projectId, String language) {
         if (ObjectUtils.isEmpty(language)) {
             throw new ParamValidateException("language不能为空!");
         }
         if (!LanguageEnum.contains(language)) {
             throw new ParamValidateException("language参数错误!");
         }
-        return menuService.findRootMenu(language);
+        return menuService.findRootMenu(projectId, language);
     }
 
     /**

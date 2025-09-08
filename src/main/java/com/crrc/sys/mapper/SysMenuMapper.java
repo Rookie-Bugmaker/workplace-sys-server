@@ -195,4 +195,13 @@ public interface SysMenuMapper {
      * @return 结果
      */
     List<SysMenu> findPageByRoleId(@Param("roleId") long roleId, @Param("language") String language, @Param("offset") int offset, @Param("endset") int endset);
+
+    /**
+     * 查询跟菜单列表
+     *
+     * @param projectId 项目ID
+     * @param language  语言
+     * @return 结果
+     */
+    List<SysMenu> findRootMenu(@Param("projectId") Long projectId, @Param("language") String language);
 }

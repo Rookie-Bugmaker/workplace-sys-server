@@ -3,22 +3,22 @@ package com.crrc.sys.service.impl;
 import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.MyThreadPoolExecutor;
 import com.crrc.sys.common.PaginationGrid;
-import com.crrc.sys.entity.menu.*;
-import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.mapper.*;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.function.SysFunction;
 import com.crrc.sys.entity.function.SysFunctionApiBO;
 import com.crrc.sys.entity.function.column.SysFunctionColumn;
 import com.crrc.sys.entity.menu.*;
+import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.role.SysRoleFunctionColumn;
+import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.*;
+import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysFunctionColumnService;
+import com.crrc.sys.service.SysMenuService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.crrc.sys.service.SysMenuService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +52,8 @@ public class SysMenuServiceImpl implements SysMenuService {
     private SysFunctionColumnService functionColumnService;
     @Resource
     private SysRoleFunctionColumnMapper roleFunctionColumnMapper;
+    @Resource
+    private ProjectService projectService;
 
     /**
      * 菜单信息分页查询
@@ -64,6 +66,18 @@ public class SysMenuServiceImpl implements SysMenuService {
         PageHelper.startPage(param.getPage(), param.getPageSize());
         //根菜单查询
         List<SysMenu> rows = menuMapper.findByFuzzy(param);
+        if (!CollectionUtils.isEmpty(rows)) {
+            List<Long> projectIdList = rows.stream().map(SysMenu::getProjectId).distinct().collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(projectIdList)) {
+                List<ProjectEntity> projectList = projectService.listByIds(projectIdList);
+                if (!CollectionUtils.isEmpty(projectList)) {
+                    rows.forEach(o -> {
+                        ProjectEntity projectEntity = projectList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
+                        o.setProjectName(ObjectUtils.isEmpty(projectEntity) ? null : projectEntity.getNameCn());
+                    });
+                }
+            }
+        }
         PageInfo<SysMenu> pageInfo = new PageInfo<>(rows);
         return PaginationGrid.success(pageInfo);
     }
@@ -366,8 +380,8 @@ public class SysMenuServiceImpl implements SysMenuService {
      * @return 结果
      */
     @Override
-    public List<SysMenu> findRootMenu(String language) {
-        return menuMapper.findByParentId(null, language);
+    public List<SysMenu> findRootMenu(Long projectId, String language) {
+        return menuMapper.findRootMenu(projectId, language);
     }
 
     /**
