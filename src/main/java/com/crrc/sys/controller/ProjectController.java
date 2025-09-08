@@ -112,12 +112,6 @@ public class ProjectController {
         projectService.removeById(id);
     }
 
-    @GetMapping("/list")
-    @Operation(summary = "查询项目list 根据用户查询")
-    public List<ProjectRespVO> getProjectListByUserId(@RequestParam Long id) {
-        return null;
-    }
-
     @GetMapping("/page")
     @Operation(summary = "查询项目page")
     public PaginationGrid<ProjectPageRespVO> getProjectPage(ProjectPageReqVO pageReqVO) {
@@ -151,5 +145,21 @@ public class ProjectController {
     @PostMapping("/set_project_users")
     @Operation(summary = "关联项目用户")
     public void setUserRole() {
+    }
+
+
+    /**
+     * 查询项目列表
+     *
+     * @param name   项目编码
+     * @param nameCn 项目中文名
+     * @return 结果
+     */
+    @GetMapping("list")
+    public List<ProjectEntity> list(String name, String nameCn) {
+        LambdaQueryWrapper<ProjectEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(!ObjectUtils.isEmpty(name), ProjectEntity::getName, name);
+        queryWrapper.like(!ObjectUtils.isEmpty(nameCn), ProjectEntity::getNameCn, nameCn);
+        return projectService.list(queryWrapper);
     }
 }
