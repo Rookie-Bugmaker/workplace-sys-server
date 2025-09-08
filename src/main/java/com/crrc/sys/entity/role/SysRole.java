@@ -78,6 +78,10 @@ public class SysRole extends BaseEntityYunLing {
      * 所属项目
      */
     private Long projectId;
+    /**
+     * 所属项目名称
+     */
+    private String projectName;
 
     public Long getRoleId() {
         return roleId;
@@ -205,5 +209,13 @@ public class SysRole extends BaseEntityYunLing {
 
     public void setProjectId(Long projectId) {
         this.projectId = projectId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 }
