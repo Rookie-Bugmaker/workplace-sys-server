@@ -38,7 +38,13 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
             "/user/get_users_by_usernames","/user/get_user_page","/user/delete_dept_of_usernames","/user/create_user_dept_relative","/dept/get_depts_by_user_id",
             "/dept/get_depts_by_user_name","/menu/auto_config","/role/get_role_users_by_roleid","/dept/list","/dept/get_list","/dept/get_subdept_list",
             "/dept/get_depts_by_company_id","/dept/get_dept_by_org_code","/dept/get_dept_and_subDepts_by_orgCode","/company/get_company_by_ids","/company/get_all_company",
-            "/company/get_company_by_plants","/company/get_company_by_orgCodes","/role/get_role_by_role_key","/role/set_role_users"
+            "/company/get_company_by_plants","/company/get_company_by_orgCodes","/role/get_role_by_role_key","/role/set_role_users",
+            "/audit_log/create","/service/deploy","/datasource/get_datasource_list","/datasource/get_decrypt_type_and_key",
+            "/datasource/get_decrypt_type_and_key_global","/global/fileData/saveFileData","/global/fileData/listFileData",
+            "/global/fileData/getFileData","/idDesign/nextId","/global/dict/get","/global/dict/getName","/global/dict/getCodes",
+            "/global/dict/all","/global/dict/getItem","/global/dict/getItemName","/global/dict/getItemCode","/global/dict/getUserRealNameInDictExtends",
+            "/global/dict/getDeptNameNameInDictExtends","/globalSetting/value/match/all","/globalSetting/value/match/get","/globalSetting/value/match/like"
+
     };
 
     /**
