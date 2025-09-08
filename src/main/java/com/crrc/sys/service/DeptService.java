@@ -24,4 +24,11 @@ public interface DeptService extends IService<Dept> {
      * @return 部门列表
      */
     List<Dept> getDeptAndSubDeptsByOrgCode(String orgCode);
+
+    /**
+     * 根据部门ID查询部门信息
+     * @param deptIdList 部门ID集合
+     * @return 部门信息
+     */
+    List<Dept> findByDeptIds(List<Long> deptIdList);
 }

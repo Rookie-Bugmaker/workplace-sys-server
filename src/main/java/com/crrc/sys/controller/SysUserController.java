@@ -3,6 +3,7 @@ package com.crrc.sys.controller;
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.*;
@@ -1187,6 +1188,29 @@ public class SysUserController {
     }
 
     /**
+     * 分页查询用户信息
+     *
+     * @param pageNo   当前页码
+     * @param pageSize 查询数据条数
+     * @return 结果
+     */
+    @GetMapping("get_user_page")
+    public Page<SysUserCompatibilityDTO> getUserPage(@RequestParam Integer pageNo, @RequestParam Integer pageSize) {
+        SysUserFindByPageParam param = new SysUserFindByPageParam();
+        param.setPage(pageNo);
+        param.setPageSize(pageSize);
+        PaginationGrid<SysUser> paginationGrid = userService.findByPage(param);
+        List<SysUser> rows = paginationGrid.getRows();
+        Page<SysUserCompatibilityDTO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
+        if (CollectionUtils.isEmpty(rows)) {
+            return page;
+        }
+        page.setTotal(paginationGrid.getTotal());
+        page.setRecords(setUserProperties(rows));
+        return page;
+    }
+
+    /**
      * 设置用户的其他属性：是否部门领导、用户姓名、手机号码、性别、邮箱
      *
      * @param userList 用户集合
@@ -1206,7 +1230,9 @@ public class SysUserController {
             dto.setId(user.getUserId());
             dto.setUserName(user.getUserName());
             dto.setStatus("Y".equals(user.getDisableState()) ? 1 : 0);
-            dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            if(!ObjectUtils.isEmpty(user.getPasswordUpdateDate())){
+                dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            }
             //部门人员信息
             SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
             if (!ObjectUtils.isEmpty(deptPerson)) {
