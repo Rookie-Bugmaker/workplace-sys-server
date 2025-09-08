@@ -1,6 +1,7 @@
 package com.crrc.sys.service;
 
 import com.crrc.sys.common.PaginationGrid;
+import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 
@@ -119,4 +120,12 @@ public interface SysUserService {
      * @return 结果
      */
     boolean addList(List<SysUser> list);
+
+    /**
+     * 查询角色ID绑定的用户列表
+     *
+     * @param roleId 角色ID
+     * @return 结果
+     */
+    List<SysUser> findUserByRoleId(Long roleId);
 }

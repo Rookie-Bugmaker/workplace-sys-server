@@ -46,4 +46,12 @@ public interface SysUserRoleMapper {
      * @return 角色ID集合
      */
     List<Long> findRoleIdByUserId(@Param("userId") long userId);
+
+    /**
+     * 根据角色ID查询绑定的用户ID集合
+     *
+     * @param roleId 角色ID
+     * @return 用户ID
+     */
+    List<Long> findUserIdByRoleId(@Param("roleId") long roleId);
 }

@@ -38,6 +38,10 @@ public class SysMenuPO extends BaseEntityYunLing {
      * 子菜单ID
      */
     private Long childId;
+    /**
+     * 项目ID
+     */
+    private Long projectId;
 
     public Long getMenuId() {
         return menuId;
@@ -93,5 +97,13 @@ public class SysMenuPO extends BaseEntityYunLing {
 
     public void setChildId(Long childId) {
         this.childId = childId;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

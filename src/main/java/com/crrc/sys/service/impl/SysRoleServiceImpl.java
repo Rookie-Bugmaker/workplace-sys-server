@@ -2,17 +2,17 @@ package com.crrc.sys.service.impl;
 
 import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.PaginationGrid;
-import com.crrc.sys.entity.role.*;
-import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.mapper.*;
-import com.crrc.sys.service.SysRoleService;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
+import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.*;
+import com.crrc.sys.enums.LanguageEnum;
+import com.crrc.sys.mapper.*;
+import com.crrc.sys.service.ProjectService;
+import com.crrc.sys.service.SysRoleService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.crrc.sys.mapper.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +46,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     private SysDataAuthMapper dataAuthMapper;
     @Resource
     private SysDataAuthValueMapper dataAuthValueMapper;
+    @Resource
+    private ProjectService projectService;
 
     /**
      * 角色信息分页查询
@@ -57,6 +59,18 @@ public class SysRoleServiceImpl implements SysRoleService {
     public PaginationGrid<SysRole> findByPage(SysRoleFindByPageParam param) {
         PageHelper.startPage(param.getPage(), param.getPageSize());
         List<SysRole> rows = roleMapper.findByFuzzy(param);
+        if (!CollectionUtils.isEmpty(rows)) {
+            List<Long> projectIdList = rows.stream().map(SysRole::getProjectId).distinct().collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(projectIdList)) {
+                List<ProjectEntity> projectList = projectService.listByIds(projectIdList);
+                if (!CollectionUtils.isEmpty(projectList)) {
+                    rows.forEach(o -> {
+                        ProjectEntity projectEntity = projectList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
+                        o.setProjectName(ObjectUtils.isEmpty(projectEntity) ? null : projectEntity.getNameCn());
+                    });
+                }
+            }
+        }
         PageInfo<SysRole> pageInfo = new PageInfo<>(rows);
         return PaginationGrid.success(pageInfo);
     }

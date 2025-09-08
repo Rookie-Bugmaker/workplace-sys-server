@@ -74,6 +74,14 @@ public class SysRole extends BaseEntityYunLing {
 	 * 角色数据权限
 	 */
 	private List<SysDataAuth> dataAuthList;
+    /**
+     * 所属项目
+     */
+    private Long projectId;
+    /**
+     * 所属项目名称
+     */
+    private String projectName;
 
     public Long getRoleId() {
         return roleId;
@@ -193,5 +201,21 @@ public class SysRole extends BaseEntityYunLing {
 
     public void setCheckedOrgIds(List<Long> checkedOrgIds) {
         this.checkedOrgIds = checkedOrgIds;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 }

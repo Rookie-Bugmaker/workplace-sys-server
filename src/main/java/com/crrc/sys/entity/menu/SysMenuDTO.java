@@ -50,6 +50,10 @@ public class SysMenuDTO extends BaseEntityYunLing {
      * zh-CN:中文、en-US:英文
      */
     private String language;
+    /**
+     * 项目ID
+     */
+    private Long projectId;
 
     public Long getMenuId() {
         return menuId;
@@ -129,5 +133,13 @@ public class SysMenuDTO extends BaseEntityYunLing {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

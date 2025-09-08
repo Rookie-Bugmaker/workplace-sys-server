@@ -91,10 +91,11 @@ public interface SysMenuService {
     /**
      * 查询根菜单列表
      *
-     * @param language 语言
+     * @param projectId 项目ID
+     * @param language  语言
      * @return 结果
      */
-    List<SysMenu> findRootMenu(String language);
+    List<SysMenu> findRootMenu(Long projectId, String language);
 
     /**
      * 根据菜单ID查询结构

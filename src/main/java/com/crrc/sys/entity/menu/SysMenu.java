@@ -70,6 +70,14 @@ public class SysMenu extends BaseEntityYunLing {
      * 子菜单名称
      */
     private String childName;
+    /**
+     * 所属项目
+     */
+    private Long projectId;
+    /**
+     * 所属项目名称
+     */
+    private String projectName;
 
     public Long getMenuId() {
         return menuId;
@@ -182,4 +190,20 @@ public class SysMenu extends BaseEntityYunLing {
 	public void setChildCode(String childCode) {
 		this.childCode = childCode;
 	}
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
 }

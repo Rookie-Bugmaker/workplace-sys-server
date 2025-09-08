@@ -72,6 +72,11 @@ public class DeptController {
         return dept.getId();
     }
 
+    @PostMapping("/list_vo")
+    public List<DeptListRespVO> listNow(@Valid @RequestBody DeptqueryVo deptqueryVo) {
+        return listDept(deptqueryVo);
+    }
+
     @PostMapping("/list")
     @Operation(summary = "获取部门列表")
     public List<DeptListRespVO> listDept(@Valid @RequestBody DeptqueryVo deptqueryVo) {

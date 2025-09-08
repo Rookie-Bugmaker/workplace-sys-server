@@ -14,12 +14,13 @@
         <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
         <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
         <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+        <result column="project_id" property="projectId" jdbcType="NUMERIC" />
     </resultMap>
 
     <!--角色信息分页查询-->
     <select id="findByFuzzy" resultMap="roleMap" parameterType="com.crrc.sys.entity.role.SysRoleFindByPageParam">
         select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,rb.create_by,rb.create_date,rb.last_update_by,rb.last_update_date,rb.last_update_login,
-               rtl.role_name,rtl.role_description,rtl.language
+               rtl.role_name,rtl.role_description,rtl.language,rb.project_id
         from sys_role_b rb
         <if test="menuId != null">
             join (select rm.role_id from sys_role_menu rm where rm.menu_id = #{menuId} group by rm.role_id) rma on rma.role_id = rb.role_id
@@ -51,8 +52,8 @@
 
     <!--添加角色主表数据-->
     <insert id="addB" parameterType="com.crrc.sys.entity.role.SysRole">
-        insert into sys_role_b (role_id,role_code,menu_id,enable_flag,create_by,create_date)
-        values (#{roleId},#{roleCode},#{menuId},#{enableFlag},#{createBy},#{createDate})
+        insert into sys_role_b (role_id,role_code,menu_id,enable_flag,create_by,create_date,project_id)
+        values (#{roleId},#{roleCode},#{menuId},#{enableFlag},#{createBy},#{createDate},#{projectId})
     </insert>
 
     <!--角色国际化修改-->
@@ -75,6 +76,7 @@
             role_code = #{roleCode},
             menu_id = #{menuId},
             enable_flag = #{enableFlag},
+            project_id = #{projectId},
             LAST_UPDATE_BY = #{lastUpdateBy},
             LAST_UPDATE_DATE = #{lastUpdateDate},
             LAST_UPDATE_LOGIN = #{lastUpdateLogin}
@@ -100,8 +102,7 @@
 
     <!--根据角色ID查询角色信息-->
     <select id="findById" resultMap="roleMap">
-        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
-               rtl.role_name,rtl.role_description,rtl.language
+        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,rtl.role_name,rtl.role_description,rtl.language,rb.project_id
         from sys_role_b rb
         join sys_role_tl rtl on rb.role_id = rtl.role_id
         where rb.role_id = #{roleId} and rtl.language = #{language}
@@ -109,8 +110,7 @@
 
     <!--根据角色编码查询角色信息-->
     <select id="findByCode" resultMap="roleMap">
-        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
-               rtl.role_name,rtl.role_description,rtl.language
+        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,rtl.role_name,rtl.role_description,rtl.language,rb.project_id
         from sys_role_b rb
         join sys_role_tl rtl on rb.role_id = rtl.role_id
         where rb.role_code = #{roleCode} and rtl.language = #{language}
@@ -118,8 +118,7 @@
 
     <!--查询当前用户拥有的角色列表-->
     <select id="findByUserId" resultMap="roleMap">
-        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
-               rtl.role_name,rtl.role_description,rtl.language
+        select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,rtl.role_name,rtl.role_description,rtl.language,rb.project_id
         from sys_role_b rb
         join sys_role_tl rtl on rb.role_id = rtl.role_id and rtl.language = #{language}
         join sys_user_role ur on ur.role_id = rb.role_id
@@ -128,15 +127,15 @@
 
 	<!--根据角色名称查询角色信息-->
 	<select id="findByName" resultMap="roleMap">
-		select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
-			   rtl.role_name,rtl.role_description,rtl.language
+		select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,rtl.role_name,rtl.role_description,rtl.language,rb.project_id
 		from sys_role_b rb
 		join sys_role_tl rtl on rb.role_id = rtl.role_id
 		where rtl.role_name = #{roleName} and rtl.language = #{language}
 	</select>
+
+    <!--根据编码集合查询角色信息-->
     <select id="findByCodes" resultMap="roleMap">
-		select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,
-		rtl.role_name,rtl.role_description,rtl.language
+		select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,rtl.role_name,rtl.role_description,rtl.language,rb.project_id
 		from sys_role_b rb
 		join sys_role_tl rtl on rb.role_id = rtl.role_id
 		where rb.role_code in (
