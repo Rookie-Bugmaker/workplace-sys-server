@@ -15,7 +15,6 @@ import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OperationEnum;
 import com.crrc.sys.service.SysMenuService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -43,8 +42,6 @@ public class SysMenuController {
     private SysMenuService menuService;
     @Resource
     private RedisUtils redisUtils;
-    @Resource
-    private ObjectMapper objectMapper;
 
     /**
      * 菜单信息分页查询

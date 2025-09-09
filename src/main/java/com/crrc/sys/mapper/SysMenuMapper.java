@@ -204,4 +204,12 @@ public interface SysMenuMapper {
      * @return 结果
      */
     List<SysMenu> findRootMenu(@Param("projectId") Long projectId, @Param("language") String language);
+
+    /**
+     * 修改直属子菜单的项目ID
+     *
+     * @param menuId    上级菜单ID
+     * @param projectId 项目ID
+     */
+    void updateProjectId(@Param("menuId") Long menuId, @Param("projectId") Long projectId);
 }

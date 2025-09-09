@@ -176,6 +176,8 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int update(SysMenuDTO menu) {
+        //修改直属子菜单的项目ID
+        menuMapper.updateProjectId(menu.getMenuId(), menu.getProjectId());
         SysMenuTl menuTlEn = new SysMenuTl();
         BeanUtils.copyProperties(menu, menuTlEn);
         int result = menuMapper.updateTl(menuTlEn);

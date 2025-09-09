@@ -245,4 +245,9 @@
         </if>
         order by mb.menu_sort
     </select>
+
+    <!--修改直属子菜单的项目ID-->
+    <update id="updateProjectId">
+        update sys_menu_b set project_id = #{projectId} where parent_id = #{menuId} and child_id is null
+    </update>
 </mapper>
