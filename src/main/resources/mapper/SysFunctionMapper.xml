@@ -28,6 +28,7 @@
         <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
         <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
         <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+        <result column="PROJECT_ID" property="projectId" jdbcType="NUMERIC" />
     </resultMap>
 
     <!--功能查询-->
@@ -85,8 +86,8 @@
 
     <!--功能新增-->
     <insert id="insert" parameterType="com.crrc.sys.entity.function.SysFunction">
-        insert into sys_function_b (function_id,parent_id,function_code,function_type,path,parameters,open_method,keep_alive,component,name,redirect,hide_children_in_menu,hide_in_menu,lock_in_tab,merge_tab,icon,vs_id,create_by,create_date,page_id)
-        values (#{functionId},#{parentId},#{functionCode},#{functionType},#{path},#{parameters},#{openMethod},#{keepAlive},#{component},#{name},#{redirect},#{hideChildrenInMenu},#{hideInMenu},#{lockInTab},#{mergeTab},#{icon},#{vsId},#{createBy},#{createDate},#{pageId})
+        insert into sys_function_b (function_id,parent_id,function_code,function_type,path,parameters,open_method,keep_alive,component,name,redirect,hide_children_in_menu,hide_in_menu,lock_in_tab,merge_tab,icon,vs_id,create_by,create_date,page_id,project_id)
+        values (#{functionId},#{parentId},#{functionCode},#{functionType},#{path},#{parameters},#{openMethod},#{keepAlive},#{component},#{name},#{redirect},#{hideChildrenInMenu},#{hideInMenu},#{lockInTab},#{mergeTab},#{icon},#{vsId},#{createBy},#{createDate},#{pageId},#{projectId})
     </insert>
 
     <!--根据功能ID查询子菜单集合-->
@@ -140,7 +141,8 @@
             VS_ID = #{vsId},
             LAST_UPDATE_BY = #{lastUpdateBy},
             LAST_UPDATE_DATE = #{lastUpdateDate},
-            LAST_UPDATE_LOGIN = #{lastUpdateLogin}
+            LAST_UPDATE_LOGIN = #{lastUpdateLogin},
+            project_id = #{projectId}
         </set>
         where function_id = #{functionId}
     </update>
@@ -280,4 +282,9 @@
             select mobile_function_id function_id from workflow_approval_template where mobile_function_id is not null
         )
     </select>
+
+    <!--修改子功能的项目ID-->
+    <update id="updateProjectId">
+        update sys_function_b set project_id = #{projectId} where parent_id = #{functionId}
+    </update>
 </mapper>

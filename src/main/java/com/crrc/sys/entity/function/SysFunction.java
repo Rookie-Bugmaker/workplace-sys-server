@@ -111,6 +111,14 @@ public class SysFunction extends BaseEntityYunLing {
 	 * 页面ID
 	 */
 	private Long pageId;
+	/**
+	 * 项目ID
+	 */
+	private Long projectId;
+	/**
+	 * 项目名称
+	 */
+	private String projectName;
 
 	public Long getFunctionId() {
 		return functionId;
@@ -302,5 +310,21 @@ public class SysFunction extends BaseEntityYunLing {
 
 	public void setPageId(Long pageId) {
 		this.pageId = pageId;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
+	public String getProjectName() {
+		return projectName;
+	}
+
+	public void setProjectName(String projectName) {
+		this.projectName = projectName;
 	}
 }
