@@ -299,6 +299,16 @@ public class SysOrgPersonController {
      * @param language 语言
      * @return 结果
      */
+    @PostMapping("findByCurrentUserNew")
+    public SysOrgPersonDTO findByCurrentUserNew(String language) {
+        return findByCurrentUser(language);
+    }
+    /**
+     * 根据当前用户查询人员信息
+     *
+     * @param language 语言
+     * @return 结果
+     */
     @PostMapping("findByCurrentUser")
     public SysOrgPersonDTO findByCurrentUser(String language) {
         if (ObjectUtils.isEmpty(language)) {

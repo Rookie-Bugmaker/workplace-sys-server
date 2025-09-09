@@ -43,7 +43,8 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
             "/datasource/get_decrypt_type_and_key_global","/global/fileData/saveFileData","/global/fileData/listFileData",
             "/global/fileData/getFileData","/idDesign/nextId","/global/dict/get","/global/dict/getName","/global/dict/getCodes",
             "/global/dict/all","/global/dict/getItem","/global/dict/getItemName","/global/dict/getItemCode","/global/dict/getUserRealNameInDictExtends",
-            "/global/dict/getDeptNameNameInDictExtends","/globalSetting/value/match/all","/globalSetting/value/match/get","/globalSetting/value/match/like"
+            "/global/dict/getDeptNameNameInDictExtends","/globalSetting/value/match/all","/globalSetting/value/match/get","/globalSetting/value/match/like",
+            "/org/person/findByCurrentUser"
 
     };
 
