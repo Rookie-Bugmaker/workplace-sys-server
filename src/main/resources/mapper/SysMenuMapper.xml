@@ -99,7 +99,7 @@
             parent_id = #{parentId},
             child_id = #{childId},
             menu_icon = #{menuIcon},
-            project_id=#{projectId}
+            project_id=#{projectId},
             LAST_UPDATE_BY = #{lastUpdateBy},
             LAST_UPDATE_DATE = #{lastUpdateDate},
             LAST_UPDATE_LOGIN = #{lastUpdateLogin}
