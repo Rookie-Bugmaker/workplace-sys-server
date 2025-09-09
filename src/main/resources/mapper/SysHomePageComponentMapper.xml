@@ -3,7 +3,6 @@
 <mapper namespace="com.crrc.sys.mapper.SysHomePageComponentMapper">
 
 	<resultMap id="homePageMap" type="com.crrc.sys.entity.homepage.SysHomePageComponent">
-
 		<id column="component_id" property="componentId" jdbcType="NUMERIC" />
 		<result column="home_page_title" property="homePageTitle" jdbcType="VARCHAR" />
 		<result column="function_name" property="functionName" jdbcType="VARCHAR" />
@@ -89,9 +88,7 @@
 	</select>
 
 	<select id="findComponentByUserId" resultMap="homePageMap">
-		select
-			component_id,home_page_title,function_name,function_code,refresh_rate,loading_type,user_type,remarks,
-			status,show_status,function_url,create_date,create_by
+		select t.*
 		from sys_home_page_component_user t1
        	inner join sys_home_page_component t
        	on t1.component_id = t.component_id
@@ -99,9 +96,7 @@
 	</select>
 
 	<select id="findComponentByUserType" resultMap="homePageMap">
-		select
-			component_id,home_page_title,function_name,function_code,refresh_rate,loading_type,user_type,remarks,
-			status,show_status,function_url,create_date,create_by
+		select t.*
 		from sys_home_page_component t
 		where t.loading_type= '1' and t.user_type like CONCAT( CONCAT('%',#{userType} ),'%')
 	</select>
