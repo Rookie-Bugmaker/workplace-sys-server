@@ -20,47 +20,17 @@
 		<result column="last_update_date" property="lastUpdateDate" jdbcType="TIMESTAMP" />
 		<result column="last_update_by" property="lastUpdateBy" jdbcType="NUMERIC" />
 		<result column="last_update_login" property="lastUpdateLogin" jdbcType="NUMERIC" />
-
 	</resultMap>
 
-	<sql id="base_sql">
-			t.component_id,
-  			t.home_page_title,
-  			t.function_name,
-  			t.function_code,
-  			t.refresh_rate,
-  			t.loading_type,
-  			t.user_type,
-  			t.remarks,
-  			t.status,
-  			t.show_status,
-  			t.function_url,
-  			t.create_date,
-  			t.create_by,
-  			t.last_update_date,
-  			t.last_update_by,
-  			t.last_update_login
-	</sql>
-
 	<insert id="add" parameterType="com.crrc.sys.entity.homepage.SysHomePageComponent">
-	insert into
-		sys_home_page_component t
-		(
-			<include refid="base_sql"/>
+		insert into sys_home_page_component (
+			component_id,home_page_title,function_name,function_code,refresh_rate,loading_type,user_type,remarks,
+  			status,show_status,function_url,create_date,create_by
 		)
-	values
+		values
 		(
-			#{componentId},
-	    #{homePageTitle}
-			,#{functionName}
-			,#{functionCode},
-	    #{refreshRate}
-			,#{loadingType}
-			,#{userType},#{remarks}
-			,#{status},#{showStatus}
-			,#{functionUrl},#{createDate}
-			,#{createBy},#{lastUpdateDate}
-			,#{lastUpdateBy},#{lastUpdateLogin}
+		 	#{componentId}, #{homePageTitle} ,#{functionName} ,#{functionCode}, #{refreshRate} ,#{loadingType} ,#{userType},
+		    #{remarks},#{status},#{showStatus} ,#{functionUrl},#{createDate} ,#{createBy}
 		)
 	</insert>
 
@@ -70,7 +40,8 @@
 
 	<select id="findList" resultMap="homePageMap" parameterType="com.crrc.sys.entity.homepage.HomePageParam">
 		select
-			<include refid="base_sql"/>
+		component_id,home_page_title,function_name,function_code,refresh_rate,loading_type,user_type,remarks,
+		status,show_status,function_url,create_date,create_by
 		from sys_home_page_component t
 		<where>
 			<if test="homePageTitle != null and homePageTitle!=''">
@@ -119,7 +90,8 @@
 
 	<select id="findComponentByUserId" parameterType="java.lang.Long" resultMap="homePageMap">
 		select
-			<include refid="base_sql"/>
+			component_id,home_page_title,function_name,function_code,refresh_rate,loading_type,user_type,remarks,
+			status,show_status,function_url,create_date,create_by
 		from sys_home_page_component_user t1
        	inner join sys_home_page_component t
        	on t1.component_id = t.component_id
@@ -128,7 +100,8 @@
 
 	<select id="findComponentByUserType" resultMap="homePageMap" parameterType="java.lang.String">
 		select
-			<include refid="base_sql"/>
+			component_id,home_page_title,function_name,function_code,refresh_rate,loading_type,user_type,remarks,
+			status,show_status,function_url,create_date,create_by
 		from sys_home_page_component t
 		where t.loading_type= '1' and t.user_type like CONCAT( CONCAT('%',#{userType} ),'%')
 	</select>
