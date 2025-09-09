@@ -4,19 +4,21 @@ import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.MyThreadPoolExecutor;
 import com.crrc.sys.common.PaginationGrid;
-import com.crrc.sys.entity.function.*;
-import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.convert.SysFunctionConvert;
 import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.function.*;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
-import com.crrc.sys.convert.SysFunctionConvert;
+import com.crrc.sys.entity.project.ProjectEntity;
+import com.crrc.sys.enums.FunctionTypeEnum;
+import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.SysApiMapper;
 import com.crrc.sys.mapper.SysFunctionApiMapper;
 import com.crrc.sys.mapper.SysFunctionMapper;
 import com.crrc.sys.mapper.SysFunctionTlMapper;
+import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysFunctionService;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +48,8 @@ public class SysFunctionServiceImpl implements SysFunctionService {
     private SysFunctionApiMapper functionApiMapper;
     @Resource
     private SysApiMapper apiMapper;
+    @Resource
+    private ProjectService projectService;
 
     /**
      * 功能分页查询
@@ -64,6 +68,17 @@ public class SysFunctionServiceImpl implements SysFunctionService {
             List<SysFunctionApiBO> functionApiList = functionApiMapper.findByFunctionIds(null);
             //递归查找子功能，并设置接口权限
             setChildren(rows, childrenAll, functionApiList);
+            //查询并设置项目名称
+            List<Long> projectIdList = rows.stream().map(SysFunction::getProjectId).distinct().collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(projectIdList)) {
+                List<ProjectEntity> projectList = projectService.listByIds(projectIdList);
+                if (!CollectionUtils.isEmpty(projectList)) {
+                    rows.forEach(o -> {
+                        ProjectEntity projectEntity = projectList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
+                        o.setProjectName(ObjectUtils.isEmpty(projectEntity) ? null : projectEntity.getNameCn());
+                    });
+                }
+            }
         }
         PageInfo<SysFunction> pageInfo = new PageInfo<>(rows);
         return PaginationGrid.success(pageInfo);
@@ -74,7 +89,7 @@ public class SysFunctionServiceImpl implements SysFunctionService {
      *
      * @param parentList     上级功能
      * @param childrenAll    所有子功能
-     * @param functionApiAll 所有子功能
+     * @param functionApiAll 所有功能权限
      */
     private void setChildren(List<SysFunction> parentList, List<SysFunction> childrenAll, List<SysFunctionApiBO> functionApiAll) {
         for (SysFunction parent : parentList) {
@@ -85,6 +100,9 @@ public class SysFunctionServiceImpl implements SysFunctionService {
                     List<SysApi> sortApiList = apiList.stream().sorted(Comparator.comparing(SysApi::getApiUri)).collect(Collectors.toList());
                     parent.setApiList(sortApiList);
                 }
+            }
+            if (CollectionUtils.isEmpty(childrenAll)) {
+                continue;
             }
             //查询子功能
             List<SysFunction> children = childrenAll.stream().filter(o -> o.getParentId().equals(parent.getFunctionId())).collect(Collectors.toList());
@@ -416,12 +434,16 @@ public class SysFunctionServiceImpl implements SysFunctionService {
         functionTl.setLastUpdateBy(function.getLastUpdateBy());
         functionTl.setLastUpdateDate(function.getLastUpdateDate());
         functionTl.setLastUpdateLogin(function.getLastUpdateLogin());
-        //1.修改功能语言信息
+        if(FunctionTypeEnum.A.getValue().equals(function.getFunctionType())){
+            //1.修改子功能的项目ID
+            functionMapper.updateProjectId(function.getFunctionId(), function.getProjectId());
+        }
+        //2.修改功能语言信息
         int result = functionMapper.updateTl(functionTl);
         if (result <= 0) {
             throw new BizException("功能(多语言)修改失败!");
         }
-        //2.修改功能
+        //3.修改功能
         result = functionMapper.update(function);
         if (result <= 0) {
             throw new BizException("功能修改失败!");
