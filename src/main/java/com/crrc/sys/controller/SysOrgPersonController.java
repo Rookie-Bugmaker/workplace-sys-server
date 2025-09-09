@@ -302,10 +302,7 @@ public class SysOrgPersonController {
     @PostMapping("findByCurrentUser")
     public SysOrgPersonDTO findByCurrentUser(String language) {
         if (ObjectUtils.isEmpty(language)) {
-            throw new ParamValidateException("language不能为空");
-        }
-        if (!LanguageEnum.contains(language)) {
-            throw new ParamValidateException("language参数错误");
+            language = LanguageEnum.ZH_CN.getValue();
         }
         ResultData<SysUser> currentUserResultData = authClient.currentUser();
         SysUser currentUser = currentUserResultData.getResult();
@@ -328,10 +325,7 @@ public class SysOrgPersonController {
             throw new ParamValidateException("userId不能为空");
         }
         if (ObjectUtils.isEmpty(language)) {
-            throw new ParamValidateException("language不能为空");
-        }
-        if (!LanguageEnum.contains(language)) {
-            throw new ParamValidateException("language参数错误");
+            language = LanguageEnum.ZH_CN.getValue();
         }
         SysUser sysUser = userService.findById(userId, language);
         if (ObjectUtils.isEmpty(sysUser)) {
