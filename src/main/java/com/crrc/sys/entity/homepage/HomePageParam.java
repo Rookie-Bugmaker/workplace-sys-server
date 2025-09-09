@@ -18,11 +18,6 @@ public class HomePageParam {
 	private String functionName;
 
 	/**
-	 * 业务领域id
-	 */
-	private Long businessAreaId;
-
-	/**
 	 * 状态 Y 有效/ N 无效
 	 */
 	private String status;
@@ -67,14 +62,6 @@ public class HomePageParam {
 
 	public void setFunctionName(String functionName) {
 		this.functionName = functionName;
-	}
-
-	public Long getBusinessAreaId() {
-		return businessAreaId;
-	}
-
-	public void setBusinessAreaId(Long businessAreaId) {
-		this.businessAreaId = businessAreaId;
 	}
 
 	public String getStatus() {

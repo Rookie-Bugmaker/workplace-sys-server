@@ -130,7 +130,6 @@ public class SysHomePageComponentController {
     private void checkData(SysHomePageComponent param) {
         BizServiceAssert.isTrue(!ObjectUtils.isEmpty(param.getHomePageTitle()), "主页标题不能为空！");
         BizServiceAssert.isTrue(!ObjectUtils.isEmpty(param.getFunctionName()), "功能名称不能为空！");
-        BizServiceAssert.isTrue(!ObjectUtils.isEmpty(param.getBusinessAreaId()), "业务领域不能为空！");
         BizServiceAssert.isTrue(!ObjectUtils.isEmpty(param.getRefreshRate()), "刷新频率不能为空！");
         BizServiceAssert.isTrue(!ObjectUtils.isEmpty(param.getLoadingType()), "加载限制不能为空！");
         checkLength(param);
