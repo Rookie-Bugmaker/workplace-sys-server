@@ -7,7 +7,6 @@
 		<id column="component_id" property="componentId" jdbcType="NUMERIC" />
 		<result column="home_page_title" property="homePageTitle" jdbcType="VARCHAR" />
 		<result column="function_name" property="functionName" jdbcType="VARCHAR" />
-		<result column="business_area_id" property="businessAreaId" jdbcType="NUMERIC" />
 		<result column="function_code" property="functionCode" jdbcType="VARCHAR" />
 		<result column="refresh_rate" property="refreshRate" jdbcType="NUMERIC" />
 		<result column="loading_type" property="loadingType" jdbcType="NUMERIC" />
@@ -28,7 +27,6 @@
 			t.component_id,
   			t.home_page_title,
   			t.function_name,
-  			t.business_area_id,
   			t.function_code,
   			t.refresh_rate,
   			t.loading_type,
@@ -79,9 +77,6 @@
 			<if test="functionName != null and functionName!=''">
 				and t.function_name like CONCAT( CONCAT('%',#{functionName} ),'%')
 			</if>
-			<if test="businessAreaId != null">
-				and t.business_area_id = #{businessAreaId}
-			</if>
 			<if test="status != null and status!=''">
 				and t.status = #{status}
 			</if>
@@ -94,7 +89,6 @@
 		<set>
 			home_page_title=#{homePageTitle},
 			function_name = #{functionName},
-			business_area_id = #{businessAreaId},
 			function_code = #{functionCode},
 			refresh_rate = #{refreshRate},
 			loading_type = #{loadingType},

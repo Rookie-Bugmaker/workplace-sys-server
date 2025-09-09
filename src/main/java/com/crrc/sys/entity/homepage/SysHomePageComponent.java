@@ -28,11 +28,6 @@ public class SysHomePageComponent extends BaseEntityYunLing {
     private String functionName;
 
     /**
-     * 业务领域id
-     */
-    private Long businessAreaId;
-
-    /**
      * 功能编码
      */
     private String functionCode;
@@ -107,14 +102,6 @@ public class SysHomePageComponent extends BaseEntityYunLing {
 
 	public void setFunctionName(String functionName) {
 		this.functionName = functionName;
-	}
-
-	public Long getBusinessAreaId() {
-		return businessAreaId;
-	}
-
-	public void setBusinessAreaId(Long businessAreaId) {
-		this.businessAreaId = businessAreaId;
 	}
 
 	public String getFunctionCode() {
