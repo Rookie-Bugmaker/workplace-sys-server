@@ -50,9 +50,11 @@
 		)
 	values
 		(
-			#{componentId},#{homePageTitle}
-			,#{functionName},#{businessAreaId}
-			,#{functionCode},#{refreshRate}
+			#{componentId},
+	    #{homePageTitle}
+			,#{functionName}
+			,#{functionCode},
+	    #{refreshRate}
 			,#{loadingType}
 			,#{userType},#{remarks}
 			,#{status},#{showStatus}
