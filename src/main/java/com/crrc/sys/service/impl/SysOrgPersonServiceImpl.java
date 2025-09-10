@@ -180,11 +180,15 @@ public class SysOrgPersonServiceImpl implements SysOrgPersonService {
             personTl.setPersonId(o.getPersonId());
             personTl.setFullName(o.getFullName());
             personTl.setLanguage(LanguageEnum.EN_US.getValue());
+            personTl.setCreateBy(o.getCreateBy());
+            personTl.setCreateDate(o.getCreateDate());
             tlList.add(personTl);
             personTl = new SysOrgPersonTl();
             personTl.setPersonId(o.getPersonId());
             personTl.setFullName(o.getFullName());
             personTl.setLanguage(LanguageEnum.ZH_CN.getValue());
+            personTl.setCreateBy(o.getCreateBy());
+            personTl.setCreateDate(o.getCreateDate());
             tlList.add(personTl);
             return tlList;
         }).flatMap(List::stream).collect(Collectors.toList());

@@ -26,10 +26,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -256,7 +253,12 @@ public class SysOrgPersonController {
         if (!CollectionUtils.isEmpty(persons)) {
             throw new ParamValidateException("参数不能为空!");
         }
-        persons.forEach(o -> o.setPersonId(idKeyGenerator.getId()));
+        Date now = Calendar.getInstance().getTime();
+        persons.forEach(o -> {
+            o.setPersonId(idKeyGenerator.getId());
+            o.setCreateBy(-1L);
+            o.setCreateDate(now);
+        });
         return orgPersonService.addList(persons);
     }
 
