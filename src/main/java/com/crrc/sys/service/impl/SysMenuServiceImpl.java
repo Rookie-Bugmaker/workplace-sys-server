@@ -442,7 +442,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             //查询角色拥有的功能
             List<SysFunction> functionAll = this.findFunctionByRoleId(roleId, language);
             if (CollectionUtils.isEmpty(functionAll)) {
-                return null;
+                return new ArrayList<SysFunction>();
             }
             //设置功能已绑定的API权限
             functionAll = this.setFunctionApiList(functionAll);
