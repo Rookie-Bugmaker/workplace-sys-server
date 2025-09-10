@@ -436,6 +436,20 @@ public class SysRoleController {
     }
 
     /**
+     * 根据用户ID查询角色I列表
+     *
+     * @param userId 用户ID
+     * @return 角色列表
+     */
+    @PostMapping("findRoleListByUserId")
+    public List<SysRole> findRoleListByUserId(Long userId) {
+        if (ObjectUtils.isEmpty(userId)) {
+            throw new ParamValidateException("用户ID不能为空!");
+        }
+        return roleService.findByUserId(userId, "zh-CN");
+    }
+
+    /**
      * 根据角色名称查询角色信息
      *
      * @param roleName 角色名称

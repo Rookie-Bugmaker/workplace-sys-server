@@ -25,6 +25,8 @@ public class FeignInterceptor implements RequestInterceptor {
         if (!ObjectUtils.isEmpty(attributes)) {
             HttpServletRequest request = attributes.getRequest();
             requestTemplate.header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION));
+            //项目编码
+            requestTemplate.header("X-Project-Code", request.getHeader("X-Project-Code"));
         }
     }
 }
