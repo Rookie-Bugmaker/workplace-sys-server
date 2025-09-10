@@ -392,6 +392,11 @@ public class SysRoleController {
         if (ObjectUtils.isEmpty(sysRole)) {
             throw new BizException("角色不存在!");
         }
+        //角色部门
+        List<SysRoleCompanyDeptDTO> companyDeptDtoList = findRoleCompanyDeptByRoleId(sysRole.getRoleId());
+        if (!CollectionUtils.isEmpty(companyDeptDtoList)) {
+            sysRole.setRoleCompanyDeptList(companyDeptDtoList);
+        }
         //角色数据权限
         List<SysDataAuth> dataAuthList = sysRole.getDataAuthList();
         if (!CollectionUtils.isEmpty(dataAuthList)) {
