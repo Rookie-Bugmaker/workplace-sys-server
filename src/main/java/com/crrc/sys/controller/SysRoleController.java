@@ -13,6 +13,7 @@ import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.company.Company;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.profile.SysProfile;
+import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.DataAuthTypeEnum;
@@ -56,6 +57,8 @@ public class SysRoleController {
     private CompanyService companyService;
     @Resource
     private DeptService deptService;
+    @Resource
+    private ProjectService projectService;
 
     /**
      * 角色信息分页查询
@@ -446,7 +449,23 @@ public class SysRoleController {
         if (ObjectUtils.isEmpty(userId)) {
             throw new ParamValidateException("用户ID不能为空!");
         }
-        return roleService.findByUserId(userId, "zh-CN");
+        List<SysRole> roleList = roleService.findByUserId(userId, "zh-CN");
+        if (CollectionUtils.isEmpty(roleList)) {
+            return roleList;
+        }
+        List<Long> projectIdList = roleList.stream().map(SysRole::getProjectId).filter(o -> !ObjectUtils.isEmpty(o)).distinct().collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(projectIdList)) {
+            List<ProjectEntity> projectList = projectService.listByIds(projectIdList);
+            if (!CollectionUtils.isEmpty(projectList)) {
+                for (SysRole sysRole : roleList) {
+                    ProjectEntity project = projectList.stream().filter(p -> p.getId().equals(sysRole.getProjectId())).findFirst().orElse(null);
+                    if (!ObjectUtils.isEmpty(project)) {
+                        sysRole.setProjectCode(project.getName());
+                    }
+                }
+            }
+        }
+        return roleList;
     }
 
     /**

@@ -72,6 +72,10 @@ public class SysRole extends BaseEntityYunLing {
      */
     private Long projectId;
     /**
+     * 所属项目编码
+     */
+    private String projectCode;
+    /**
      * 所属项目名称
      */
     private String projectName;
@@ -206,5 +210,13 @@ public class SysRole extends BaseEntityYunLing {
 
     public void setRoleCompanyDeptList(List<SysRoleCompanyDeptDTO> roleCompanyDeptList) {
         this.roleCompanyDeptList = roleCompanyDeptList;
+    }
+
+    public String getProjectCode() {
+        return projectCode;
+    }
+
+    public void setProjectCode(String projectCode) {
+        this.projectCode = projectCode;
     }
 }
