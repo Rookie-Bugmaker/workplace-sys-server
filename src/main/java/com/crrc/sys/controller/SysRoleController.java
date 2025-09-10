@@ -1,5 +1,6 @@
 package com.crrc.sys.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
@@ -9,6 +10,8 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
+import com.crrc.sys.entity.company.Company;
+import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUser;
@@ -17,18 +20,14 @@ import com.crrc.sys.enums.EnableFlagEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OperationTypeEnum;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
-import com.crrc.sys.service.SysProfileService;
-import com.crrc.sys.service.SysRoleService;
-import com.crrc.sys.service.SysUserService;
+import com.crrc.sys.model.role.SysRoleCompanyDeptInfoDTO;
+import com.crrc.sys.service.*;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +50,12 @@ public class SysRoleController {
     private SysProfileService profileService;
     @Resource
     private SysUserService userService;
+    @Resource
+    private SysRoleCompanyDeptService roleCompanyDeptService;
+    @Resource
+    private CompanyService companyService;
+    @Resource
+    private DeptService deptService;
 
     /**
      * 角色信息分页查询
@@ -449,7 +454,7 @@ public class SysRoleController {
      * @param language     语言
      * @return 结果
      */
-    @PostMapping("/findByCodes")
+    @PostMapping("findByCodes")
     public List<SysRole> findByName(@RequestBody List<String> roleCodeList, @RequestParam String language) {
         return roleService.findByCodes(roleCodeList, language);
     }
@@ -595,5 +600,73 @@ public class SysRoleController {
             throw new ParamValidateException("参数不能为空!");
         }
         return userService.findUserByRoleId(RoleId);
+    }
+
+    /**
+     * 根据角色ID查询绑定的公司ID与部门ID集合
+     *
+     * @param roleId 角色ID
+     * @return 公司ID和部门ID集合
+     */
+    @RequestMapping("findRoleCompanyDeptByRoleId")
+    public List<SysRoleCompanyDeptDTO> findRoleCompanyDeptByRoleId(Long roleId) {
+        if (ObjectUtils.isEmpty(roleId)) {
+            throw new ParamValidateException("角色ID不能为空!");
+        }
+        LambdaQueryWrapper<SysRoleCompanyDept> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysRoleCompanyDept::getRoleId, roleId);
+        List<SysRoleCompanyDept> companyDeptList = roleCompanyDeptService.list(queryWrapper);
+        List<SysRoleCompanyDeptDTO> dtoList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(companyDeptList)) {
+            return dtoList;
+        }
+        List<Long> companyIdList = companyDeptList.stream().map(SysRoleCompanyDept::getCompanyId).distinct().collect(Collectors.toList());
+        for (Long companyId : companyIdList) {
+            SysRoleCompanyDeptDTO dto = new SysRoleCompanyDeptDTO();
+            dto.setCompanyId(companyId);
+            dto.setDeptIdList(companyDeptList.stream().filter(o -> o.getCompanyId().equals(companyId)).map(SysRoleCompanyDept::getDeptId).collect(Collectors.toList()));
+            dtoList.add(dto);
+        }
+        return dtoList;
+    }
+
+    /**
+     * 根据角色ID查询绑定的公司信息与部门信息集合
+     *
+     * @param roleId 角色ID
+     * @return 结果
+     */
+    @RequestMapping("findRoleCompanyDeptInfoByRoleId")
+    public List<SysRoleCompanyDeptInfoDTO> findRoleCompanyDeptInfoByRoleId(Long roleId) {
+        if (ObjectUtils.isEmpty(roleId)) {
+            throw new ParamValidateException("角色ID不能为空!");
+        }
+        LambdaQueryWrapper<SysRoleCompanyDept> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysRoleCompanyDept::getRoleId, roleId);
+        List<SysRoleCompanyDept> companyDeptList = roleCompanyDeptService.list(queryWrapper);
+        List<SysRoleCompanyDeptInfoDTO> infoDtoList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(companyDeptList)) {
+            return infoDtoList;
+        }
+        List<Long> companyIdList = companyDeptList.stream().map(SysRoleCompanyDept::getCompanyId).distinct().collect(Collectors.toList());
+        LambdaQueryWrapper<Company> companyQueryWrapper = new LambdaQueryWrapper<>();
+        companyQueryWrapper.in(Company::getId, companyIdList);
+        List<Company> companyList = companyService.list(companyQueryWrapper);
+        if (!CollectionUtils.isEmpty(companyList)) {
+            companyList.forEach(o -> {
+                SysRoleCompanyDeptInfoDTO infoDTO = new SysRoleCompanyDeptInfoDTO();
+                infoDTO.setCompanyId(o.getId());
+                infoDTO.setCompanyName(o.getCompanyName());
+                infoDtoList.add(infoDTO);
+            });
+        }
+        List<Long> deptIdList = companyDeptList.stream().map(SysRoleCompanyDept::getDeptId).distinct().collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(deptIdList)) {
+            List<Dept> deptList = deptService.findByDeptIds(deptIdList);
+            if (!CollectionUtils.isEmpty(deptList)) {
+                infoDtoList.forEach(o -> o.setDeptList(deptList.stream().filter(p -> p.getCompanyId().equals(o.getCompanyId())).collect(Collectors.toList())));
+            }
+        }
+        return infoDtoList;
     }
 }
