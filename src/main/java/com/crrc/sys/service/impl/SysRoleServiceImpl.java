@@ -40,8 +40,6 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Resource
     private SysRoleMenuMapper roleMenuMapper;
     @Resource
-    private SysRoleOrgMapper roleOrgMapper;
-    @Resource
     private SysRoleColumnValueSetMapper roleColumnValueSetMapper;
     @Resource
     private SysMenuMapper menuMapper;
@@ -325,8 +323,6 @@ public class SysRoleServiceImpl implements SysRoleService {
         roleFunctionColumnMapper.deleteByRoleIds(ids);
         //角色菜单中间表删除
         roleMenuMapper.deleteByRoleIds(ids);
-        //角色组织中间表删除
-        roleOrgMapper.deleteByRoleIds(ids);
         //删除角色数据权限值
         dataAuthValueMapper.deleteByObjectIds(ids);
         //删除角色数据权限
