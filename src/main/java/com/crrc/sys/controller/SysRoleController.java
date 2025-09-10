@@ -439,7 +439,7 @@ public class SysRoleController {
     }
 
     /**
-     * 根据用户ID查询角色I列表
+     * 根据用户ID查询角色列表
      *
      * @param userId 用户ID
      * @return 角色列表
@@ -698,5 +698,20 @@ public class SysRoleController {
             }
         }
         return infoDtoList;
+    }
+
+    /**
+     * 获取当前用户绑定的公司信息与部门信息集合
+     *
+     * @return 结果
+     */
+    @GetMapping("findRoleCompanyDeptInfoByCurrentUser")
+    public List<SysRoleCompanyDeptInfoDTO> findRoleCompanyDeptInfoByCurrentUser() {
+        ResultData<SysUser> resultData = authClient.currentUser();
+        if (!resultData.getSuccess()) {
+            throw new BizException(resultData.getCode(), resultData.getMessage());
+        }
+        SysUser sysUser = resultData.getResult();
+        return findRoleCompanyDeptInfoByRoleId(sysUser.getCurrentRoleId());
     }
 }
