@@ -315,10 +315,8 @@ public class SysProfileController {
                 SysUser currentUser = userResultData.getResult();
                 sql = sql.replaceAll("\\$\\{user.userId}", String.valueOf(currentUser.getUserId()));
                 sql = sql.replaceAll("\\$\\{user.roleId}", String.valueOf(currentUser.getCurrentRoleId()));
-                sql = sql.replaceAll("\\$\\{user.organizationId}", String.valueOf(currentUser.getCurrentOrgId()));
                 paramSet.remove("${user.userId}");
                 paramSet.remove("${user.roleId}");
-                paramSet.remove("${user.organizationId}");
                 //判断是否还有需要处理的参数，如果没有就直接返回
                 if (CollectionUtils.isEmpty(paramSet)) {
                     return sql;

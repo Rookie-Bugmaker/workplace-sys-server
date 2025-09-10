@@ -38,12 +38,10 @@ public interface AuthClient {
      * 切换当前角色
      *
      * @param roleId                  角色ID
-     * @param orgId                   组织ID
      * @return 结果
      */
     @PostMapping("updateCurrentUser")
-    ResultData<Boolean> updateCurrentUser(@RequestParam("roleId") Long roleId,
-                                          @RequestParam("orgId") Long orgId);
+    ResultData<Boolean> updateCurrentUser(@RequestParam("roleId") Long roleId);
 
     /**
      * 获取当前用户信息

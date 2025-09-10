@@ -13,7 +13,6 @@ import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.excel.ExcelParams;
 import com.crrc.sys.entity.excel.ExcelResultData;
-import com.crrc.sys.entity.org.SysOrg;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.SysRole;
@@ -72,8 +71,6 @@ public class SysUserController {
     private SysUserService userService;
     @Resource
     private SysProfileService profileService;
-    @Resource
-    private SysOrgService orgService;
     @Resource
     private SysRoleService roleService;
     @Resource
@@ -300,12 +297,6 @@ public class SysUserController {
             throw new BizException("用户不存在!");
         }
         sysUser.setPassword(null);
-        //根据用户ID查询组织列表
-        List<SysOrg> userOrgList = orgService.findByRoleId(userId, language);
-        if (!CollectionUtils.isEmpty(userOrgList)) {
-            List<Long> userOrgIdList = userOrgList.stream().map(SysOrg::getOrgId).collect(Collectors.toList());
-            sysUser.setOrgIdList(userOrgIdList);
-        }
         //用户数据权限
         List<SysDataAuth> dataAuthList = sysUser.getDataAuthList();
         if (!CollectionUtils.isEmpty(dataAuthList)) {
@@ -333,17 +324,7 @@ public class SysUserController {
         if (ObjectUtils.isEmpty(userName)) {
             throw new ParamValidateException("userName不能为空!");
         }
-        SysUser sysUser = userService.findByUserName(userName);
-        if (ObjectUtils.isEmpty(sysUser)) {
-            return sysUser;
-        }
-        //组织查询
-        List<SysOrg> orgList = orgService.findByRoleId(sysUser.getUserId(), LanguageEnum.ZH_CN.getValue());
-        if (!CollectionUtils.isEmpty(orgList)) {
-            List<Long> orgIdList = orgList.stream().map(SysOrg::getOrgId).collect(Collectors.toList());
-            sysUser.setOrgIdList(orgIdList);
-        }
-        return sysUser;
+        return userService.findByUserName(userName);
     }
 
     /**
@@ -493,63 +474,11 @@ public class SysUserController {
         SysUser currentUser = userResultData.getResult();
         //当前角色ID
         Long currentRoleId = currentUser.getCurrentRoleId();
-        //当前组织ID
-        Long currentOrgId = currentUser.getCurrentOrgId();
         if (currentRoleId.equals(roleId)) {
             throw new ParamValidateException("当前角色与切换角色一致，无需切换!");
         }
-        //根据角色ID查询角色组织列表
-        List<SysOrg> roleOrgList = orgService.findByRoleId(roleId, language);
-        if (CollectionUtils.isEmpty(roleOrgList)) {
-            throw new BizException("当前角色下无组织!");
-        }
-        //角色组织ID集合
-        List<Long> roleOrgIdList = roleOrgList.stream().map(SysOrg::getOrgId).collect(Collectors.toList());
-        //根据用户ID查询用户组织列表
-        List<SysOrg> userOrgList = orgService.findByRoleId(currentUser.getUserId(), language);
-        //如果用户未绑定组织，那就直接取角色组织；如果用户有绑定组织，则与角色组织取交集。
-        if (!CollectionUtils.isEmpty(userOrgList)) {
-            List<Long> userOrgIdList = userOrgList.stream().map(SysOrg::getOrgId).collect(Collectors.toList());
-            roleOrgIdList = roleOrgIdList.stream().filter(userOrgIdList::contains).collect(Collectors.toList());
-        }
-        if (CollectionUtils.isEmpty(roleOrgIdList)) {
-            throw new BizException("当前用户与所选角色无组织交集!");
-        }
-        if (!roleOrgIdList.contains(currentOrgId)) {
-            //判断组织ID集合中不存在当前组织ID，则随机取一个组织ID
-            currentOrgId = roleOrgIdList.get(0);
-        }
-        ResultData<Boolean> resultData = authClient.updateCurrentUser(roleId, currentOrgId);
-        if (!resultData.getSuccess()) {
-            throw new BizException(resultData.getCode(), resultData.getMessage());
-        }
-        if (!resultData.getResult()) {
-            throw new BizException("切换失败");
-        }
-    }
-
-    /**
-     * 切换组织
-     *
-     * @param orgId 组织ID
-     */
-    @AutoIdempotent
-    @PostMapping("switchOrg")
-    public void switchOrg(Long orgId) {
-        if (ObjectUtils.isEmpty(orgId)) {
-            throw new ParamValidateException("组织ID不能为空!");
-        }
-        //获取当前用户
-        ResultData<SysUser> userResultData = authClient.currentUser();
-        if (!userResultData.getSuccess()) {
-            throw new BizException(userResultData.getCode(), userResultData.getMessage());
-        }
-        //当前用户
-        SysUser currentUser = userResultData.getResult();
-        if (currentUser.getCurrentOrgId().equals(orgId)) {
-            throw new ParamValidateException("当前组织与切换组织一致，无需切换!");
-        }
-        ResultData<Boolean> resultData = authClient.updateCurrentUser(currentUser.getCurrentRoleId(), orgId);
+        //修改用户缓存
+        ResultData<Boolean> resultData = authClient.updateCurrentUser(roleId);
         if (!resultData.getSuccess()) {
             throw new BizException(resultData.getCode(), resultData.getMessage());
         }
@@ -1230,7 +1159,7 @@ public class SysUserController {
             dto.setId(user.getUserId());
             dto.setUserName(user.getUserName());
             dto.setStatus("Y".equals(user.getDisableState()) ? 1 : 0);
-            if(!ObjectUtils.isEmpty(user.getPasswordUpdateDate())){
+            if (!ObjectUtils.isEmpty(user.getPasswordUpdateDate())) {
                 dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
             }
             //部门人员信息

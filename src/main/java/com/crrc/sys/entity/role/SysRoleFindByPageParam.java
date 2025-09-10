@@ -41,6 +41,10 @@ public class SysRoleFindByPageParam {
      * 菜单ID(搜索条件)
      */
     private Long menuId;
+    /**
+     * 项目ID
+     */
+    private Long projectId;
 
     public Integer getPage() {
         return page;
@@ -104,5 +108,13 @@ public class SysRoleFindByPageParam {
 
     public void setMenuId(Long menuId) {
         this.menuId = menuId;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

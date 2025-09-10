@@ -17,7 +17,6 @@ import com.crrc.sys.enums.EnableFlagEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OperationTypeEnum;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
-import com.crrc.sys.service.SysOrgService;
 import com.crrc.sys.service.SysProfileService;
 import com.crrc.sys.service.SysRoleService;
 import com.crrc.sys.service.SysUserService;
@@ -50,8 +49,6 @@ public class SysRoleController {
     private SysRoleService roleService;
     @Resource
     private SysProfileService profileService;
-    @Resource
-    private SysOrgService orgService;
     @Resource
     private SysUserService userService;
 

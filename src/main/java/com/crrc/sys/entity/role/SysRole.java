@@ -56,10 +56,6 @@ public class SysRole extends BaseEntityYunLing {
      */
     private List<Long> halfCheckedMenuIds;
     /**
-     * 选中的组织ID
-     */
-    private List<Long> checkedOrgIds;
-    /**
      * 角色列权限值集
      */
     private List<SysRoleColumnValueSet> roleColumnValueSets;
@@ -186,14 +182,6 @@ public class SysRole extends BaseEntityYunLing {
 
     public void setHalfCheckedMenuIds(List<Long> halfCheckedMenuIds) {
         this.halfCheckedMenuIds = halfCheckedMenuIds;
-    }
-
-    public List<Long> getCheckedOrgIds() {
-        return checkedOrgIds;
-    }
-
-    public void setCheckedOrgIds(List<Long> checkedOrgIds) {
-        this.checkedOrgIds = checkedOrgIds;
     }
 
     public Long getProjectId() {

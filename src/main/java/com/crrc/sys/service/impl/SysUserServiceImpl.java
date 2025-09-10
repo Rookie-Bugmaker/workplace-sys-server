@@ -115,17 +115,6 @@ public class SysUserServiceImpl implements SysUserService {
             //4.添加用户数据权限值
             dataAuthValueMapper.insertList(dataAuthList.stream().map(SysDataAuth::getDataAuthValueList).flatMap(Collection::stream).collect(Collectors.toList()));
         }
-        if (!CollectionUtils.isEmpty(user.getOrgIdList())) {
-            List<SysRoleOrg> roleOrgList = user.getOrgIdList().stream().map(o -> {
-                SysRoleOrg roleOrg = new SysRoleOrg(user.getUserId(), o);
-                roleOrg.setCreateBy(user.getCreateBy());
-                roleOrg.setCreateDate(user.getCreateDate());
-                roleOrg.setLastUpdateLogin(user.getLastUpdateLogin());
-                return roleOrg;
-            }).collect(Collectors.toList());
-            //5.添加用户组织
-            roleOrgMapper.insert(roleOrgList);
-        }
         //6.添加用户
         return userMapper.insert(user);
     }
@@ -167,17 +156,6 @@ public class SysUserServiceImpl implements SysUserService {
         }
         //10.删除用户组织(角色组织表中的role_id实际保存的是角色ID或用户ID)
         roleOrgMapper.deleteByRoleId(user.getUserId());
-        //11.用户组织
-        if (!CollectionUtils.isEmpty(user.getOrgIdList())) {
-            List<SysRoleOrg> roleOrgList = user.getOrgIdList().stream().map(o -> {
-                SysRoleOrg roleOrg = new SysRoleOrg(user.getUserId(), o);
-                roleOrg.setCreateBy(user.getLastUpdateBy());
-                roleOrg.setCreateDate(user.getLastUpdateDate());
-                roleOrg.setLastUpdateLogin(user.getLastUpdateLogin());
-                return roleOrg;
-            }).collect(Collectors.toList());
-            roleOrgMapper.insert(roleOrgList);
-        }
         //12.修改用户信息
         return userMapper.update(user);
     }
@@ -273,7 +251,7 @@ public class SysUserServiceImpl implements SysUserService {
         int result = userMapper.updatePassword(userId, password, passwordUpdateDate);
         if (result > 0) {
             //重置当前用户缓存信息
-            ResultData<Boolean> resultData = authClient.updateCurrentUser(user.getCurrentRoleId(), user.getCurrentOrgId());
+            ResultData<Boolean> resultData = authClient.updateCurrentUser(user.getCurrentRoleId());
             if (!resultData.getSuccess()) {
                 throw new BizException(resultData.getCode(), resultData.getMessage());
             }
