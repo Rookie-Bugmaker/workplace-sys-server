@@ -177,11 +177,13 @@ public class SysOrgPersonServiceImpl implements SysOrgPersonService {
         List<SysOrgPersonTl> personTlList = persons.stream().map(o -> {
             List<SysOrgPersonTl> tlList = new ArrayList<>(2);
             SysOrgPersonTl personTl = new SysOrgPersonTl();
-            BeanUtils.copyProperties(o, personTl);
+            personTl.setPersonId(o.getPersonId());
+            personTl.setFullName(o.getFullName());
             personTl.setLanguage(LanguageEnum.EN_US.getValue());
             tlList.add(personTl);
             personTl = new SysOrgPersonTl();
-            BeanUtils.copyProperties(o, personTl);
+            personTl.setPersonId(o.getPersonId());
+            personTl.setFullName(o.getFullName());
             personTl.setLanguage(LanguageEnum.ZH_CN.getValue());
             tlList.add(personTl);
             return tlList;

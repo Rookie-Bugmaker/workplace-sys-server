@@ -246,13 +246,17 @@ public class SysOrgPersonController {
     }
 
     /**
-     * 人员新增(列表)
+     * 人员新增(批量)
      *
      * @param persons 人员信息
      * @return 结果
      */
     @PostMapping("addList")
     public Boolean add(@RequestBody List<SysOrgPerson> persons) {
+        if (!CollectionUtils.isEmpty(persons)) {
+            throw new ParamValidateException("参数不能为空!");
+        }
+        persons.forEach(o -> o.setPersonId(idKeyGenerator.getId()));
         return orgPersonService.addList(persons);
     }
 
@@ -303,6 +307,7 @@ public class SysOrgPersonController {
     public SysOrgPersonDTO findByCurrentUserNew(String language) {
         return findByCurrentUser(language);
     }
+
     /**
      * 根据当前用户查询人员信息
      *
