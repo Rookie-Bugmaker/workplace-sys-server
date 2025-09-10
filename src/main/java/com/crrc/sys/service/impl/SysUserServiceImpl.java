@@ -8,7 +8,6 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.role.SysRole;
-import com.crrc.sys.entity.role.SysRoleOrg;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
@@ -49,8 +48,6 @@ public class SysUserServiceImpl implements SysUserService {
     private SysDataAuthValueMapper dataAuthValueMapper;
     @Resource
     private AuthClient authClient;
-    @Resource
-    private SysRoleOrgMapper roleOrgMapper;
 
     /**
      * 根据用户名查询用户信息
@@ -154,8 +151,6 @@ public class SysUserServiceImpl implements SysUserService {
             //9.添加用户数据权限值
             dataAuthValueMapper.insertList(dataAuthList.stream().map(SysDataAuth::getDataAuthValueList).flatMap(Collection::stream).collect(Collectors.toList()));
         }
-        //10.删除用户组织(角色组织表中的role_id实际保存的是角色ID或用户ID)
-        roleOrgMapper.deleteByRoleId(user.getUserId());
         //12.修改用户信息
         return userMapper.update(user);
     }
