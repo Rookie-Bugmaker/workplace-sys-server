@@ -9,7 +9,6 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
-import com.crrc.sys.entity.org.SysOrg;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUser;
@@ -17,6 +16,7 @@ import com.crrc.sys.enums.DataAuthTypeEnum;
 import com.crrc.sys.enums.EnableFlagEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.service.SysOrgService;
 import com.crrc.sys.service.SysProfileService;
 import com.crrc.sys.service.SysRoleService;
@@ -127,18 +127,6 @@ public class SysRoleController {
         }).collect(Collectors.toList());
         roleMenuList1.addAll(roleMenuList2);
         role.setRoleMenuList(roleMenuList1);
-        //构建角色组织数据
-        if (!CollectionUtils.isEmpty(role.getCheckedOrgIds())) {
-            List<SysRoleOrg> roleOrgList = role.getCheckedOrgIds().stream().map(o -> {
-                SysRoleOrg roleOrg = new SysRoleOrg();
-                roleOrg.setRoleId(role.getRoleId());
-                roleOrg.setOrgId(o);
-                roleOrg.setCreateBy(role.getCreateBy());
-                roleOrg.setCreateDate(role.getCreateDate());
-                return roleOrg;
-            }).collect(Collectors.toList());
-            role.setRoleOrgList(roleOrgList);
-        }
         if (!CollectionUtils.isEmpty(role.getRoleColumnValueSets())) {
             role.getRoleColumnValueSets().forEach(o -> {
                 o.setRoleId(role.getRoleId());
@@ -229,18 +217,6 @@ public class SysRoleController {
         }).collect(Collectors.toList());
         roleMenuList1.addAll(roleMenuList2);
         role.setRoleMenuList(roleMenuList1);
-        //构建角色组织数据
-        if (!CollectionUtils.isEmpty(role.getCheckedOrgIds())) {
-            List<SysRoleOrg> roleOrgList = role.getCheckedOrgIds().stream().map(o -> {
-                SysRoleOrg roleOrg = new SysRoleOrg();
-                roleOrg.setRoleId(role.getRoleId());
-                roleOrg.setOrgId(o);
-                roleOrg.setCreateBy(role.getLastUpdateBy());
-                roleOrg.setCreateDate(role.getLastUpdateDate());
-                return roleOrg;
-            }).collect(Collectors.toList());
-            role.setRoleOrgList(roleOrgList);
-        }
         if (!CollectionUtils.isEmpty(role.getRoleColumnValueSets())) {
             role.getRoleColumnValueSets().forEach(o -> {
                 o.setRoleId(role.getRoleId());
@@ -282,6 +258,97 @@ public class SysRoleController {
             throw new BizException("保存失败!");
         }
     }
+
+    /**
+     * 公共参数校验
+     *
+     * @param operation 新增或修改
+     * @param role      角色信息
+     */
+    private void verification(String operation, SysRole role) {
+        if (ObjectUtils.isEmpty(role)) {
+            throw new ParamValidateException("参数错误");
+        }
+        if (OperationTypeEnum.UPDATE.getValue().equals(operation)) {
+            if (ObjectUtils.isEmpty(role.getRoleId())) {
+                throw new ParamValidateException("roleId不能为空");
+            }
+            if (ObjectUtils.isEmpty(role.getLanguage())) {
+                throw new ParamValidateException("language不能为空");
+            }
+            if (!LanguageEnum.contains(role.getLanguage())) {
+                throw new ParamValidateException("language参数错误");
+            }
+        }
+        if (ObjectUtils.isEmpty(role.getRoleCode())) {
+            throw new ParamValidateException("角色编码不能为空!");
+        }
+        if (role.getRoleCode().length() > 30) {
+            throw new ParamValidateException("角色编码过长(最大30)!");
+        }
+        //根据角色编码查询角色信息
+        SysRole resultData = roleService.findByCode(role.getRoleCode(), LanguageEnum.ZH_CN.getValue());
+        if (!ObjectUtils.isEmpty(resultData)) {
+            if (OperationTypeEnum.ADD.getValue().equals(operation)) {
+                throw new ParamValidateException("角色编码已存在!");
+            } else {
+                //根据角色ID查询角色信息
+                SysRole resultIdData = roleService.findByIdMin(role.getRoleId(), role.getLanguage());
+                if (!ObjectUtils.isEmpty(resultData) && !resultData.getRoleId().equals(resultIdData.getRoleId())) {
+                    throw new ParamValidateException("角色编码已存在!");
+                }
+            }
+        }
+        if (ObjectUtils.isEmpty(role.getRoleName())) {
+            throw new ParamValidateException("角色名称不能为空!");
+        }
+        if (role.getRoleName().length() > 30) {
+            throw new ParamValidateException("角色名称过长(最大50)!");
+        }
+        //根据角色名称查询角色信息
+        resultData = roleService.findByName(role.getRoleName(), role.getLanguage());
+        if (!ObjectUtils.isEmpty(resultData)) {
+            if (OperationTypeEnum.ADD.getValue().equals(operation)) {
+                throw new ParamValidateException("角色名称已存在!");
+            } else {
+                //根据角色ID查询角色信息
+                SysRole resultIdData = roleService.findByIdMin(role.getRoleId(), role.getLanguage());
+                if (!ObjectUtils.isEmpty(resultData) && !resultData.getRoleId().equals(resultIdData.getRoleId())) {
+                    throw new ParamValidateException("角色名称已存在!");
+                }
+            }
+        }
+        if (ObjectUtils.isEmpty(role.getEnableFlag())) {
+            throw new ParamValidateException("有效状态不能为空!");
+        }
+        if (!EnableFlagEnum.contains(role.getEnableFlag())) {
+            throw new ParamValidateException("有效状态参数错误!");
+        }
+        //数据权限：公司部门列表
+        List<SysRoleCompanyDeptDTO> roleCompanyDeptList = role.getRoleCompanyDeptList();
+        if (CollectionUtils.isEmpty(roleCompanyDeptList)) {
+            throw new ParamValidateException("公司不能为空!");
+        }
+        if (ObjectUtils.isEmpty(role.getMenuId())) {
+            throw new ParamValidateException("请选择菜单!");
+        }
+        if (ObjectUtils.isEmpty(role.getCheckedMenuIds())) {
+            throw new ParamValidateException("请选择菜单权限!");
+        }
+        List<SysDataAuth> dataAuthList = role.getDataAuthList();
+        if (!CollectionUtils.isEmpty(dataAuthList)) {
+            for (SysDataAuth dataAuth : dataAuthList) {
+                List<SysDataAuthValue> authValueList = dataAuth.getDataAuthValueList();
+                if (CollectionUtils.isEmpty(authValueList)) {
+                    throw new ParamValidateException("角色权限值不能为空!");
+                }
+            }
+        }
+        if (!ObjectUtils.isEmpty(role.getRoleDescription()) && role.getRoleDescription().length() > 80) {
+            throw new ParamValidateException("描述过长(最大80)!");
+        }
+    }
+
 
     /**
      * 删除
@@ -391,91 +458,6 @@ public class SysRoleController {
     }
 
     /**
-     * 公共参数校验
-     *
-     * @param operation 新增或修改
-     * @param role      角色信息
-     */
-    private void verification(String operation, SysRole role) {
-        if (ObjectUtils.isEmpty(role)) {
-            throw new ParamValidateException("参数错误");
-        }
-        if (OperationTypeEnum.UPDATE.getValue().equals(operation)) {
-            if (ObjectUtils.isEmpty(role.getRoleId())) {
-                throw new ParamValidateException("roleId不能为空");
-            }
-            if (ObjectUtils.isEmpty(role.getLanguage())) {
-                throw new ParamValidateException("language不能为空");
-            }
-            if (!LanguageEnum.contains(role.getLanguage())) {
-                throw new ParamValidateException("language参数错误");
-            }
-        }
-        if (ObjectUtils.isEmpty(role.getRoleCode())) {
-            throw new ParamValidateException("角色编码不能为空!");
-        }
-        if (role.getRoleCode().length() > 30) {
-            throw new ParamValidateException("角色编码过长(最大30)!");
-        }
-        //根据角色编码查询角色信息
-        SysRole resultData = roleService.findByCode(role.getRoleCode(), LanguageEnum.ZH_CN.getValue());
-        if (!ObjectUtils.isEmpty(resultData)) {
-            if (OperationTypeEnum.ADD.getValue().equals(operation)) {
-                throw new ParamValidateException("角色编码已存在!");
-            } else {
-                //根据角色ID查询角色信息
-                SysRole resultIdData = roleService.findByIdMin(role.getRoleId(), role.getLanguage());
-                if (!ObjectUtils.isEmpty(resultData) && !resultData.getRoleId().equals(resultIdData.getRoleId())) {
-                    throw new ParamValidateException("角色编码已存在!");
-                }
-            }
-        }
-        if (ObjectUtils.isEmpty(role.getRoleName())) {
-            throw new ParamValidateException("角色名称不能为空!");
-        }
-        if (role.getRoleName().length() > 30) {
-            throw new ParamValidateException("角色名称过长(最大50)!");
-        }
-        //根据角色名称查询角色信息
-        resultData = roleService.findByName(role.getRoleName(), role.getLanguage());
-        if (!ObjectUtils.isEmpty(resultData)) {
-            if (OperationTypeEnum.ADD.getValue().equals(operation)) {
-                throw new ParamValidateException("角色名称已存在!");
-            } else {
-                //根据角色ID查询角色信息
-                SysRole resultIdData = roleService.findByIdMin(role.getRoleId(), role.getLanguage());
-                if (!ObjectUtils.isEmpty(resultData) && !resultData.getRoleId().equals(resultIdData.getRoleId())) {
-                    throw new ParamValidateException("角色名称已存在!");
-                }
-            }
-        }
-        if (ObjectUtils.isEmpty(role.getEnableFlag())) {
-            throw new ParamValidateException("有效状态不能为空!");
-        }
-        if (!EnableFlagEnum.contains(role.getEnableFlag())) {
-            throw new ParamValidateException("有效状态参数错误!");
-        }
-        if (ObjectUtils.isEmpty(role.getMenuId())) {
-            throw new ParamValidateException("请选择菜单!");
-        }
-        if (ObjectUtils.isEmpty(role.getCheckedMenuIds())) {
-            throw new ParamValidateException("请选择菜单权限!");
-        }
-        List<SysDataAuth> dataAuthList = role.getDataAuthList();
-        if (!CollectionUtils.isEmpty(dataAuthList)) {
-            for (SysDataAuth dataAuth : dataAuthList) {
-                List<SysDataAuthValue> authValueList = dataAuth.getDataAuthValueList();
-                if (CollectionUtils.isEmpty(authValueList)) {
-                    throw new ParamValidateException("角色权限值不能为空!");
-                }
-            }
-        }
-        if (!ObjectUtils.isEmpty(role.getRoleDescription()) && role.getRoleDescription().length() > 80) {
-            throw new ParamValidateException("描述过长(最大80)!");
-        }
-    }
-
-    /**
      * 角色复制
      *
      * @param roleId 角色ID
@@ -546,18 +528,7 @@ public class SysRoleController {
                 o.setLastUpdateLogin(lastLoginInfoId);
             });
         }
-        //5.角色组织
-        List<SysOrg> orgList = orgService.findByRoleId(roleId, LanguageEnum.ZH_CN.getValue());
-        if (!CollectionUtils.isEmpty(orgList)) {
-            List<SysRoleOrg> roleOrgList = orgList.stream().map(o -> {
-                SysRoleOrg roleOrg = new SysRoleOrg(newRoleId, o.getOrgId());
-                roleOrg.setCreateBy(currentUserId);
-                roleOrg.setCreateDate(nowDate);
-                roleOrg.setLastUpdateLogin(lastLoginInfoId);
-                return roleOrg;
-            }).collect(Collectors.toList());
-            role.setRoleOrgList(roleOrgList);
-        }
+        //5.角色部门(service中处理)
         //6.角色菜单
         List<SysRoleMenu> roleMenuList = role.getRoleMenuList();
         if (!CollectionUtils.isEmpty(roleMenuList)) {

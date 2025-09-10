@@ -2,6 +2,7 @@ package com.crrc.sys.entity.role;
 
 import com.crrc.sys.entity.BaseEntityYunLing;
 import com.crrc.sys.entity.auth.SysDataAuth;
+import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 
 import java.util.List;
 
@@ -47,10 +48,6 @@ public class SysRole extends BaseEntityYunLing {
      */
     private List<SysRoleMenu> roleMenuList;
     /**
-     * 角色组织
-     */
-    private List<SysRoleOrg> roleOrgList;
-    /**
      * 选中的菜单ID
      */
     private List<Long> checkedMenuIds;
@@ -62,18 +59,18 @@ public class SysRole extends BaseEntityYunLing {
      * 选中的组织ID
      */
     private List<Long> checkedOrgIds;
-	/**
-	 * 角色列权限值集
-	 */
-	private List<SysRoleColumnValueSet> roleColumnValueSets;
-	/**
-	 * 选中的角色列权限
-	 */
-	private List<SysRoleFunctionColumn> checkedFunctionColumns;
-	/**
-	 * 角色数据权限
-	 */
-	private List<SysDataAuth> dataAuthList;
+    /**
+     * 角色列权限值集
+     */
+    private List<SysRoleColumnValueSet> roleColumnValueSets;
+    /**
+     * 选中的角色列权限
+     */
+    private List<SysRoleFunctionColumn> checkedFunctionColumns;
+    /**
+     * 角色数据权限
+     */
+    private List<SysDataAuth> dataAuthList;
     /**
      * 所属项目
      */
@@ -82,6 +79,10 @@ public class SysRole extends BaseEntityYunLing {
      * 所属项目名称
      */
     private String projectName;
+    /**
+     * 公司部门集合
+     */
+    private List<SysRoleCompanyDeptDTO> roleCompanyDeptList;
 
     public Long getRoleId() {
         return roleId;
@@ -147,37 +148,29 @@ public class SysRole extends BaseEntityYunLing {
         this.menuId = menuId;
     }
 
-    public List<SysRoleOrg> getRoleOrgList() {
-        return roleOrgList;
+    public List<SysRoleColumnValueSet> getRoleColumnValueSets() {
+        return roleColumnValueSets;
     }
 
-    public void setRoleOrgList(List<SysRoleOrg> roleOrgList) {
-        this.roleOrgList = roleOrgList;
+    public void setRoleColumnValueSets(List<SysRoleColumnValueSet> roleColumnValueSets) {
+        this.roleColumnValueSets = roleColumnValueSets;
     }
 
-	public List<SysRoleColumnValueSet> getRoleColumnValueSets() {
-		return roleColumnValueSets;
-	}
+    public List<SysRoleFunctionColumn> getCheckedFunctionColumns() {
+        return checkedFunctionColumns;
+    }
 
-	public void setRoleColumnValueSets(List<SysRoleColumnValueSet> roleColumnValueSets) {
-		this.roleColumnValueSets = roleColumnValueSets;
-	}
+    public void setCheckedFunctionColumns(List<SysRoleFunctionColumn> checkedFunctionColumns) {
+        this.checkedFunctionColumns = checkedFunctionColumns;
+    }
 
-	public List<SysRoleFunctionColumn> getCheckedFunctionColumns() {
-		return checkedFunctionColumns;
-	}
+    public List<SysDataAuth> getDataAuthList() {
+        return dataAuthList;
+    }
 
-	public void setCheckedFunctionColumns(List<SysRoleFunctionColumn> checkedFunctionColumns) {
-		this.checkedFunctionColumns = checkedFunctionColumns;
-	}
-
-	public List<SysDataAuth> getDataAuthList() {
-		return dataAuthList;
-	}
-
-	public void setDataAuthList(List<SysDataAuth> dataAuthList) {
-		this.dataAuthList = dataAuthList;
-	}
+    public void setDataAuthList(List<SysDataAuth> dataAuthList) {
+        this.dataAuthList = dataAuthList;
+    }
 
     public List<Long> getCheckedMenuIds() {
         return checkedMenuIds;
@@ -217,5 +210,13 @@ public class SysRole extends BaseEntityYunLing {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
+    }
+
+    public List<SysRoleCompanyDeptDTO> getRoleCompanyDeptList() {
+        return roleCompanyDeptList;
+    }
+
+    public void setRoleCompanyDeptList(List<SysRoleCompanyDeptDTO> roleCompanyDeptList) {
+        this.roleCompanyDeptList = roleCompanyDeptList;
     }
 }
