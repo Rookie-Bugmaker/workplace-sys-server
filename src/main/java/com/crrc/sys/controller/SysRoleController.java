@@ -608,23 +608,20 @@ public class SysRoleController {
      * @param roleId 角色ID
      * @return 公司ID和部门ID集合
      */
-    @RequestMapping("findRoleCompanyDeptByRoleId")
+    @GetMapping("findRoleCompanyDeptByRoleId")
     public List<SysRoleCompanyDeptDTO> findRoleCompanyDeptByRoleId(Long roleId) {
         if (ObjectUtils.isEmpty(roleId)) {
             throw new ParamValidateException("角色ID不能为空!");
         }
-        LambdaQueryWrapper<SysRoleCompanyDept> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SysRoleCompanyDept::getRoleId, roleId);
-        List<SysRoleCompanyDept> companyDeptList = roleCompanyDeptService.list(queryWrapper);
         List<SysRoleCompanyDeptDTO> dtoList = new ArrayList<>();
-        if (CollectionUtils.isEmpty(companyDeptList)) {
-            return dtoList;
-        }
-        List<Long> companyIdList = companyDeptList.stream().map(SysRoleCompanyDept::getCompanyId).distinct().collect(Collectors.toList());
-        for (Long companyId : companyIdList) {
+        List<SysRoleCompanyDeptInfoDTO> infoDtoList = findRoleCompanyDeptInfoByRoleId(roleId);
+        for (SysRoleCompanyDeptInfoDTO infoDto : infoDtoList) {
             SysRoleCompanyDeptDTO dto = new SysRoleCompanyDeptDTO();
-            dto.setCompanyId(companyId);
-            dto.setDeptIdList(companyDeptList.stream().filter(o -> o.getCompanyId().equals(companyId)).map(SysRoleCompanyDept::getDeptId).collect(Collectors.toList()));
+            dto.setCompanyId(infoDto.getCompanyId());
+            List<Dept> deptList = infoDto.getDeptList();
+            if (!CollectionUtils.isEmpty(deptList)) {
+                dto.setDeptIdList(deptList.stream().map(Dept::getId).collect(Collectors.toList()));
+            }
             dtoList.add(dto);
         }
         return dtoList;
@@ -636,7 +633,7 @@ public class SysRoleController {
      * @param roleId 角色ID
      * @return 结果
      */
-    @RequestMapping("findRoleCompanyDeptInfoByRoleId")
+    @GetMapping("findRoleCompanyDeptInfoByRoleId")
     public List<SysRoleCompanyDeptInfoDTO> findRoleCompanyDeptInfoByRoleId(Long roleId) {
         if (ObjectUtils.isEmpty(roleId)) {
             throw new ParamValidateException("角色ID不能为空!");
