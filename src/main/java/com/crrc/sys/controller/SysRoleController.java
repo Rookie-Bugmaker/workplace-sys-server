@@ -3,6 +3,7 @@ package com.crrc.sys.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
+import com.crrc.sys.common.Constant;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
@@ -28,6 +29,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -428,11 +430,12 @@ public class SysRoleController {
     /**
      * 查询当前用户拥有的角色列表
      *
-     * @param language 语言
      * @return 角色列表
      */
     @PostMapping("findRoleListByCurrentUser")
-    public List<SysRole> findRoleListByCurrentUser(String language) {
+    public List<SysRole> findRoleListByCurrentUser(HttpServletRequest request) {
+        //获取项目编码
+        String projectCode = request.getHeader(Constant.X_PROJECT_CODE);
         //获取当前用户
         ResultData<SysUser> userResultData = authClient.currentUser();
         if (!userResultData.getSuccess()) {
@@ -440,7 +443,15 @@ public class SysRoleController {
         }
         //当前用户
         SysUser currentUser = userResultData.getResult();
-        return roleService.findByUserId(currentUser.getUserId(), language);
+        List<SysRole> roleList = roleService.findByUserId(currentUser.getUserId(), LanguageEnum.ZH_CN.getValue());
+        if (!CollectionUtils.isEmpty(roleList)) {
+            ProjectEntity project = projectService.findByCode(projectCode);
+            if (!ObjectUtils.isEmpty(project)) {
+                //剔除非当前项目的角色
+                roleList.removeIf(o -> !o.getProjectId().equals(project.getId()));
+            }
+        }
+        return roleList;
     }
 
     /**

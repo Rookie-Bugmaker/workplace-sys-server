@@ -1,5 +1,6 @@
 package com.crrc.sys.config.interceptor;
 
+import com.crrc.sys.common.Constant;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +27,7 @@ public class FeignInterceptor implements RequestInterceptor {
             HttpServletRequest request = attributes.getRequest();
             requestTemplate.header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION));
             //项目编码
-            requestTemplate.header("X-Project-Code", request.getHeader("X-Project-Code"));
+            requestTemplate.header(Constant.X_PROJECT_CODE, request.getHeader(Constant.X_PROJECT_CODE));
         }
     }
 }
