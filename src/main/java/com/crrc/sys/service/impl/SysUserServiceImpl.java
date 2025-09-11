@@ -3,7 +3,6 @@ package com.crrc.sys.service.impl;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
-import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
@@ -11,7 +10,10 @@ import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
-import com.crrc.sys.mapper.*;
+import com.crrc.sys.mapper.SysDataAuthMapper;
+import com.crrc.sys.mapper.SysDataAuthValueMapper;
+import com.crrc.sys.mapper.SysUserMapper;
+import com.crrc.sys.mapper.SysUserRoleMapper;
 import com.crrc.sys.service.SysUserService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -244,14 +246,10 @@ public class SysUserServiceImpl implements SysUserService {
         Date passwordUpdateDate = user.getPasswordUpdateDate();
         //修改密码
         int result = userMapper.updatePassword(userId, password, passwordUpdateDate);
-        if (result > 0) {
-            //重置当前用户缓存信息
-            ResultData<Boolean> resultData = authClient.updateCurrentUser(user.getCurrentRoleId());
-            if (!resultData.getSuccess()) {
-                throw new BizException(resultData.getCode(), resultData.getMessage());
-            }
+        if (result <= 0) {
+            throw new BizException("修改失败");
         }
-        return 1;
+        return result;
     }
 
     /**
@@ -325,7 +323,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public List<SysUser> findUserByRoleId(Long roleId) {
         List<Long> userIdList = userRoleMapper.findUserIdByRoleId(roleId);
-        if(CollectionUtils.isEmpty(userIdList)){
+        if (CollectionUtils.isEmpty(userIdList)) {
             return null;
         }
         return userMapper.findByUserIds(userIdList);

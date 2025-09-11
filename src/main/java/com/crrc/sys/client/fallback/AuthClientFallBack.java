@@ -6,6 +6,7 @@ import com.crrc.sys.entity.user.SysUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 熔断器
@@ -25,7 +26,7 @@ public class AuthClientFallBack implements AuthClient {
     }
 
     @Override
-    public ResultData<Boolean> updateCurrentUser(Long roleId) {
+    public ResultData<Boolean> updateCurrentUser(String projectCode, Long roleId, Long companyId, Long deptId) {
         logger.error("AuthClient.updateCurrentUser已进入熔断器, roleId={}", roleId);
         return ResultData.fallback();
     }
