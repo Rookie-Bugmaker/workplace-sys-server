@@ -436,6 +436,9 @@ public class SysRoleController {
     public List<SysRole> findRoleListByCurrentUser(HttpServletRequest request) {
         //获取项目编码
         String projectCode = request.getHeader(Constant.X_PROJECT_CODE);
+        if (ObjectUtils.isEmpty(projectCode)) {
+            throw new BizException("项目编码必填!");
+        }
         //获取当前用户
         ResultData<SysUser> userResultData = authClient.currentUser();
         if (!userResultData.getSuccess()) {
@@ -443,13 +446,10 @@ public class SysRoleController {
         }
         //当前用户
         SysUser currentUser = userResultData.getResult();
-        List<SysRole> roleList = roleService.findByUserId(currentUser.getUserId(), LanguageEnum.ZH_CN.getValue());
+        List<SysRole> roleList = findRoleListByUserId(currentUser.getUserId());
         if (!CollectionUtils.isEmpty(roleList)) {
-            ProjectEntity project = projectService.findByCode(projectCode);
-            if (!ObjectUtils.isEmpty(project)) {
-                //剔除非当前项目的角色
-                roleList.removeIf(o -> !o.getProjectId().equals(project.getId()));
-            }
+            //剔除非当前项目的角色
+            roleList.removeIf(o -> !o.getProjectCode().equals(projectCode));
         }
         return roleList;
     }
