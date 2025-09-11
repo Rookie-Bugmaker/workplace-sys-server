@@ -176,6 +176,8 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int update(SysMenuDTO menu) {
+        //修改直属子菜单的项目ID
+        menuMapper.updateProjectId(menu.getMenuId(), menu.getProjectId());
         SysMenuTl menuTlEn = new SysMenuTl();
         BeanUtils.copyProperties(menu, menuTlEn);
         int result = menuMapper.updateTl(menuTlEn);
@@ -440,7 +442,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             //查询角色拥有的功能
             List<SysFunction> functionAll = this.findFunctionByRoleId(roleId, language);
             if (CollectionUtils.isEmpty(functionAll)) {
-                return null;
+                return new ArrayList<SysFunction>();
             }
             //设置功能已绑定的API权限
             functionAll = this.setFunctionApiList(functionAll);

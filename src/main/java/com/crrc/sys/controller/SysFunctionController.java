@@ -3,24 +3,23 @@ package com.crrc.sys.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.CustomFileUtils;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
+import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.config.exception.ParamValidateException;
+import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.function.*;
+import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.FunctionTypeEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OpenMethodEnum;
 import com.crrc.sys.enums.OperationTypeEnum;
-import com.crrc.sys.annotation.AutoIdempotent;
-import com.crrc.sys.config.exception.BizException;
-import com.crrc.sys.config.exception.ParamValidateException;
-import com.crrc.sys.entity.api.SysApi;
-import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.service.SysApiService;
 import com.crrc.sys.service.SysFunctionService;
-import com.crrc.sys.entity.function.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -64,6 +63,7 @@ public class SysFunctionController {
     public void init() {
         functionService.init();
     }
+
     /**
      * 初始化所有工作流功能按钮权限
      */
@@ -138,6 +138,9 @@ public class SysFunctionController {
     @AutoIdempotent
     @PostMapping("update")
     public void update(SysFunction function) {
+        if (ObjectUtils.isEmpty(function.getLanguage())) {
+            function.setLanguage(LanguageEnum.ZH_CN.getValue());
+        }
         verification(OperationTypeEnum.UPDATE.getValue(), function);
         //获取当前用户
         ResultData<SysUser> userResultData = authClient.currentUser();
@@ -372,6 +375,9 @@ public class SysFunctionController {
         if (!FunctionTypeEnum.contains(function.getFunctionType())) {
             throw new ParamValidateException("功能类型错误");
         }
+        if (ObjectUtils.isEmpty(function.getName())) {
+            throw new ParamValidateException("路由名称不能为空!");
+        }
         //功能编码唯一性校验：1.功能类型=A时，必须保证全局唯一；2.功能类型=B时，保证在此功能下唯一即可。
         if (FunctionTypeEnum.A.getValue().equals(function.getFunctionType())) {
             //根据功能编码查询功能信息
@@ -416,6 +422,12 @@ public class SysFunctionController {
                     throw new ParamValidateException("编码已存在!");
                 }
             }
+            //设置按钮的项目ID与父级项目ID一致
+            SysFunction parentFunction = functionService.findMinById(function.getParentId(), LanguageEnum.ZH_CN.getValue());
+            if (ObjectUtils.isEmpty(parentFunction)) {
+                throw new ParamValidateException("父级功能不存在!");
+            }
+            function.setProjectId(parentFunction.getProjectId());
         }
         if (!ObjectUtils.isEmpty(function.getFunctionDescription()) && function.getFunctionDescription().length() > 80) {
             throw new ParamValidateException("描述超长(最大80)!");
@@ -432,9 +444,6 @@ public class SysFunctionController {
         }
         if (ObjectUtils.isEmpty(function.getKeepAlive())) {
             throw new ParamValidateException("缓存不能为空!");
-        }
-        if (ObjectUtils.isEmpty(function.getName())) {
-            throw new ParamValidateException("路由名称不能为空!");
         }
         if (!ObjectUtils.isEmpty(function.getComponent()) && function.getComponent().length() > 200) {
             throw new ParamValidateException("前端组件超长(最大200)!");

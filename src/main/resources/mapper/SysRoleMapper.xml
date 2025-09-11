@@ -18,7 +18,7 @@
     </resultMap>
 
     <!--角色信息分页查询-->
-    <select id="findByFuzzy" resultMap="roleMap" parameterType="com.crrc.sys.entity.role.SysRoleFindByPageParam">
+    <select id="findByFuzzy" resultMap="roleMap">
         select rb.role_id,rb.role_code,rb.menu_id,rb.enable_flag,rb.create_by,rb.create_date,rb.last_update_by,rb.last_update_date,rb.last_update_login,
                rtl.role_name,rtl.role_description,rtl.language,rb.project_id
         from sys_role_b rb
@@ -38,6 +38,9 @@
         </if>
         <if test="roleDescription !=null and roleDescription != ''">
             and role_description like CONCAT( CONCAT('%',#{roleDescription} ),'%')
+        </if>
+        <if test="projectId !=null">
+            and project_id = #{projectId}
         </if>
         order by rtl.role_name
     </select>

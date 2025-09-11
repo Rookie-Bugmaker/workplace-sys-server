@@ -99,7 +99,7 @@
             parent_id = #{parentId},
             child_id = #{childId},
             menu_icon = #{menuIcon},
-            project_id=#{projectId}
+            project_id=#{projectId},
             LAST_UPDATE_BY = #{lastUpdateBy},
             LAST_UPDATE_DATE = #{lastUpdateDate},
             LAST_UPDATE_LOGIN = #{lastUpdateLogin}
@@ -245,4 +245,9 @@
         </if>
         order by mb.menu_sort
     </select>
+
+    <!--修改直属子菜单的项目ID-->
+    <update id="updateProjectId">
+        update sys_menu_b set project_id = #{projectId} where parent_id = #{menuId} and child_id is null
+    </update>
 </mapper>

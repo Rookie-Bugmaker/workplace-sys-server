@@ -1,7 +1,9 @@
 package com.crrc.sys.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
+import com.crrc.sys.common.Constant;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
@@ -9,27 +11,26 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
-import com.crrc.sys.entity.org.SysOrg;
+import com.crrc.sys.entity.company.Company;
+import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.profile.SysProfile;
+import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.DataAuthTypeEnum;
 import com.crrc.sys.enums.EnableFlagEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OperationTypeEnum;
-import com.crrc.sys.service.SysOrgService;
-import com.crrc.sys.service.SysProfileService;
-import com.crrc.sys.service.SysRoleService;
-import com.crrc.sys.service.SysUserService;
+import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
+import com.crrc.sys.model.role.SysRoleCompanyDeptInfoDTO;
+import com.crrc.sys.service.*;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,9 +52,15 @@ public class SysRoleController {
     @Resource
     private SysProfileService profileService;
     @Resource
-    private SysOrgService orgService;
-    @Resource
     private SysUserService userService;
+    @Resource
+    private SysRoleCompanyDeptService roleCompanyDeptService;
+    @Resource
+    private CompanyService companyService;
+    @Resource
+    private DeptService deptService;
+    @Resource
+    private ProjectService projectService;
 
     /**
      * 角色信息分页查询
@@ -127,18 +134,6 @@ public class SysRoleController {
         }).collect(Collectors.toList());
         roleMenuList1.addAll(roleMenuList2);
         role.setRoleMenuList(roleMenuList1);
-        //构建角色组织数据
-        if (!CollectionUtils.isEmpty(role.getCheckedOrgIds())) {
-            List<SysRoleOrg> roleOrgList = role.getCheckedOrgIds().stream().map(o -> {
-                SysRoleOrg roleOrg = new SysRoleOrg();
-                roleOrg.setRoleId(role.getRoleId());
-                roleOrg.setOrgId(o);
-                roleOrg.setCreateBy(role.getCreateBy());
-                roleOrg.setCreateDate(role.getCreateDate());
-                return roleOrg;
-            }).collect(Collectors.toList());
-            role.setRoleOrgList(roleOrgList);
-        }
         if (!CollectionUtils.isEmpty(role.getRoleColumnValueSets())) {
             role.getRoleColumnValueSets().forEach(o -> {
                 o.setRoleId(role.getRoleId());
@@ -229,18 +224,6 @@ public class SysRoleController {
         }).collect(Collectors.toList());
         roleMenuList1.addAll(roleMenuList2);
         role.setRoleMenuList(roleMenuList1);
-        //构建角色组织数据
-        if (!CollectionUtils.isEmpty(role.getCheckedOrgIds())) {
-            List<SysRoleOrg> roleOrgList = role.getCheckedOrgIds().stream().map(o -> {
-                SysRoleOrg roleOrg = new SysRoleOrg();
-                roleOrg.setRoleId(role.getRoleId());
-                roleOrg.setOrgId(o);
-                roleOrg.setCreateBy(role.getLastUpdateBy());
-                roleOrg.setCreateDate(role.getLastUpdateDate());
-                return roleOrg;
-            }).collect(Collectors.toList());
-            role.setRoleOrgList(roleOrgList);
-        }
         if (!CollectionUtils.isEmpty(role.getRoleColumnValueSets())) {
             role.getRoleColumnValueSets().forEach(o -> {
                 o.setRoleId(role.getRoleId());
@@ -281,113 +264,6 @@ public class SysRoleController {
         if (result <= 0) {
             throw new BizException("保存失败!");
         }
-    }
-
-    /**
-     * 删除
-     *
-     * @param roleIds 角色ID,多个以逗号","分隔
-     */
-    @AutoIdempotent
-    @PostMapping("delete")
-    public void delete(String roleIds) {
-        if (ObjectUtils.isEmpty(roleIds)) {
-            throw new ParamValidateException("roleIds不能为空!");
-        }
-        List<Long> ids = Arrays.stream(roleIds.split(",")).map(Long::parseLong).collect(Collectors.toList());
-        int result = roleService.delete(ids);
-        if (result <= 0) {
-            throw new BizException("删除失败!");
-        }
-    }
-
-    /**
-     * 根据角色ID查询角色信息
-     *
-     * @param roleId   角色ID
-     * @param language 语言
-     * @return 角色信息
-     */
-    @PostMapping("findById")
-    public SysRole findById(Long roleId, String language) {
-        if (ObjectUtils.isEmpty(roleId)) {
-            throw new ParamValidateException("roleId不能为空");
-        }
-        if (ObjectUtils.isEmpty(language)) {
-            throw new ParamValidateException("language不能为空");
-        }
-        SysRole sysRole = roleService.findById(roleId, language);
-        if (ObjectUtils.isEmpty(sysRole)) {
-            throw new BizException("角色不存在!");
-        }
-        //角色数据权限
-        List<SysDataAuth> dataAuthList = sysRole.getDataAuthList();
-        if (!CollectionUtils.isEmpty(dataAuthList)) {
-            List<Long> profileIdList = dataAuthList.stream().map(SysDataAuth::getProfileId).collect(Collectors.toList());
-            //根据配置文件ID查询配置文件信息
-            List<SysProfile> profileList = profileService.findByIds(profileIdList, language);
-            dataAuthList.forEach(o -> {
-                SysProfile sysProfile = profileList.stream().filter(i -> i.getProfileId().equals(o.getProfileId())).findFirst().orElse(null);
-                if (!ObjectUtils.isEmpty(sysProfile)) {
-                    o.setAuthCode(sysProfile.getProfileCode());
-                }
-            });
-        }
-        return sysRole;
-    }
-
-    /**
-     * 根据角色编码查询角色信息
-     *
-     * @param roleCode 角色编码
-     * @param language 语言
-     * @return 结果
-     */
-    @PostMapping("findByCode")
-    public SysRole findByCode(String roleCode, String language) {
-        return roleService.findByCode(roleCode, language);
-    }
-
-    /**
-     * 查询当前用户拥有的角色列表
-     *
-     * @param language 语言
-     * @return 角色列表
-     */
-    @PostMapping("findRoleListByCurrentUser")
-    public List<SysRole> findRoleListByCurrentUser(String language) {
-        //获取当前用户
-        ResultData<SysUser> userResultData = authClient.currentUser();
-        if (!userResultData.getSuccess()) {
-            throw new BizException(userResultData.getCode(), userResultData.getMessage());
-        }
-        //当前用户
-        SysUser currentUser = userResultData.getResult();
-        return roleService.findByUserId(currentUser.getUserId(), language);
-    }
-
-    /**
-     * 根据角色名称查询角色信息
-     *
-     * @param roleName 角色名称
-     * @param language 语言
-     * @return 角色信息
-     */
-    @PostMapping("findByName")
-    public SysRole findByName(String roleName, String language) {
-        return roleService.findByName(roleName, language);
-    }
-
-    /**
-     * 根据编码集合查询角色信息
-     *
-     * @param roleCodeList 编码集合
-     * @param language     语言
-     * @return 结果
-     */
-    @PostMapping("/findByCodes")
-    public List<SysRole> findByName(@RequestBody List<String> roleCodeList, @RequestParam String language) {
-        return roleService.findByCodes(roleCodeList, language);
     }
 
     /**
@@ -455,6 +331,11 @@ public class SysRoleController {
         if (!EnableFlagEnum.contains(role.getEnableFlag())) {
             throw new ParamValidateException("有效状态参数错误!");
         }
+        //数据权限：公司部门列表
+        List<SysRoleCompanyDeptDTO> roleCompanyDeptList = role.getRoleCompanyDeptList();
+        if (CollectionUtils.isEmpty(roleCompanyDeptList)) {
+            throw new ParamValidateException("公司不能为空!");
+        }
         if (ObjectUtils.isEmpty(role.getMenuId())) {
             throw new ParamValidateException("请选择菜单!");
         }
@@ -473,6 +354,158 @@ public class SysRoleController {
         if (!ObjectUtils.isEmpty(role.getRoleDescription()) && role.getRoleDescription().length() > 80) {
             throw new ParamValidateException("描述过长(最大80)!");
         }
+    }
+
+
+    /**
+     * 删除
+     *
+     * @param roleIds 角色ID,多个以逗号","分隔
+     */
+    @AutoIdempotent
+    @PostMapping("delete")
+    public void delete(String roleIds) {
+        if (ObjectUtils.isEmpty(roleIds)) {
+            throw new ParamValidateException("roleIds不能为空!");
+        }
+        List<Long> ids = Arrays.stream(roleIds.split(",")).map(Long::parseLong).collect(Collectors.toList());
+        int result = roleService.delete(ids);
+        if (result <= 0) {
+            throw new BizException("删除失败!");
+        }
+    }
+
+    /**
+     * 根据角色ID查询角色信息
+     *
+     * @param roleId   角色ID
+     * @param language 语言
+     * @return 角色信息
+     */
+    @PostMapping("findById")
+    public SysRole findById(Long roleId, String language) {
+        if (ObjectUtils.isEmpty(roleId)) {
+            throw new ParamValidateException("roleId不能为空");
+        }
+        if (ObjectUtils.isEmpty(language)) {
+            throw new ParamValidateException("language不能为空");
+        }
+        SysRole sysRole = roleService.findById(roleId, language);
+        if (ObjectUtils.isEmpty(sysRole)) {
+            throw new BizException("角色不存在!");
+        }
+        //角色部门
+        List<SysRoleCompanyDeptDTO> companyDeptDtoList = findRoleCompanyDeptByRoleId(sysRole.getRoleId());
+        if (!CollectionUtils.isEmpty(companyDeptDtoList)) {
+            sysRole.setRoleCompanyDeptList(companyDeptDtoList);
+        }
+        //角色数据权限
+        List<SysDataAuth> dataAuthList = sysRole.getDataAuthList();
+        if (!CollectionUtils.isEmpty(dataAuthList)) {
+            List<Long> profileIdList = dataAuthList.stream().map(SysDataAuth::getProfileId).collect(Collectors.toList());
+            //根据配置文件ID查询配置文件信息
+            List<SysProfile> profileList = profileService.findByIds(profileIdList, language);
+            dataAuthList.forEach(o -> {
+                SysProfile sysProfile = profileList.stream().filter(i -> i.getProfileId().equals(o.getProfileId())).findFirst().orElse(null);
+                if (!ObjectUtils.isEmpty(sysProfile)) {
+                    o.setAuthCode(sysProfile.getProfileCode());
+                }
+            });
+        }
+        return sysRole;
+    }
+
+    /**
+     * 根据角色编码查询角色信息
+     *
+     * @param roleCode 角色编码
+     * @param language 语言
+     * @return 结果
+     */
+    @PostMapping("findByCode")
+    public SysRole findByCode(String roleCode, String language) {
+        return roleService.findByCode(roleCode, language);
+    }
+
+    /**
+     * 查询当前用户拥有的角色列表
+     *
+     * @return 角色列表
+     */
+    @PostMapping("findRoleListByCurrentUser")
+    public List<SysRole> findRoleListByCurrentUser(HttpServletRequest request) {
+        //获取项目编码
+        String projectCode = request.getHeader(Constant.X_PROJECT_CODE);
+        if (ObjectUtils.isEmpty(projectCode)) {
+            throw new BizException("项目编码必填!");
+        }
+        //获取当前用户
+        ResultData<SysUser> userResultData = authClient.currentUser();
+        if (!userResultData.getSuccess()) {
+            throw new BizException(userResultData.getCode(), userResultData.getMessage());
+        }
+        //当前用户
+        SysUser currentUser = userResultData.getResult();
+        List<SysRole> roleList = findRoleListByUserId(currentUser.getUserId());
+        if (!CollectionUtils.isEmpty(roleList)) {
+            //剔除非当前项目的角色
+            roleList.removeIf(o -> !o.getProjectCode().equals(projectCode));
+        }
+        return roleList;
+    }
+
+    /**
+     * 根据用户ID查询角色列表
+     *
+     * @param userId 用户ID
+     * @return 角色列表
+     */
+    @PostMapping("findRoleListByUserId")
+    public List<SysRole> findRoleListByUserId(Long userId) {
+        if (ObjectUtils.isEmpty(userId)) {
+            throw new ParamValidateException("用户ID不能为空!");
+        }
+        List<SysRole> roleList = roleService.findByUserId(userId, "zh-CN");
+        if (CollectionUtils.isEmpty(roleList)) {
+            return roleList;
+        }
+        List<Long> projectIdList = roleList.stream().map(SysRole::getProjectId).filter(o -> !ObjectUtils.isEmpty(o)).distinct().collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(projectIdList)) {
+            List<ProjectEntity> projectList = projectService.listByIds(projectIdList);
+            if (!CollectionUtils.isEmpty(projectList)) {
+                for (SysRole sysRole : roleList) {
+                    ProjectEntity project = projectList.stream().filter(p -> p.getId().equals(sysRole.getProjectId())).findFirst().orElse(null);
+                    if (!ObjectUtils.isEmpty(project)) {
+                        sysRole.setProjectCode(project.getName());
+                    }
+                }
+            }
+        }
+        return roleList;
+    }
+
+    /**
+     * 根据角色名称查询角色信息
+     *
+     * @param roleName 角色名称
+     * @param language 语言
+     * @return 角色信息
+     */
+    @PostMapping("findByName")
+    public SysRole findByName(String roleName, String language) {
+        return roleService.findByName(roleName, language);
+    }
+
+    /**
+     * 根据编码集合查询角色信息
+     *
+     * @param roleCodeList 编码集合
+     * @param language     语言
+     * @return 结果
+     */
+    @PostMapping("findByCodes")
+    public List<SysRole> findByName(@RequestBody List<String> roleCodeList, @RequestParam String language) {
+        return roleService.findByCodes(roleCodeList, language);
     }
 
     /**
@@ -546,18 +579,7 @@ public class SysRoleController {
                 o.setLastUpdateLogin(lastLoginInfoId);
             });
         }
-        //5.角色组织
-        List<SysOrg> orgList = orgService.findByRoleId(roleId, LanguageEnum.ZH_CN.getValue());
-        if (!CollectionUtils.isEmpty(orgList)) {
-            List<SysRoleOrg> roleOrgList = orgList.stream().map(o -> {
-                SysRoleOrg roleOrg = new SysRoleOrg(newRoleId, o.getOrgId());
-                roleOrg.setCreateBy(currentUserId);
-                roleOrg.setCreateDate(nowDate);
-                roleOrg.setLastUpdateLogin(lastLoginInfoId);
-                return roleOrg;
-            }).collect(Collectors.toList());
-            role.setRoleOrgList(roleOrgList);
-        }
+        //5.角色部门(service中处理)
         //6.角色菜单
         List<SysRoleMenu> roleMenuList = role.getRoleMenuList();
         if (!CollectionUtils.isEmpty(roleMenuList)) {
@@ -627,5 +649,85 @@ public class SysRoleController {
             throw new ParamValidateException("参数不能为空!");
         }
         return userService.findUserByRoleId(RoleId);
+    }
+
+    /**
+     * 根据角色ID查询绑定的公司ID与部门ID集合
+     *
+     * @param roleId 角色ID
+     * @return 公司ID和部门ID集合
+     */
+    @GetMapping("findRoleCompanyDeptByRoleId")
+    public List<SysRoleCompanyDeptDTO> findRoleCompanyDeptByRoleId(Long roleId) {
+        if (ObjectUtils.isEmpty(roleId)) {
+            throw new ParamValidateException("角色ID不能为空!");
+        }
+        List<SysRoleCompanyDeptDTO> dtoList = new ArrayList<>();
+        List<SysRoleCompanyDeptInfoDTO> infoDtoList = findRoleCompanyDeptInfoByRoleId(roleId);
+        for (SysRoleCompanyDeptInfoDTO infoDto : infoDtoList) {
+            SysRoleCompanyDeptDTO dto = new SysRoleCompanyDeptDTO();
+            dto.setCompanyId(infoDto.getCompanyId());
+            List<Dept> deptList = infoDto.getDeptList();
+            if (!CollectionUtils.isEmpty(deptList)) {
+                dto.setDeptIdList(deptList.stream().map(Dept::getId).collect(Collectors.toList()));
+            }
+            dtoList.add(dto);
+        }
+        return dtoList;
+    }
+
+    /**
+     * 根据角色ID查询绑定的公司信息与部门信息集合
+     *
+     * @param roleId 角色ID
+     * @return 结果
+     */
+    @GetMapping("findRoleCompanyDeptInfoByRoleId")
+    public List<SysRoleCompanyDeptInfoDTO> findRoleCompanyDeptInfoByRoleId(Long roleId) {
+        if (ObjectUtils.isEmpty(roleId)) {
+            throw new ParamValidateException("角色ID不能为空!");
+        }
+        LambdaQueryWrapper<SysRoleCompanyDept> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysRoleCompanyDept::getRoleId, roleId);
+        List<SysRoleCompanyDept> companyDeptList = roleCompanyDeptService.list(queryWrapper);
+        List<SysRoleCompanyDeptInfoDTO> infoDtoList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(companyDeptList)) {
+            return infoDtoList;
+        }
+        List<Long> companyIdList = companyDeptList.stream().map(SysRoleCompanyDept::getCompanyId).distinct().collect(Collectors.toList());
+        LambdaQueryWrapper<Company> companyQueryWrapper = new LambdaQueryWrapper<>();
+        companyQueryWrapper.in(Company::getId, companyIdList);
+        List<Company> companyList = companyService.list(companyQueryWrapper);
+        if (!CollectionUtils.isEmpty(companyList)) {
+            companyList.forEach(o -> {
+                SysRoleCompanyDeptInfoDTO infoDTO = new SysRoleCompanyDeptInfoDTO();
+                infoDTO.setCompanyId(o.getId());
+                infoDTO.setCompanyName(o.getCompanyName());
+                infoDtoList.add(infoDTO);
+            });
+        }
+        List<Long> deptIdList = companyDeptList.stream().map(SysRoleCompanyDept::getDeptId).distinct().collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(deptIdList)) {
+            List<Dept> deptList = deptService.findByDeptIds(deptIdList);
+            if (!CollectionUtils.isEmpty(deptList)) {
+                infoDtoList.forEach(o -> o.setDeptList(deptList.stream().filter(p -> p.getCompanyId().equals(o.getCompanyId())).collect(Collectors.toList())));
+            }
+        }
+        return infoDtoList;
+    }
+
+    /**
+     * 获取当前用户绑定的公司信息与部门信息集合
+     *
+     * @return 结果
+     */
+    @GetMapping("findRoleCompanyDeptInfoByCurrentUser")
+    public List<SysRoleCompanyDeptInfoDTO> findRoleCompanyDeptInfoByCurrentUser() {
+        ResultData<SysUser> resultData = authClient.currentUser();
+        if (!resultData.getSuccess()) {
+            throw new BizException(resultData.getCode(), resultData.getMessage());
+        }
+        SysUser sysUser = resultData.getResult();
+        return findRoleCompanyDeptInfoByRoleId(sysUser.getCurrentRoleId());
     }
 }

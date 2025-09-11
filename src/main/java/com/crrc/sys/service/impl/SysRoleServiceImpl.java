@@ -1,6 +1,7 @@
 package com.crrc.sys.service.impl;
 
 import com.crrc.sys.common.Arith;
+import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
@@ -9,7 +10,9 @@ import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.*;
+import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.service.ProjectService;
+import com.crrc.sys.service.SysRoleCompanyDeptService;
 import com.crrc.sys.service.SysRoleService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -31,11 +34,11 @@ import java.util.stream.Collectors;
 public class SysRoleServiceImpl implements SysRoleService {
 
     @Resource
+    private IdKeyGenerator idKeyGenerator;
+    @Resource
     private SysRoleMapper roleMapper;
     @Resource
     private SysRoleMenuMapper roleMenuMapper;
-    @Resource
-    private SysRoleOrgMapper roleOrgMapper;
     @Resource
     private SysRoleColumnValueSetMapper roleColumnValueSetMapper;
     @Resource
@@ -48,6 +51,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     private SysDataAuthValueMapper dataAuthValueMapper;
     @Resource
     private ProjectService projectService;
+    @Resource
+    private SysRoleCompanyDeptService roleCompanyDeptService;
 
     /**
      * 角色信息分页查询
@@ -132,10 +137,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         }
         //添加角色菜单数据
         this.insertRoleMenu(role.getRoleMenuList());
-        //添加角色组织数据
-        if (!CollectionUtils.isEmpty(role.getRoleOrgList())) {
-            roleOrgMapper.insert(role.getRoleOrgList());
-        }
+        //添加角色部门数据
+        insertRoleCompanyDept(role.getRoleCompanyDeptList(), role.getRoleId());
         List<SysDataAuth> dataAuthList = role.getDataAuthList();
         if (!CollectionUtils.isEmpty(dataAuthList)) {
             //添加角色数据权限
@@ -156,6 +159,49 @@ public class SysRoleServiceImpl implements SysRoleService {
         roleMapper.addTl(roleTlList);
         //添加角色主表数据
         return roleMapper.addB(role);
+    }
+
+    /**
+     * 角色部门中间表新增
+     *
+     * @param dtoList 角色部门数据
+     */
+    private void insertRoleCompanyDept(List<SysRoleCompanyDeptDTO> dtoList, long roleId) {
+        if (CollectionUtils.isEmpty(dtoList)) {
+            return;
+        }
+        List<SysRoleCompanyDept> rcdList = new ArrayList<>();
+        for (SysRoleCompanyDeptDTO dto : dtoList) {
+            List<Long> deptIdList = dto.getDeptIdList();
+            if (CollectionUtils.isEmpty(deptIdList)) {
+                SysRoleCompanyDept rcd = new SysRoleCompanyDept();
+                rcd.setId(idKeyGenerator.getId());
+                rcd.setRoleId(roleId);
+                rcd.setCompanyId(dto.getCompanyId());
+                rcdList.add(rcd);
+                continue;
+            }
+            deptIdList.forEach(o -> {
+                SysRoleCompanyDept rcd = new SysRoleCompanyDept();
+                rcd.setId(idKeyGenerator.getId());
+                rcd.setRoleId(roleId);
+                rcd.setCompanyId(dto.getCompanyId());
+                rcd.setDeptId(o);
+                rcdList.add(rcd);
+            });
+        }
+        long pageSize = 100;
+        long page = 1;
+        if (rcdList.size() > pageSize) {
+            page = (long) Math.ceil(Arith.div(rcdList.size(), pageSize, 2));
+        }
+        for (long i = 0; i < page; i++) {
+            List<SysRoleCompanyDept> pageList = rcdList.stream().skip(pageSize * i).limit(pageSize).collect(Collectors.toList());
+            boolean result = roleCompanyDeptService.saveBatch(pageList);
+            if (!result) {
+                throw new BizException("角色部门权限保存失败");
+            }
+        }
     }
 
     /**
@@ -241,12 +287,10 @@ public class SysRoleServiceImpl implements SysRoleService {
         roleMenuMapper.deleteByRoleId(role.getRoleId());
         //添加角色菜单数据
         this.insertRoleMenu(role.getRoleMenuList());
-        //删除角色组织数据
-        roleOrgMapper.deleteByRoleId(role.getRoleId());
-        //添加角色组织数据
-        if (!CollectionUtils.isEmpty(role.getRoleOrgList())) {
-            roleOrgMapper.insert(role.getRoleOrgList());
-        }
+        //删除角色部门数据
+        roleCompanyDeptService.removeByRoleId(role.getRoleId());
+        //添加角色部门数据
+        insertRoleCompanyDept(role.getRoleCompanyDeptList(), role.getRoleId());
         //删除角色数据权限值
         dataAuthValueMapper.delete(role.getRoleId());
         //删除角色数据权限
@@ -279,8 +323,6 @@ public class SysRoleServiceImpl implements SysRoleService {
         roleFunctionColumnMapper.deleteByRoleIds(ids);
         //角色菜单中间表删除
         roleMenuMapper.deleteByRoleIds(ids);
-        //角色组织中间表删除
-        roleOrgMapper.deleteByRoleIds(ids);
         //删除角色数据权限值
         dataAuthValueMapper.deleteByObjectIds(ids);
         //删除角色数据权限

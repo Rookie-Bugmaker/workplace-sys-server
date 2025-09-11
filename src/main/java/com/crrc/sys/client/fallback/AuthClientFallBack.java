@@ -31,8 +31,8 @@ public class AuthClientFallBack implements AuthClient {
     }
 
     @Override
-    public ResultData<Boolean> updateCurrentUser(Long roleId, Long orgId) {
-        logger.error("AuthClient.updateCurrentUser已进入熔断器, roleId={}, orgId={}", roleId, orgId);
+    public ResultData<Boolean> updateCurrentUser(Long roleId) {
+        logger.error("AuthClient.updateCurrentUser已进入熔断器, roleId={}", roleId);
         return ResultData.fallback();
     }
 

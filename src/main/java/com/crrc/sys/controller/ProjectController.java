@@ -5,16 +5,22 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.annotation.AuditLog;
+import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.common.PaginationGrid;
+import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.project.ProjectServiceEntity;
+import com.crrc.sys.entity.role.SysRole;
+import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.LogType;
 import com.crrc.sys.enums.OperateType;
 import com.crrc.sys.model.project.*;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.ProjectServiceService;
+import com.crrc.sys.service.SysRoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +33,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Tag(name = "系统管理 - 项目管理")
 @RestController
@@ -38,6 +45,10 @@ public class ProjectController {
     private ProjectService projectService;
     @Resource
     private ProjectServiceService projectServiceService;
+    @Resource
+    private AuthClient authClient;
+    @Resource
+    private SysRoleService roleService;
 
 
     @GetMapping("/get")
@@ -161,5 +172,26 @@ public class ProjectController {
         queryWrapper.like(!ObjectUtils.isEmpty(name), ProjectEntity::getName, name);
         queryWrapper.like(!ObjectUtils.isEmpty(nameCn), ProjectEntity::getNameCn, nameCn);
         return projectService.list(queryWrapper);
+    }
+
+    /**
+     * 获取当前用户绑定的项目列表
+     *
+     * @return 项目列表
+     */
+    @GetMapping("findByCurrentUser")
+    public List<ProjectEntity> findByCurrentUser() {
+        ResultData<SysUser> resultData = authClient.currentUser();
+        if (!resultData.getSuccess()) {
+            throw new BizException(resultData.getCode(), resultData.getMessage());
+        }
+        SysUser sysUser = resultData.getResult();
+        //查询用户拥有的角色列表
+        List<SysRole> roleList = roleService.findByUserId(sysUser.getUserId(), LanguageEnum.ZH_CN.getValue());
+        if (CollectionUtils.isEmpty(roleList)) {
+            throw new BizException("当前用户未绑定角色");
+        }
+        List<Long> projectIdList = roleList.stream().map(SysRole::getProjectId).distinct().collect(Collectors.toList());
+        return projectService.listByIds(projectIdList);
     }
 }

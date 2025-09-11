@@ -26,10 +26,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -246,13 +243,22 @@ public class SysOrgPersonController {
     }
 
     /**
-     * 人员新增(列表)
+     * 人员新增(批量)
      *
      * @param persons 人员信息
      * @return 结果
      */
     @PostMapping("addList")
     public Boolean add(@RequestBody List<SysOrgPerson> persons) {
+        if (CollectionUtils.isEmpty(persons)) {
+            throw new ParamValidateException("参数不能为空!");
+        }
+        Date now = Calendar.getInstance().getTime();
+        persons.forEach(o -> {
+            o.setPersonId(idKeyGenerator.getId());
+            o.setCreateBy(-1L);
+            o.setCreateDate(now);
+        });
         return orgPersonService.addList(persons);
     }
 
@@ -299,13 +305,21 @@ public class SysOrgPersonController {
      * @param language 语言
      * @return 结果
      */
+    @PostMapping("findByCurrentUserNew")
+    public SysOrgPersonDTO findByCurrentUserNew(String language) {
+        return findByCurrentUser(language);
+    }
+
+    /**
+     * 根据当前用户查询人员信息
+     *
+     * @param language 语言
+     * @return 结果
+     */
     @PostMapping("findByCurrentUser")
     public SysOrgPersonDTO findByCurrentUser(String language) {
         if (ObjectUtils.isEmpty(language)) {
-            throw new ParamValidateException("language不能为空");
-        }
-        if (!LanguageEnum.contains(language)) {
-            throw new ParamValidateException("language参数错误");
+            language = LanguageEnum.ZH_CN.getValue();
         }
         ResultData<SysUser> currentUserResultData = authClient.currentUser();
         SysUser currentUser = currentUserResultData.getResult();
@@ -328,10 +342,7 @@ public class SysOrgPersonController {
             throw new ParamValidateException("userId不能为空");
         }
         if (ObjectUtils.isEmpty(language)) {
-            throw new ParamValidateException("language不能为空");
-        }
-        if (!LanguageEnum.contains(language)) {
-            throw new ParamValidateException("language参数错误");
+            language = LanguageEnum.ZH_CN.getValue();
         }
         SysUser sysUser = userService.findById(userId, language);
         if (ObjectUtils.isEmpty(sysUser)) {

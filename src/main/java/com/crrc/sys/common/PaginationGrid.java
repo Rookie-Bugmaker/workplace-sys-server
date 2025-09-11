@@ -65,10 +65,10 @@ public class PaginationGrid<T> {
         this.page = page;
         this.pageSize = pageSize;
         if (page == 1) {
-            this.offset = 1;
+            this.offset = 0;
             this.endset = pageSize;
         } else {
-            this.offset = (page - 1) * pageSize + 1;
+            this.offset = (page - 1) * pageSize;
             this.endset = page * pageSize;
         }
     }

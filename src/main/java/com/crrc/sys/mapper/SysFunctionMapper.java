@@ -191,4 +191,12 @@ public interface SysFunctionMapper {
      * @return 结果
      */
     List<SysFunction> findByWorkflow();
+
+    /**
+     * 修改子功能的项目ID
+     *
+     * @param functionId 功能ID
+     * @param projectId  项目ID
+     */
+    void updateProjectId(@Param("functionId") long functionId, @Param("projectId") Long projectId);
 }

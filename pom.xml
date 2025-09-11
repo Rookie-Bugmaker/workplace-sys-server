@@ -12,23 +12,6 @@
     <name>workplace-sys-server</name>
     <description>系统服务</description>
 
-    <repositories>
-        <!--私服配置 -->
-        <repository>
-            <id>nexus</id>
-            <name>nexus</name>
-            <url>http://10.216.244.106:8081/nexus/repository/maven-public/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>

@@ -21,6 +21,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -201,6 +202,26 @@ public class SysDeptPersonController {
         }
         paginationGrid.setRows(poToDto(records));
         return paginationGrid;
+    }
+
+    /**
+     * 批量新增
+     *
+     * @param deptPersons 参数
+     */
+    @PostMapping("addBatch")
+    public void addBatch(@RequestBody List<SysDeptPersonPO> deptPersons) {
+        //参数校验
+//        verification(OperationTypeEnum.ADD.getValue(), deptPerson);
+        //设置主键ID
+//        deptPerson.setId(idKeyGenerator.getId());
+        if(CollectionUtils.isEmpty(deptPersons)){
+          throw new ParamValidateException("参数错误");
+        }
+        boolean result = deptPersonService.saveBatch(deptPersons);
+        if (!result) {
+            throw new BizException("保存失败");
+        }
     }
 
     /**
