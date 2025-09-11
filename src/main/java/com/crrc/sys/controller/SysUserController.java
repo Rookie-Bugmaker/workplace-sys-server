@@ -21,6 +21,7 @@ import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
 import com.crrc.sys.excel.ExcelImport;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.service.*;
 import org.springframework.beans.BeanUtils;
@@ -35,6 +36,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -83,6 +85,8 @@ public class SysUserController {
     private ValueOperations<String, Object> valueOperations;
     @Resource
     private SysDeptPersonService deptPersonService;
+    @Resource
+    private SysRoleController roleController;
 
     public static void main(String[] args) {
         //PasswordEncoder bcpe = new BCryptPasswordEncoder();
@@ -461,7 +465,7 @@ public class SysUserController {
      */
     @AutoIdempotent
     @PostMapping("switchRole")
-    public void switchRole(Long roleId, String language) {
+    public void switchRole(HttpServletRequest request, Long roleId) {
         if (ObjectUtils.isEmpty(roleId)) {
             throw new ParamValidateException("角色ID不能为空!");
         }
@@ -470,6 +474,7 @@ public class SysUserController {
         if (!userResultData.getSuccess()) {
             throw new BizException(userResultData.getCode(), userResultData.getMessage());
         }
+        String projectCode = request.getHeader(Constant.X_PROJECT_CODE);
         //当前用户
         SysUser currentUser = userResultData.getResult();
         //当前角色ID
@@ -477,8 +482,13 @@ public class SysUserController {
         if (currentRoleId.equals(roleId)) {
             throw new ParamValidateException("当前角色与切换角色一致，无需切换!");
         }
-        //修改用户缓存
-        ResultData<Boolean> resultData = authClient.updateCurrentUser(roleId);
+        //根据角色ID查询绑定的公司信息与部门信息集合
+        List<SysRoleCompanyDeptDTO> companyDeptDtoList = roleController.findRoleCompanyDeptByRoleId(currentRoleId);
+        if (CollectionUtils.isEmpty(companyDeptDtoList)) {
+            throw new ParamValidateException("切换失败，角色ID[" + currentRoleId + "]未绑定公司");
+        }
+        //更新用户缓存
+        ResultData<Boolean> resultData = authClient.updateCurrentUser(projectCode, roleId, null, null);
         if (!resultData.getSuccess()) {
             throw new BizException(resultData.getCode(), resultData.getMessage());
         }

@@ -4,10 +4,7 @@ import com.crrc.sys.client.fallback.AuthClientFallBack;
 import com.crrc.sys.common.ResultData;
 import com.crrc.sys.entity.user.SysUser;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 认证中心-Feign客户端
@@ -27,25 +24,18 @@ public interface AuthClient {
     ResultData<SysUser> currentUser();
 
     /**
-     * 获取当前客户端ID
+     * 更新当前用户信息
      *
+     * @param roleId 角色ID
      * @return 结果
      */
-    @GetMapping("currentClientId")
-    ResultData<String> currentClientId();
-
-    /**
-     * 切换当前角色
-     *
-     * @param roleId                  角色ID
-     * @return 结果
-     */
-    @PostMapping("updateCurrentUser")
-    ResultData<Boolean> updateCurrentUser(@RequestParam("roleId") Long roleId);
+    @PutMapping("updateCurrentUser")
+    ResultData<Boolean> updateCurrentUser(@RequestParam String projectCode, @RequestParam Long roleId, @RequestParam Long companyId, @RequestParam Long deptId);
 
     /**
      * 获取当前用户信息
      *
+     * @param token token信息
      * @return 结果
      */
     @PostMapping("currentUser")
