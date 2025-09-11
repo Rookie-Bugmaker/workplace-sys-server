@@ -85,6 +85,14 @@ public class SysUser extends BaseEntityYunLing {
      * 授予的角色ID(前端传递参数使用)
      */
     private List<Long> roleIds;
+    /**
+     * 当前公司ID
+     */
+    private Long currentCompanyId;
+    /**
+     * 当前部门ID
+     */
+    private Long currentDeptId;
 
     public Long getUserId() {
         return userId;
@@ -220,5 +228,21 @@ public class SysUser extends BaseEntityYunLing {
 
     public void setRoleIds(List<Long> roleIds) {
         this.roleIds = roleIds;
+    }
+
+    public Long getCurrentCompanyId() {
+        return currentCompanyId;
+    }
+
+    public void setCurrentCompanyId(Long currentCompanyId) {
+        this.currentCompanyId = currentCompanyId;
+    }
+
+    public Long getCurrentDeptId() {
+        return currentDeptId;
+    }
+
+    public void setCurrentDeptId(Long currentDeptId) {
+        this.currentDeptId = currentDeptId;
     }
 }
