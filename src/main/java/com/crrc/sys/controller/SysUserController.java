@@ -469,26 +469,139 @@ public class SysUserController {
         if (ObjectUtils.isEmpty(roleId)) {
             throw new ParamValidateException("角色ID不能为空!");
         }
+        switchRoleOrCompanyOrDept(request, roleId, null, null);
+    }
+
+    /**
+     * 切换公司
+     *
+     * @param companyId 公司ID
+     */
+    @AutoIdempotent
+    @PostMapping("switchCompany")
+    public void switchCompany(HttpServletRequest request, Long companyId) {
+        if (ObjectUtils.isEmpty(companyId)) {
+            throw new ParamValidateException(" 公司ID不能为空!");
+        }
+        switchRoleOrCompanyOrDept(request, null, companyId, null);
+    }
+
+    /**
+     * 切换部门
+     *
+     * @param deptId 部门ID
+     */
+    @AutoIdempotent
+    @PostMapping("switchDept")
+    public void switchDept(HttpServletRequest request, Long deptId) {
+        if (ObjectUtils.isEmpty(deptId)) {
+            throw new ParamValidateException(" 部门ID不能为空!");
+        }
+        switchRoleOrCompanyOrDept(request, null, null, deptId);
+    }
+
+    /**
+     * 切换角色||公司||部门
+     *
+     * @param request   请求
+     * @param roleId    角色ID
+     * @param companyId 公司ID
+     * @param deptId    部门ID
+     */
+    private void switchRoleOrCompanyOrDept(HttpServletRequest request, Long roleId, Long companyId, Long deptId) {
         //获取当前用户
         ResultData<SysUser> userResultData = authClient.currentUser();
         if (!userResultData.getSuccess()) {
             throw new BizException(userResultData.getCode(), userResultData.getMessage());
         }
+        //项目编码
         String projectCode = request.getHeader(Constant.X_PROJECT_CODE);
         //当前用户
         SysUser currentUser = userResultData.getResult();
+        //获取当前用户在当前项目下的角色列表
+        List<SysRole> projectRoleList = roleController.findRoleListByCurrentUser(request);
+        if (CollectionUtils.isEmpty(projectRoleList)) {
+            throw new BizException("当前用户未分配[" + projectCode + "]项目的角色!");
+        }
+        //① 当前项目下的角色ID集合
+        List<Long> roleIdList = projectRoleList.stream().map(SysRole::getRoleId).collect(Collectors.toList());
         //当前角色ID
         Long currentRoleId = currentUser.getCurrentRoleId();
-        if (currentRoleId.equals(roleId)) {
-            throw new ParamValidateException("当前角色与切换角色一致，无需切换!");
+        //当前公司ID
+        Long currentCompanyId = currentUser.getCurrentCompanyId();
+        //当前部门ID
+        Long currentDeptId = currentUser.getCurrentDeptId();
+        if (!ObjectUtils.isEmpty(roleId)) {
+            //说明当前操作为角色切换
+            if (!roleIdList.contains(roleId)) {
+                //切换的角色ID不在①中
+                throw new ParamValidateException("当前用户不存在此切换的角色!");
+            }
+            if (currentRoleId.equals(roleId)) {
+                //切换的角色与当前角色一致
+                throw new BizException("当前角色与切换角色一致，无需切换!");
+            }
+            //切换的角色与当前角色不一致，设置新角色为切换的角色
+            currentUser.setCurrentRoleId(roleId);
         }
-        //根据角色ID查询绑定的公司信息与部门信息集合
-        List<SysRoleCompanyDeptDTO> companyDeptDtoList = roleController.findRoleCompanyDeptByRoleId(currentRoleId);
+        //根据角色ID查询绑定的公司ID与部门ID集合
+        List<SysRoleCompanyDeptDTO> companyDeptDtoList = roleController.findRoleCompanyDeptByRoleId(currentUser.getCurrentRoleId());
         if (CollectionUtils.isEmpty(companyDeptDtoList)) {
-            throw new ParamValidateException("切换失败，角色ID[" + currentRoleId + "]未绑定公司");
+            throw new BizException("切换失败，角色ID[" + currentRoleId + "]未绑定公司");
+        }
+        //② 当前角色绑定的公司ID集合
+        List<Long> companyIdList = companyDeptDtoList.stream().map(SysRoleCompanyDeptDTO::getCompanyId).collect(Collectors.toList());
+        if (!ObjectUtils.isEmpty(companyId)) {
+            //说明当前操作为公司切换
+            if (!companyIdList.contains(companyId)) {
+                //切换的公司ID不在②中
+                throw new ParamValidateException("当前角色不存在此切换的公司!");
+            }
+            if (currentCompanyId.equals(companyId)) {
+                //切换的公司与当前公司一致
+                throw new BizException("当前公司与切换公司一致，无需切换!");
+            }
+            //切换的公司与当前公司不一致，设置新公司为切换的公司
+            currentUser.setCurrentCompanyId(companyId);
+        }
+        if (!ObjectUtils.isEmpty(roleId) && !companyIdList.contains(currentUser.getCurrentCompanyId())) {
+            //角色ID != null && 切换的公司ID不在②中，则随机取一个公司
+            currentUser.setCurrentCompanyId(companyIdList.get(0));
+        }
+        //③ 当前公司绑定的部门ID集合
+        List<Long> deptIdList = companyDeptDtoList.stream()
+                .filter(o -> o.getCompanyId().equals(currentUser.getCurrentCompanyId()))
+                .findFirst()
+                .map(SysRoleCompanyDeptDTO::getDeptIdList)
+                .orElse(null);
+        if (!ObjectUtils.isEmpty(deptId)) {
+            if (CollectionUtils.isEmpty(deptIdList)) {
+                //没有可以切换的部门
+                throw new BizException("当前公司没有可切换的部门，请刷新页面!");
+            }
+            //说明当前操作为部门切换
+            if (!deptIdList.contains(deptId)) {
+                //切换的部门ID不在③中
+                throw new ParamValidateException("当前公司不存在此切换的部门!");
+            }
+            if (currentDeptId.equals(deptId)) {
+                //切换的部门与当前部门一致
+                throw new BizException("当前部门与切换部门一致，无需切换!");
+            }
+            //切换的部门与当前部门不一致，设置新部门为切换的部门
+            currentUser.setCurrentDeptId(deptId);
+        }
+        if (CollectionUtils.isEmpty(deptIdList)) {
+            //如果没有部门集合，则直接将当前部门置空
+            currentUser.setCurrentDeptId(null);
+        } else {
+            //有部门集合，先判断当前部门ID是否在集合中，如果不在则随机取一个
+            if (!deptIdList.contains(currentUser.getCurrentDeptId())) {
+                currentUser.setCurrentDeptId(deptIdList.get(0));
+            }
         }
         //更新用户缓存
-        ResultData<Boolean> resultData = authClient.updateCurrentUser(projectCode, roleId, null, null);
+        ResultData<Boolean> resultData = authClient.updateCurrentUser(projectCode, currentUser.getCurrentRoleId(), currentUser.getCurrentCompanyId(), currentUser.getCurrentDeptId());
         if (!resultData.getSuccess()) {
             throw new BizException(resultData.getCode(), resultData.getMessage());
         }

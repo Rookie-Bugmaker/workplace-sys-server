@@ -428,7 +428,7 @@ public class SysRoleController {
     }
 
     /**
-     * 查询当前用户拥有的角色列表
+     * 查询当前用户在当前项目下拥有的角色列表
      *
      * @return 角色列表
      */
