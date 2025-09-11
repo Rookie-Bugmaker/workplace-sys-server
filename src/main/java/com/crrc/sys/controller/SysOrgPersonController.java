@@ -250,7 +250,7 @@ public class SysOrgPersonController {
      */
     @PostMapping("addList")
     public Boolean add(@RequestBody List<SysOrgPerson> persons) {
-        if (!CollectionUtils.isEmpty(persons)) {
+        if (CollectionUtils.isEmpty(persons)) {
             throw new ParamValidateException("参数不能为空!");
         }
         Date now = Calendar.getInstance().getTime();
