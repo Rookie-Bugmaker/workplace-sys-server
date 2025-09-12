@@ -123,3 +123,21 @@ springdoc:
     host: 10.151.255.79
     port: 9091
     url: /${spring.application.name}/v3/api-docs
+mainData:
+  mq:
+    # 队列管理器名称
+    queueManagerName: @mainData.mq.queueManagerName@
+    # MQ服务器地址
+    hostName: @mainData.mq.hostName@
+    # MQ通道名
+    channel: @mainData.mq.channel@
+    # 端口号
+    port: @mainData.mq.port@
+    # 字符集
+    ccsid: @mainData.mq.ccsid@
+    # 队列名
+    queueString: @mainData.mq.queueString@
+    # 用户名
+    userId: @mainData.mq.userId@
+    # 密码
+    password: @mainData.mq.password@

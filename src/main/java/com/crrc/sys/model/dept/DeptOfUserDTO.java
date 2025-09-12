@@ -9,7 +9,7 @@ public class DeptOfUserDTO {
 
     private Long userId;
 
-    private Long parentId;
+    private String parentOrgCode;
 
     private String departmentName;
 

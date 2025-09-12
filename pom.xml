@@ -213,6 +213,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
+        <!--主数据获取依赖-->
+<!--        <dependency>
+            <groupId>com.crrc</groupId>
+            <artifactId>workplace-main-data</artifactId>
+            <version>v1.0.0</version>
+        </dependency>-->
     </dependencies>
 
     <!-- 环境部署配置 -->
