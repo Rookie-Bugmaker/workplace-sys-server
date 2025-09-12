@@ -97,4 +97,5 @@ public interface SysRoleService {
      * @return 结果
      */
     List<SysRole> findByCodes(List<String> roleCodeList, String language);
+
 }

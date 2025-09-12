@@ -11,6 +11,8 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
+import com.crrc.sys.entity.company.Company;
+import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.excel.ExcelParams;
 import com.crrc.sys.entity.excel.ExcelResultData;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
@@ -21,8 +23,10 @@ import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
 import com.crrc.sys.excel.ExcelImport;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.model.org.person.SysOrgPersonDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
+import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.service.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
@@ -87,6 +91,14 @@ public class SysUserController {
     private SysDeptPersonService deptPersonService;
     @Resource
     private SysRoleController roleController;
+
+    @Resource
+    private CompanyService companyService;
+    @Resource
+    private DeptService deptService;
+
+    @Resource
+    private SysOrgPersonService orgPersonService;
 
     public static void main(String[] args) {
         //PasswordEncoder bcpe = new BCryptPasswordEncoder();
@@ -1230,13 +1242,13 @@ public class SysUserController {
      * @return 结果
      */
     @GetMapping("get_user")
-    public SysUserCompatibilityDTO getUser(@RequestParam Long id) {
+    public UserGetRespVO getUser(@RequestParam Long id) {
         SysUser user = userService.findById(id, "zh-CN");
         if (Objects.isNull(user)) {
             return null;
         }
         List<SysUser> userList = Collections.singletonList(user);
-        return setUserProperties(userList).get(0);
+        return setUserAndDMRProperties(userList).get(0);
     }
 
     /**
@@ -1300,6 +1312,85 @@ public class SysUserController {
                     dto.setEmail(person.getEmail());
                 }
             }
+            dtoList.add(dto);
+        }
+        return dtoList;
+    }
+
+    /**
+     * 设置用户的其他属性：是否部门领导、用户姓名、手机号码、性别、邮箱,公司部门与角色
+     *
+     * @param userList 用户集合
+     * @return 结果
+     */
+    private List<UserGetRespVO> setUserAndDMRProperties(List<SysUser> userList) {
+        //用户关联的人员ID
+        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+        //根据人员ID查询人员信息
+        List<SysOrgPerson> personList = personService.findByIds(personIdList);
+        //根据人员ID查询部门人员
+        List<SysDeptPersonPO> deptPersonList = deptPersonService.findByPersonId(personIdList);
+        List<UserGetRespVO> dtoList = new ArrayList<>();
+        //属性设置
+        for (SysUser user : userList) {
+            UserGetRespVO dto = new UserGetRespVO();
+            dto.setId(user.getUserId());
+            dto.setUserName(user.getUserName());
+            dto.setStatus("Y".equals(user.getDisableState()) ? "1" : "0");
+            if (!ObjectUtils.isEmpty(user.getPasswordUpdateDate())) {
+                dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            }
+            //部门人员信息
+            SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(deptPerson)) {
+                dto.setLeader(ObjectUtils.isEmpty(deptPerson.getParentPersonId()));
+            }
+            //关联人员信息
+            if (!CollectionUtils.isEmpty(personList)) {
+                SysOrgPerson person = personList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+                if (!ObjectUtils.isEmpty(person)) {
+                    dto.setNickName(person.getFullName());
+                    dto.setPhonenumber(person.getPhone());
+                    dto.setSex("M".equals(person.getGender()) ? "0" : "1");
+                    dto.setEmail(person.getEmail());
+                }
+            }
+            // 关联角色
+            List<UserGetRespVO.Role> roles = new ArrayList<>();
+            roleService.findByUserId(user.getUserId(), "zh-CN").forEach(sysRole -> {
+                UserGetRespVO.Role role = new UserGetRespVO.Role();
+                role.setId(String.valueOf(sysRole.getRoleId()));
+                role.setName(sysRole.getRoleName());
+                role.setRoleKey(sysRole.getRoleCode());
+                roles.add(role);
+            });
+
+            List<Long> deptIdList = deptPersonList.stream().map(SysDeptPersonPO::getDeptId).distinct().collect(Collectors.toList());
+            List<Dept> deptList = deptService.findByDeptIds(deptIdList);
+            // 关联部门
+            List<UserGetRespVO.Dept> depts = new ArrayList<>();
+            deptList.forEach(sysDept -> {
+                UserGetRespVO.Dept dept = new UserGetRespVO.Dept();
+                dept.setId(sysDept.getId());
+                dept.setCompanyId(sysDept.getCompanyId());
+                dept.setOrgCode(sysDept.getOrgCode());
+                dept.setDepartmentName(sysDept.getDepartmentName());
+                depts.add(dept);
+            });
+            List<Long> companyIdList = deptList.stream().map(Dept::getCompanyId).distinct().collect(Collectors.toList());
+            // 关联部门
+            List<UserGetRespVO.Company> companys = new ArrayList<>();
+            companyService.listByIds(companyIdList).forEach(sysCompany -> {
+                UserGetRespVO.Company company = new UserGetRespVO.Company();
+                company.setId(sysCompany.getId());
+                company.setCompanyId(String.valueOf(sysCompany.getCompanyId()));
+                company.setOrgCode(sysCompany.getOrgCode());
+                company.setCompanyName(sysCompany.getCompanyName());
+                companys.add(company);
+            });
+            dto.setRoles(roles);
+            dto.setDepts(depts);
+            dto.setCompanys(companys);
             dtoList.add(dto);
         }
         return dtoList;
