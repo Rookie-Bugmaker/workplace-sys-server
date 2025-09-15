@@ -375,11 +375,11 @@ public class SysFunctionController {
         if (!FunctionTypeEnum.contains(function.getFunctionType())) {
             throw new ParamValidateException("功能类型错误");
         }
-        if (ObjectUtils.isEmpty(function.getName())) {
-            throw new ParamValidateException("路由名称不能为空!");
-        }
         //功能编码唯一性校验：1.功能类型=A时，必须保证全局唯一；2.功能类型=B时，保证在此功能下唯一即可。
         if (FunctionTypeEnum.A.getValue().equals(function.getFunctionType())) {
+            if (ObjectUtils.isEmpty(function.getName())) {
+                throw new ParamValidateException("路由名称不能为空!");
+            }
             //根据功能编码查询功能信息
             SysFunction resultData = functionService.findByCode(function.getFunctionCode(), LanguageEnum.ZH_CN.getValue());
             if (!ObjectUtils.isEmpty(resultData) && resultData.getFunctionType().equals(function.getFunctionType())) {
