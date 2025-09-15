@@ -106,7 +106,7 @@ public class DeptController {
             return null;
         }
         // 剔除临时部门
-        deptList.removeIf(o -> o.getCompanyId() == 0 || o.getOrgCode().equals("0"));
+        deptList.removeIf(o -> o.getCompanyId() == 0 || o.getOrgCode().equals("-".concat(String.valueOf(o.getCompanyId()))));
         return deptService.getDeptListResp(deptList);
     }
 
