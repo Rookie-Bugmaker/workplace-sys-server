@@ -29,7 +29,7 @@ public class SysOrgPerson extends BaseEntityYunLing {
      */
     private String jobNo;
     /**
-     * 类型(来源于值集HR_EMPLOYEE_TYPE)
+     * 类型(1:内部员工、2:供应商)
      */
     private Long personType;
     /**
