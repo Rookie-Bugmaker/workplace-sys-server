@@ -1180,7 +1180,9 @@ public class SysUserController {
             dto.setId(user.getUserId());
             dto.setUserName(user.getUserName());
             dto.setStatus("Y".equals(user.getDisableState()) ? 1 : 0);
-            dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            if(user.getPasswordUpdateDate() != null) {
+                dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            }
             //部门人员信息
             SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
             if (!ObjectUtils.isEmpty(deptPerson)) {
