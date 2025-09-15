@@ -1150,16 +1150,16 @@ public class SysUserController {
     /**
      * 根据部门ID查询用户列表(兼容旧平台)
      *
-     * @param deptId 部门ID
+     * @param deptid 部门ID
      */
     @GetMapping("get_dept_users")
-    public List<SysUserCompatibilityDTO> getUserByDeptId(Long deptId) {
-        if (ObjectUtils.isEmpty(deptId)) {
+    public List<SysUserCompatibilityDTO> getUserByDeptId(@RequestParam Long deptid) {
+        if (ObjectUtils.isEmpty(deptid)) {
             throw new ParamValidateException("部门ID不能为空!");
         }
         //根据部门ID查询人员列表
         LambdaQueryWrapper<SysDeptPersonPO> dpQueryWrapper = new LambdaQueryWrapper<>();
-        dpQueryWrapper.eq(SysDeptPersonPO::getDeptId, deptId);
+        dpQueryWrapper.eq(SysDeptPersonPO::getDeptId, deptid);
         List<SysDeptPersonPO> deptPersonList = deptPersonService.list(dpQueryWrapper);
         if (CollectionUtils.isEmpty(deptPersonList)) {
             return null;

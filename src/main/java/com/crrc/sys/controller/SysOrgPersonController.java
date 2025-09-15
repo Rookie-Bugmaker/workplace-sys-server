@@ -263,6 +263,37 @@ public class SysOrgPersonController {
     }
 
     /**
+     * 人员修改
+     *
+     * @param persons 人员列表
+     */
+    @AutoIdempotent
+    @PostMapping("updateList")
+    public Boolean updateList(@RequestBody List<SysOrgPerson> persons) {
+        //获取当前用户
+        ResultData<SysUser> userResultData = authClient.currentUser();
+        if (!userResultData.getSuccess()) {
+            throw new BizException(userResultData.getCode(), userResultData.getMessage());
+        }
+        //当前用户
+        SysUser currentUser = userResultData.getResult();
+        for (int i = 0; i < persons.size(); i++) {
+            SysOrgPerson person = persons.get(i);
+            //创建人
+            person.setLastUpdateBy(currentUser.getUserId());
+            //创建时间
+            person.setLastUpdateDate(Calendar.getInstance().getTime());
+            //最后修改人登录日志
+            person.setLastUpdateLogin(currentUser.getLastLoginInfoId());
+            int result = orgPersonService.update(person);
+            if(result <= 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * 根据工号查询人员信息
      *
      * @param jobNo 工号
