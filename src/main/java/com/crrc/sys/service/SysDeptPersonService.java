@@ -20,4 +20,12 @@ public interface SysDeptPersonService extends IService<SysDeptPersonPO> {
      * @return 结果
      */
     List<SysDeptPersonPO> findByPersonId(List<Long> personIdList);
+
+    /**
+     * 根据部门ID查询让部门人员列表
+     *
+     * @param deptId 部门ID
+     * @return 部门人员列表
+     */
+    List<SysDeptPersonPO> findByDeptId(Long deptId);
 }

@@ -7,6 +7,7 @@ import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.service.SysDeptPersonService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -32,6 +33,22 @@ public class SysDeptPersonServiceImpl extends ServiceImpl<SysDeptPersonMapper, S
         }
         LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(SysDeptPersonPO::getPersonId, personIdList);
+        return super.baseMapper.selectList(queryWrapper);
+    }
+
+    /**
+     * 根据部门ID查询让部门人员列表
+     *
+     * @param deptId 部门ID
+     * @return 部门人员列表
+     */
+    @Override
+    public List<SysDeptPersonPO> findByDeptId(Long deptId) {
+        if (ObjectUtils.isEmpty(deptId)) {
+            return null;
+        }
+        LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysDeptPersonPO::getDeptId, deptId);
         return super.baseMapper.selectList(queryWrapper);
     }
 }
