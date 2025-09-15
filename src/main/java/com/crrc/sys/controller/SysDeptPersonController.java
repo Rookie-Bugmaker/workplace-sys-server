@@ -106,7 +106,7 @@ public class SysDeptPersonController {
         if (!CollectionUtils.isEmpty(deptPersonList)) {
             SysDeptPersonPO deptPersonPO = deptPersonList.stream().filter(o -> o.getPersonId().equals(deptPerson.getPersonId())).findFirst().orElse(null);
             if (!ObjectUtils.isEmpty(deptPersonPO)) {
-                throw new BizException("当前部门下已存在该人员!");
+                throw new BizException("当前部门下已存在该成员!");
             }
         }
     }
