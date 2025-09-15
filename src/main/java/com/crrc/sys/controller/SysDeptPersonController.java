@@ -101,6 +101,14 @@ public class SysDeptPersonController {
         if (ObjectUtils.isEmpty(deptPerson.getPersonId())) {
             throw new ParamValidateException("人员ID不能为空!");
         }
+        //根据部门ID查询人员列表
+        List<SysDeptPersonPO> deptPersonList = deptPersonService.findByDeptId(deptPerson.getDeptId());
+        if (!CollectionUtils.isEmpty(deptPersonList)) {
+            SysDeptPersonPO deptPersonPO = deptPersonList.stream().filter(o -> o.getPersonId().equals(deptPerson.getPersonId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(deptPersonPO)) {
+                throw new BizException("当前部门下已存在该人员!");
+            }
+        }
     }
 
     /**
@@ -215,8 +223,8 @@ public class SysDeptPersonController {
 //        verification(OperationTypeEnum.ADD.getValue(), deptPerson);
         //设置主键ID
 //        deptPerson.setId(idKeyGenerator.getId());
-        if(CollectionUtils.isEmpty(deptPersons)){
-          throw new ParamValidateException("参数错误");
+        if (CollectionUtils.isEmpty(deptPersons)) {
+            throw new ParamValidateException("参数错误");
         }
         boolean result = deptPersonService.saveBatch(deptPersons);
         if (!result) {
