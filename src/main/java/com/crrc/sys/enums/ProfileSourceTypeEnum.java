@@ -17,7 +17,11 @@ public enum ProfileSourceTypeEnum {
     /**
      * fixed:固定值
      */
-    FIXED("固定值", "fixed");
+    FIXED("固定值", "fixed"),
+    /**
+     * api:接口
+     */
+    API("接口", "api");
 
     /**
      * 描述

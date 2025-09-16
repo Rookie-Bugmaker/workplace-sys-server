@@ -21,7 +21,7 @@ public class SysProfile extends BaseEntityYunLing {
      */
     private String profileCode;
     /**
-     * 值来源类型(sql:SQL、fixed:固定值)
+     * 值来源类型(sql:SQL、fixed:固定值、api:接口)
      */
     private String profileSourceType;
     /**

@@ -3,14 +3,12 @@ package com.crrc.sys.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
+import com.crrc.sys.common.Constant;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
-import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.enums.OperationTypeEnum;
-import com.crrc.sys.enums.ProfileSourceTypeEnum;
-import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.profile.SysProfile;
@@ -18,16 +16,25 @@ import com.crrc.sys.entity.profile.SysProfileFindByPageParam;
 import com.crrc.sys.entity.profile.SysProfileValuePageSearch;
 import com.crrc.sys.entity.profile.ValueSet;
 import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.enums.LanguageEnum;
+import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.enums.ProfileSourceTypeEnum;
 import com.crrc.sys.service.SysProfileService;
-import org.springframework.http.MediaType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.*;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,12 +48,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/profile/")
 public class SysProfileController {
 
+    private final static Logger LOGGER = LoggerFactory.getLogger(SysProfileController.class);
     @Resource
     private IdKeyGenerator idKeyGenerator;
     @Resource
     private AuthClient authClient;
     @Resource
     private SysProfileService profileService;
+    @Resource
+    private RestTemplate restTemplate;
 
     /**
      * 配置文件分页查询
@@ -150,6 +160,7 @@ public class SysProfileController {
         }
         return profileService.findById(profileId, language);
     }
+
     /**
      * 删除
      *
@@ -201,10 +212,7 @@ public class SysProfileController {
         search.setProfileDescColumn(sysProfile.getProfileDescColumn());
         //父级列
         search.setProfileParentColumn(sysProfile.getProfileParentColumn());
-        //值来源类型： sql:SQL、fixed:固定值
-        if (!ProfileSourceTypeEnum.SQL.getValue().equals(sysProfile.getProfileSourceType())) {
-            throw new BizException("该接口只查询[值来源类型=sql]的配置文件!");
-        }
+        //值来源
         String sql = sysProfile.getProfileSource();
         if (ObjectUtils.isEmpty(sql)) {
             throw new BizException("数据错误，请检查数据!");
@@ -212,8 +220,41 @@ public class SysProfileController {
         //动态参数处理
         sql = dynamicParamHandle(sql, search.getParamMapStr());
         search.setSql(sql);
-        //根据SQL查询值集(分页查询)
-        return profileService.findValuePageBySql(search);
+        PaginationGrid<ValueSet> paginationGrid = new PaginationGrid<>(search.getPage(), search.getPageSize());
+        //值来源类型： sql:SQL、fixed:固定值、api：接口
+        switch (sysProfile.getProfileSourceType()) {
+            case "sql":
+                //根据SQL查询值集(分页查询)
+                paginationGrid = profileService.findValuePageBySql(search);
+            case "api":
+                //远程请求api接口
+                //响应案例:{total:100,rows:[{id:"1",code:"qqq",desc:"描述",parentId:""}]}
+                LOGGER.debug("---> GET {}", search.getSql());
+                HttpEntity<String> httpEntity = new HttpEntity<>(null, setHeader());
+                ResponseEntity<String> exchange = restTemplate.exchange(search.getSql(), HttpMethod.GET, httpEntity, String.class);
+                LOGGER.debug("<--- 响应 {}", JSON.toJSONString(exchange));
+                break;
+            default:
+                throw new BizException("该接口不查询[值来源类型=固定值]的配置文件!");
+        }
+        return paginationGrid;
+    }
+
+    /**
+     * 设置请求头
+     */
+    private HttpHeaders setHeader() {
+        // 请求头
+        HttpHeaders headers = new HttpHeaders();
+        MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(type);
+        headers.add("Accept", MediaType.APPLICATION_JSON.toString());
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (!ObjectUtils.isEmpty(attributes)) {
+            HttpServletRequest request = attributes.getRequest();
+            headers.add(Constant.X_PROJECT_CODE, request.getHeader(Constant.X_PROJECT_CODE));
+        }
+        return headers;
     }
 
     /**
@@ -304,8 +345,8 @@ public class SysProfileController {
         }
         if (!CollectionUtils.isEmpty(paramSet)) {
             //说明该SQL中存在动态参数，则需要手动替换动态参数的值
-            //先判断动态参数有没有固定参数：${user.userId}、${user.roleId}、${user.organizationId}
-            if (paramSet.contains("${user.userId}") || paramSet.contains("${user.roleId}") || paramSet.contains("${user.organizationId}")) {
+            //先判断动态参数有没有固定参数：${user.userId}、${user.roleId}、${user.companyId}、${user.deptId}
+            if (paramSet.contains("${user.userId}") || paramSet.contains("${user.roleId}") || paramSet.contains("${user.companyId}") || paramSet.contains("${user.deptId}")) {
                 //获取当前用户
                 ResultData<SysUser> userResultData = authClient.currentUser();
                 if (!userResultData.getSuccess()) {
@@ -315,8 +356,12 @@ public class SysProfileController {
                 SysUser currentUser = userResultData.getResult();
                 sql = sql.replaceAll("\\$\\{user.userId}", String.valueOf(currentUser.getUserId()));
                 sql = sql.replaceAll("\\$\\{user.roleId}", String.valueOf(currentUser.getCurrentRoleId()));
+                sql = sql.replaceAll("\\$\\{user.companyId}", String.valueOf(currentUser.getCurrentCompanyId()));
+                sql = sql.replaceAll("\\$\\{user.deptId}", String.valueOf(currentUser.getCurrentDeptId()));
                 paramSet.remove("${user.userId}");
                 paramSet.remove("${user.roleId}");
+                paramSet.remove("${user.companyId}");
+                paramSet.remove("${user.deptId}");
                 //判断是否还有需要处理的参数，如果没有就直接返回
                 if (CollectionUtils.isEmpty(paramSet)) {
                     return sql;
@@ -448,7 +493,7 @@ public class SysProfileController {
         if (profile.getProfileSource().length() > 2000) {
             throw new ParamValidateException("值来源超长(最大2000)");
         }
-        if (ProfileSourceTypeEnum.SQL.getValue().equals(profile.getProfileSourceType())) {
+        if (ProfileSourceTypeEnum.SQL.getValue().equals(profile.getProfileSourceType()) || ProfileSourceTypeEnum.API.getValue().equals(profile.getProfileSourceType())) {
             if (ObjectUtils.isEmpty(profile.getProfileValueColumn())) {
                 throw new ParamValidateException("值列不能为空!");
             }
