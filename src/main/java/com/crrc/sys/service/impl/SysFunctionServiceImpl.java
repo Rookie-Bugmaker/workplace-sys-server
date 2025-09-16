@@ -75,7 +75,7 @@ public class SysFunctionServiceImpl implements SysFunctionService {
                 if (!CollectionUtils.isEmpty(projectList)) {
                     rows.forEach(o -> {
                         ProjectEntity projectEntity = projectList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
-                        o.setProjectName(ObjectUtils.isEmpty(projectEntity) ? null : projectEntity.getNameCn());
+                        o.setProject(projectEntity);
                     });
                 }
             }

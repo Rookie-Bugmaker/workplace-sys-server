@@ -13,11 +13,13 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.function.*;
+import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.FunctionTypeEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OpenMethodEnum;
 import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysApiService;
 import com.crrc.sys.service.SysFunctionService;
 import org.slf4j.Logger;
@@ -55,6 +57,8 @@ public class SysFunctionController {
     private SysFunctionService functionService;
     @Resource
     private SysApiService apiService;
+    @Resource
+    private ProjectService projectService;
 
     /**
      * 初始化所有低代码功能按钮权限
@@ -197,7 +201,13 @@ public class SysFunctionController {
         if (!LanguageEnum.contains(language)) {
             throw new ParamValidateException("language参数错误");
         }
-        return functionService.findById(functionId, language);
+        SysFunction function = functionService.findById(functionId, language);
+        Long projectId = function.getProjectId();
+        ProjectEntity project = projectService.getById(projectId);
+        if (!ObjectUtils.isEmpty(project)) {
+            function.setProject(project);
+        }
+        return function;
     }
 
 

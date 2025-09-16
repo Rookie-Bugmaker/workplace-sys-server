@@ -89,7 +89,6 @@ public class SysUserController {
     private SysDeptPersonService deptPersonService;
     @Resource
     private SysRoleController roleController;
-
     @Resource
     private CompanyService companyService;
     @Resource
