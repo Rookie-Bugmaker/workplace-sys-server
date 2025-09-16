@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
-import com.crrc.sys.common.Constant;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
@@ -22,7 +21,9 @@ import com.crrc.sys.enums.ProfileSourceTypeEnum;
 import com.crrc.sys.service.SysProfileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,11 +31,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -228,11 +226,20 @@ public class SysProfileController {
                 paginationGrid = profileService.findValuePageBySql(search);
             case "api":
                 //远程请求api接口
-                //响应案例:{total:100,rows:[{id:"1",code:"qqq",desc:"描述",parentId:""}]}
+                //请求案例：http://sys-server/user/test/findUserPage?usernames=18875012385&page=1&pageSize=10
+                //响应案例:{total:100,rows:[{值列:"1",编码列:"qqq",描述列:"描述",父级列:""}]}
                 LOGGER.debug("---> GET {}", search.getSql());
-                HttpEntity<String> httpEntity = new HttpEntity<>(null, setHeader());
-                ResponseEntity<String> exchange = restTemplate.exchange(search.getSql(), HttpMethod.GET, httpEntity, String.class);
+                String url = search.getSql();
+                if (!url.contains("?")) {
+                    url += "?";
+                }
+                url += "page=1&pageSize=10";
+                ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
                 LOGGER.debug("<--- 响应 {}", JSON.toJSONString(exchange));
+                String body = exchange.getBody();
+                if (!ObjectUtils.isEmpty(body)) {
+                    paginationGrid = bodyHandler(search, body);
+                }
                 break;
             default:
                 throw new BizException("该接口不查询[值来源类型=固定值]的配置文件!");
@@ -241,20 +248,44 @@ public class SysProfileController {
     }
 
     /**
-     * 设置请求头
+     * 处理响应数据
+     *
+     * @param body 响应案例:{total:100,rows:[{值列:"1",编码列:"qqq",描述列:"描述",父级列:""}]}
+     * @return
      */
-    private HttpHeaders setHeader() {
-        // 请求头
-        HttpHeaders headers = new HttpHeaders();
-        MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
-        headers.setContentType(type);
-        headers.add("Accept", MediaType.APPLICATION_JSON.toString());
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (!ObjectUtils.isEmpty(attributes)) {
-            HttpServletRequest request = attributes.getRequest();
-            headers.add(Constant.X_PROJECT_CODE, request.getHeader(Constant.X_PROJECT_CODE));
+    private PaginationGrid<ValueSet> bodyHandler(SysProfileValuePageSearch search, String body) {
+        PaginationGrid<ValueSet> paginationGrid = new PaginationGrid<>(search.getPage(), search.getPageSize());
+        Map<String, String> resultMap = JSON.parseObject(body, new TypeReference<Map<String, String>>() {
+        });
+        String totalStr = resultMap.get("total");
+        if (ObjectUtils.isEmpty(totalStr)) {
+            return paginationGrid;
         }
-        return headers;
+        paginationGrid.setTotal(Long.parseLong(totalStr));
+        if (paginationGrid.getTotal() <= 0) {
+            return paginationGrid;
+        }
+        List<Map<String, String>> rows = JSON.parseObject(body, new TypeReference<List<Map<String, String>>>() {
+        });
+        if (CollectionUtils.isEmpty(rows)) {
+            return paginationGrid;
+        }
+        List<ValueSet> valueSetList = new ArrayList<>();
+        for (Map<String, String> row : rows) {
+            //值列
+            String value = row.get(search.getProfileValueColumn());
+            String code = row.get(search.getProfileCodeColumn());
+            String desc = row.get(search.getProfileDescColumn());
+            String parent = row.get(search.getProfileParentColumn());
+            ValueSet valueSet = new ValueSet();
+            valueSet.setId(value);
+            valueSet.setCode(code);
+            valueSet.setDesc(desc);
+            valueSet.setParentId(parent);
+            valueSetList.add(valueSet);
+        }
+        paginationGrid.setRows(valueSetList);
+        return paginationGrid;
     }
 
     /**

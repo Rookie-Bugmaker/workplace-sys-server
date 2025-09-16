@@ -1,7 +1,7 @@
 package com.crrc.sys.config;
 
 import com.crrc.sys.common.Constant;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -11,6 +11,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 
 /**
  * @author 谭永强
@@ -20,8 +21,10 @@ import javax.servlet.http.HttpServletRequest;
 public class MyRestTemplateConfig {
 
     @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        builder.additionalInterceptors((request, body, execution) -> {
+    @LoadBalanced
+    public RestTemplate restTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setInterceptors(Collections.singletonList((request, body, execution) -> {
             HttpHeaders headers = request.getHeaders();
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (!ObjectUtils.isEmpty(attributes)) {
@@ -30,7 +33,8 @@ public class MyRestTemplateConfig {
                 headers.add(Constant.X_PROJECT_CODE, mainRequest.getHeader(Constant.X_PROJECT_CODE));
             }
             return execution.execute(request, body);
-        });
-        return builder.build();
+        }));
+        return restTemplate;
     }
 }
+

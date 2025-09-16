@@ -11,7 +11,6 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
-import com.crrc.sys.entity.company.Company;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.excel.ExcelParams;
 import com.crrc.sys.entity.excel.ExcelResultData;
@@ -23,7 +22,6 @@ import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
 import com.crrc.sys.excel.ExcelImport;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
-import com.crrc.sys.model.org.person.SysOrgPersonDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
@@ -97,12 +95,20 @@ public class SysUserController {
     @Resource
     private DeptService deptService;
 
-    @Resource
-    private SysOrgPersonService orgPersonService;
 
-    public static void main(String[] args) {
-        //PasswordEncoder bcpe = new BCryptPasswordEncoder();
-        //System.out.println(bcpe.encode("111111"));
+    /**
+     * 测试接口(公寓测试配置文件通过api接口调用)
+     *
+     * @param param 参数
+     * @return 结果
+     */
+    @GetMapping("test/findUserPage")
+    public Map<String, Object> findUserPage(SysUserFindByPageParam param) {
+        PaginationGrid<SysUser> paginationGrid = userService.findByPage(param);
+        Map<String, Object> map = new HashMap<>();
+        map.put("total", paginationGrid.getTotal());
+        map.put("rows", paginationGrid.getRows());
+        return map;
     }
 
     /**
@@ -115,6 +121,7 @@ public class SysUserController {
     public PaginationGrid<SysUser> findByPageCopy(SysUserFindByPageParam param) {
         return userService.findByPage(param);
     }
+
 
     /**
      * 用户信息分页查询
@@ -1180,7 +1187,7 @@ public class SysUserController {
             dto.setId(user.getUserId());
             dto.setUserName(user.getUserName());
             dto.setStatus("Y".equals(user.getDisableState()) ? 1 : 0);
-            if(user.getPasswordUpdateDate() != null) {
+            if (user.getPasswordUpdateDate() != null) {
                 dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
             }
             //部门人员信息
@@ -1346,7 +1353,7 @@ public class SysUserController {
             }
             //部门人员信息
             dto.setLeader(false);
-            if(deptPersonList != null) {
+            if (deptPersonList != null) {
                 SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
                 if (!ObjectUtils.isEmpty(deptPerson)) {
                     dto.setLeader(ObjectUtils.isEmpty(deptPerson.getParentPersonId()));
@@ -1378,7 +1385,7 @@ public class SysUserController {
             List<UserGetRespVO.Dept> depts = new ArrayList<>();
             deptList.forEach(sysDept -> {
                 // 过滤临时部门
-                if(!("-".concat(String.valueOf(sysDept.getCompanyId()))).equals(sysDept.getOrgCode())) {
+                if (!("-".concat(String.valueOf(sysDept.getCompanyId()))).equals(sysDept.getOrgCode())) {
                     UserGetRespVO.Dept dept = new UserGetRespVO.Dept();
                     dept.setId(sysDept.getId());
                     dept.setCompanyId(sysDept.getCompanyId());
