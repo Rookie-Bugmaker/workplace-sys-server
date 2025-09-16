@@ -265,7 +265,8 @@ public class SysProfileController {
         if (paginationGrid.getTotal() <= 0) {
             return paginationGrid;
         }
-        List<Map<String, String>> rows = JSON.parseObject(body, new TypeReference<List<Map<String, String>>>() {
+        String rowsStr = resultMap.get("rows");
+        List<Map<String, String>> rows = JSON.parseObject(rowsStr, new TypeReference<List<Map<String, String>>>() {
         });
         if (CollectionUtils.isEmpty(rows)) {
             return paginationGrid;
