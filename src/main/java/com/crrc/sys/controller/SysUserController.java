@@ -1180,7 +1180,9 @@ public class SysUserController {
             dto.setId(user.getUserId());
             dto.setUserName(user.getUserName());
             dto.setStatus("Y".equals(user.getDisableState()) ? 1 : 0);
-            dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            if(user.getPasswordUpdateDate() != null) {
+                dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            }
             //部门人员信息
             SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
             if (!ObjectUtils.isEmpty(deptPerson)) {
@@ -1325,7 +1327,8 @@ public class SysUserController {
      */
     private List<UserGetRespVO> setUserAndDMRProperties(List<SysUser> userList) {
         //用户关联的人员ID
-        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+//        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+        List<Long> personIdList = userList.stream().map(SysUser::getUserRelationId).collect(Collectors.toList());
         //根据人员ID查询人员信息
         List<SysOrgPerson> personList = personService.findByIds(personIdList);
         //根据人员ID查询部门人员
@@ -1337,13 +1340,17 @@ public class SysUserController {
             dto.setId(user.getUserId());
             dto.setUserName(user.getUserName());
             dto.setStatus("Y".equals(user.getDisableState()) ? "1" : "0");
+            dto.setUserType(user.getUserType());
             if (!ObjectUtils.isEmpty(user.getPasswordUpdateDate())) {
                 dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
             }
             //部门人员信息
-            SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
-            if (!ObjectUtils.isEmpty(deptPerson)) {
-                dto.setLeader(ObjectUtils.isEmpty(deptPerson.getParentPersonId()));
+            dto.setLeader(false);
+            if(deptPersonList != null) {
+                SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+                if (!ObjectUtils.isEmpty(deptPerson)) {
+                    dto.setLeader(ObjectUtils.isEmpty(deptPerson.getParentPersonId()));
+                }
             }
             //关联人员信息
             if (!CollectionUtils.isEmpty(personList)) {
@@ -1370,12 +1377,15 @@ public class SysUserController {
             // 关联部门
             List<UserGetRespVO.Dept> depts = new ArrayList<>();
             deptList.forEach(sysDept -> {
-                UserGetRespVO.Dept dept = new UserGetRespVO.Dept();
-                dept.setId(sysDept.getId());
-                dept.setCompanyId(sysDept.getCompanyId());
-                dept.setOrgCode(sysDept.getOrgCode());
-                dept.setDepartmentName(sysDept.getDepartmentName());
-                depts.add(dept);
+                // 过滤临时部门
+                if(!("-".concat(String.valueOf(sysDept.getCompanyId()))).equals(sysDept.getOrgCode())) {
+                    UserGetRespVO.Dept dept = new UserGetRespVO.Dept();
+                    dept.setId(sysDept.getId());
+                    dept.setCompanyId(sysDept.getCompanyId());
+                    dept.setOrgCode(sysDept.getOrgCode());
+                    dept.setDepartmentName(sysDept.getDepartmentName());
+                    depts.add(dept);
+                }
             });
             List<Long> companyIdList = deptList.stream().map(Dept::getCompanyId).distinct().collect(Collectors.toList());
             // 关联部门
