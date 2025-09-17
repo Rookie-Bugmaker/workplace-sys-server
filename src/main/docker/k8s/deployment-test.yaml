@@ -18,7 +18,7 @@ spec:
           image: $REGISTRY/$DOCKERHUB_NAMESPACE/$APP_NAME:$APP_VERSION-$PROFILE-$MY_BUILD_NUMBER
           resources:
             limits:
-              memory: "4Gi"
+              memory: "2Gi"
           imagePullPolicy: Always
           lifecycle:
             preStop:
