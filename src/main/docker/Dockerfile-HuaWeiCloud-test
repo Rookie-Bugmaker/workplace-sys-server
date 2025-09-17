@@ -3,7 +3,7 @@ FROM swr.ckgf-global-1.cccar.com.cn/work_place/openjdk:8u275
 # 镜像创建者
 MAINTAINER 李江涛
 # 拷贝文件夹下的文件到镜像中的app.jar
-ADD ../@project.artifactId@-@project.version@-@env@.jar app.jar
+ADD @project.artifactId@-@project.version@-@env@.jar app.jar
 # 拷贝SkyWalking-agent.tgz
 #ADD http://10.212.21.29:8888/group1/M00/00/00/CtQVHWW6-aCANQ-UAeUmGw-Obhc481.tgz /
 # 拷贝SkyWalking-agent.tgz
