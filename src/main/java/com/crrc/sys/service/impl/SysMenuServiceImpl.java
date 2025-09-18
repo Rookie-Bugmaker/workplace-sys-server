@@ -67,7 +67,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         //根菜单查询
         List<SysMenu> rows = menuMapper.findByFuzzy(param);
         if (!CollectionUtils.isEmpty(rows)) {
-            List<Long> projectIdList = rows.stream().map(SysMenu::getProjectId).distinct().collect(Collectors.toList());
+            List<Long> projectIdList = rows.stream().map(SysMenu::getProjectId).filter(o -> !ObjectUtils.isEmpty(o)).distinct().collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(projectIdList)) {
                 List<ProjectEntity> projectList = projectService.listByIds(projectIdList);
                 if (!CollectionUtils.isEmpty(projectList)) {
