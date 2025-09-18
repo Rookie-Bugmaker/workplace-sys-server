@@ -33,6 +33,10 @@ public class SysMenuFindByPageParam {
      * 取值：LanguageEnum
      */
     private String language;
+    /**
+     * 项目ID
+     */
+    private Long projectId;
 
     public Integer getPage() {
         return page;
@@ -80,5 +84,13 @@ public class SysMenuFindByPageParam {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }
