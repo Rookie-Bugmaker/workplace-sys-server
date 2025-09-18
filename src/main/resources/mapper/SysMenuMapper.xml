@@ -26,6 +26,9 @@
         from sys_menu_b mb
         join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = #{language}
         where parent_id is null
+        <if test="projectId != null">
+            and project_id = #{projectId}
+        </if>
         <if test="menuCode != null and menuCode != ''">
             and menu_code like CONCAT( CONCAT('%',#{menuCode} ),'%')
         </if>
@@ -234,7 +237,7 @@
       LIMIT #{offset}, #{endset}
     </select>
 
-    <!--查询跟菜单列表-->
+    <!--查询根菜单列表-->
     <select id="findRootMenu" resultMap="menuMap">
         select mb.*,mtl.menu_name,mtl.menu_description
         from sys_menu_b mb
