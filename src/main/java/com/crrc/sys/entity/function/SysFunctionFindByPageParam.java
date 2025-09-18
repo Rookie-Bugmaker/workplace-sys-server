@@ -61,6 +61,10 @@ public class SysFunctionFindByPageParam {
 	 * {列编码: 值集}
 	 */
 	private Map<String, List<Object>> columnValueSetMap;
+    /**
+     * 项目ID
+     */
+    private Long projectId;
 
     public Integer getPage() {
         return page;
@@ -157,4 +161,12 @@ public class SysFunctionFindByPageParam {
 	public void setColumnValueSetMap(Map<String, List<Object>> columnValueSetMap) {
 		this.columnValueSetMap = columnValueSetMap;
 	}
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
 }

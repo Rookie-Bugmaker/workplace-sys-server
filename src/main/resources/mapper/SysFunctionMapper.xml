@@ -32,11 +32,14 @@
     </resultMap>
 
     <!--功能查询-->
-    <select id="findByFuzzy" resultMap="functionMap" parameterType="com.crrc.sys.entity.function.SysFunctionFindByPageParam">
+    <select id="findByFuzzy" resultMap="functionMap">
         select fb.*,ftl.FUNCTION_NAME,ftl.FUNCTION_DESCRIPTION
         from sys_function_b fb
         left join sys_function_tl ftl on ftl.function_id = fb.function_id and ftl.language = #{language}
         where PARENT_ID is null
+        <if test="projectId != null">
+            and project_id = #{projectId}
+        </if>
         <if test="functionCode != null and functionCode != ''">
             and function_code like CONCAT( CONCAT('%',#{functionCode} ),'%')
         </if>
