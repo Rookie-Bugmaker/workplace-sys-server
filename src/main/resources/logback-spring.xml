@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--该日志将日志级别不同的log信息保存到不同的文件中 -->
 <configuration>
+    <!-- 1. TraceID转换规则（必须放在最前） -->
+    <conversionRule conversionWord="tid"
+                    converterClass="org.apache.skywalking.apm.toolkit.log.logback.v1.x.LogbackPatternConverter"/>
+
     <include resource="org/springframework/boot/logging/logback/defaults.xml" />
 
     <springProperty scope="context" name="name" source="spring.application.name" />
@@ -10,14 +14,17 @@
     <conversionRule conversionWord="ip" converterClass="com.crrc.sys.common.LogIpConfig" />
 
     <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
-    <property name="LOG_HOME" value="${BUILD_FOLDER:-build}/${name}" />
+<!--    <property name="LOG_HOME" value="${BUILD_FOLDER:-build}/${name}" />-->
+    <springProperty scope="context" name="SERVICE_NAME" source="spring.application.name"/>
+    <property name="LOG_HOME" value="/var/log/workplace-new"/>
 
-    <!-- 控制台的日志输出样式 [%logger{80} %line] 打印类名及日志输出代码的具体行数-->
+    <!-- 控制台专用带颜色版本 -->
     <property name="CONSOLE_LOG_PATTERN"
-              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}" />
-    <!--写入文件输出格式-->
+              value="%yellow(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%blue(%tid)] [%magenta(${SERVICE_NAME})] [%thread] %highlight(%-5level) %green(%logger{30}) - %msg%n%ex{5}"/>
+
+    <!-- 文件输出简洁版本 -->
     <property name="FILE_LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%15.15t] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}" />
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%tid] [${SERVICE_NAME}] [%thread] %-5level %logger{30} - %msg%n%ex{5}"/>
 
     <!-- 控制台输出 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -30,12 +37,10 @@
 
     <!-- ALL级别的文件输出(ZIP归档) -->
     <appender name="FILE_INFO_DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>
-            ${LOG_HOME}/runtime.log
-        </file>
+        <file>${LOG_HOME}/${SERVICE_NAME}.log</file>
         <!-- 定义归档 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/runtime.%i.log.zip</fileNamePattern>
+            <fileNamePattern>${LOG_HOME}/${SERVICE_NAME}-%d{yyyy-MM-dd}-%i.log.zip</fileNamePattern>
             <minIndex>1</minIndex>
             <maxIndex>12</maxIndex>
         </rollingPolicy>
@@ -52,10 +57,10 @@
 
     <!-- ERROR级别的文件输出(ZIP归档) -->
     <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_HOME}/runtime_error.log</file>
+        <file>${LOG_HOME}/${SERVICE_NAME}-error.log</file>
         <!-- 定义归档 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/runtime_error.%i.log.zip</fileNamePattern>
+            <fileNamePattern>${LOG_HOME}/${SERVICE_NAME}-error-%d{yyyy-MM-dd}-%i.log.zip</fileNamePattern>
             <minIndex>1</minIndex>
             <maxIndex>12</maxIndex>
         </rollingPolicy>
