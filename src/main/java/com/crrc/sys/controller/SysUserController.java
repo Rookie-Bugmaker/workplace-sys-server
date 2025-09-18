@@ -26,6 +26,7 @@ import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.service.*;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -1280,6 +1281,16 @@ public class SysUserController {
         page.setTotal(paginationGrid.getTotal());
         page.setRecords(setUserProperties(rows));
         return page;
+    }
+
+    /**
+     * 获取带角色的用户List
+     * @param ids
+     * @return
+     */
+    @PostMapping("get_users_with_role")
+    public List<UserGetRespVO> getUsersWithRoles(@RequestBody List<Long> ids) {
+        return userService.getUsersWithRoles(ids);
     }
 
     /**

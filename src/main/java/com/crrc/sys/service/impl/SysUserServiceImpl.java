@@ -1,11 +1,15 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
+import com.crrc.sys.entity.dept.Dept;
+import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
@@ -14,6 +18,8 @@ import com.crrc.sys.mapper.SysDataAuthMapper;
 import com.crrc.sys.mapper.SysDataAuthValueMapper;
 import com.crrc.sys.mapper.SysUserMapper;
 import com.crrc.sys.mapper.SysUserRoleMapper;
+import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.service.SysUserService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -23,10 +29,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -327,5 +332,36 @@ public class SysUserServiceImpl implements SysUserService {
             return null;
         }
         return userMapper.findByUserIds(userIdList);
+    }
+
+    @Override
+    public List<UserGetRespVO> getUsersWithRoles(List<Long> userIds) {
+        // 查询用户列表
+        List<SysUser> users = userMapper.findByUserIds(userIds);
+
+        // 将角色列表设置到用户对象中
+        List<UserGetRespVO> dtoList = new ArrayList<>();
+        for (SysUser user : users) {
+            UserGetRespVO dto = new UserGetRespVO();
+            dto.setId(user.getUserId());
+            dto.setUserName(user.getUserName());
+            dto.setStatus("Y".equals(user.getDisableState()) ? "1" : "0");
+            dto.setUserType(user.getUserType());
+            if (!ObjectUtils.isEmpty(user.getPasswordUpdateDate())) {
+                dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            }
+            // 关联角色
+            List<UserGetRespVO.Role> roles = new ArrayList<>();
+            userRoleMapper.findByUserId(user.getUserId(), "zh-CN").forEach(sysRole -> {
+                UserGetRespVO.Role role = new UserGetRespVO.Role();
+                role.setId(String.valueOf(sysRole.getRoleId()));
+                role.setName(sysRole.getRoleName());
+                role.setRoleKey(sysRole.getRoleCode());
+                roles.add(role);
+            });
+            dto.setRoles(roles);
+            dtoList.add(dto);
+        }
+        return dtoList;
     }
 }

@@ -4,6 +4,7 @@ import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
+import com.crrc.sys.model.user.UserGetRespVO;
 
 import java.util.List;
 
@@ -128,4 +129,11 @@ public interface SysUserService {
      * @return 结果
      */
     List<SysUser> findUserByRoleId(Long roleId);
+
+    /**
+     * 获取带角色的用户List
+     * @param ids
+     * @return
+     */
+    List<UserGetRespVO> getUsersWithRoles(List<Long> ids);
 }
