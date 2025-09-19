@@ -46,6 +46,7 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -161,7 +162,7 @@ public class DictItemController {
         return result;
     }
 
-    @GetMapping("/export")
+    @GetMapping("/download/export")
     @AuditLog(value = "导出字典项", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
     @Operation(summary = "导出字典项")
     public void export(@Validated @RequestBody(required = false) Dict exportReqVO,
@@ -186,6 +187,34 @@ public class DictItemController {
                     .excelType(typeEnum)
                     .sheet(description)
                     .doWrite(list);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/download/template")
+    @AuditLog(value = "导出字典项模板", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "导出字典项模板")
+    public void template(@Validated @RequestBody(required = false) Dict exportReqVO,
+                       HttpServletResponse response) throws IOException {
+        String type = "xlsx";
+        String description = "字典项导入模板";
+        String exportName = description + new SimpleDateFormat("yyyyMMddhhmmss").format(System.currentTimeMillis());
+        ExcelTypeEnum typeEnum = "xlsx".equals(type) ? ExcelTypeEnum.XLSX : ExcelTypeEnum.XLS;
+        String contentType = "csv".equals(type) ? "text/csv;charset=UTF-8" :
+                ("xls".equals(type) ? "application/vnd.ms-excel" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        try {
+            String fileName = URLEncoder.encode((exportName), "UTF-8").replaceAll("\\+", "%20");
+            response.setHeader("Content-disposition", "attachment;filename=" + fileName + "." + type);
+            EasyExcel.write(response.getOutputStream(), DictItemExcelVO.class)
+                    .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                    .autoCloseStream(true)
+                    .excelType(typeEnum)
+                    .sheet(description)
+                    .doWrite(new ArrayList<>());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -174,6 +174,29 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
     }
 
     @Override
+    public void template(HttpServletResponse response) {
+        // 1. 设置响应头
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = null;
+        try {
+            fileName = URLEncoder.encode("字典导入模板", "UTF-8").replaceAll("\\+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new BizException(e.getMessage());
+        }
+        response.setHeader("Content-disposition", "attachment;filename=utf-8''" + fileName + ".xlsx");
+
+        // 4. 使用EasyExcel导出
+        try {
+            EasyExcel.write(response.getOutputStream(), DictExcelVO.class)
+                    .sheet("字典数据")
+                    .doWrite(new ArrayList<>());
+        } catch (IOException e) {
+            throw new BizException(e.getMessage());
+        }
+    }
+
+    @Override
     public List<DictExcelVO> reads(MultipartFile file){
         // 1. 创建监听器
         DictExcelListener listener = new DictExcelListener();

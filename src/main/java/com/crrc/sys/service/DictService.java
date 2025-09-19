@@ -34,6 +34,8 @@ public interface DictService extends IService<Dict> {
 
     void exports(DictExcelVO exportReqVO, HttpServletResponse response);
 
+    void template(HttpServletResponse response);
+
     List<DictExcelVO> reads(MultipartFile file);
 
     SysUser getUserRealNameInDictExtends(Long userId, String userName);
