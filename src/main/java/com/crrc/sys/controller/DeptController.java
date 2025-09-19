@@ -8,10 +8,16 @@ import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.common.CollectionUtils;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.dept.Dept;
+import com.crrc.sys.entity.org.person.SysOrgPerson;
+import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.LogType;
 import com.crrc.sys.enums.OperateType;
 import com.crrc.sys.model.dept.*;
+import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.service.DeptService;
+import com.crrc.sys.service.SysDeptPersonService;
+import com.crrc.sys.service.SysOrgPersonService;
+import com.crrc.sys.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +33,8 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Tag(name = "系统管理 - 部门管理")
 @RestController
@@ -39,6 +43,14 @@ import java.util.Objects;
 public class DeptController {
     @Autowired
     private DeptService deptService;
+    @Autowired
+    private SysUserService userService;
+
+    @Autowired
+    private SysOrgPersonService personService;
+
+    @Autowired
+    private SysDeptPersonService deptPersonService;
     /*@Autowired
     DeptRoleService deptRoleService;
     @Autowired
@@ -94,7 +106,7 @@ public class DeptController {
             return null;
         }
         // 剔除临时部门
-        deptList.removeIf(o -> o.getCompanyId() == 0 || o.getOrgCode().equals("0"));
+        deptList.removeIf(o -> o.getCompanyId() == 0 || o.getOrgCode().equals("-".concat(String.valueOf(o.getCompanyId()))));
         return deptService.getDeptListResp(deptList);
     }
 
@@ -208,15 +220,41 @@ public class DeptController {
     @GetMapping("/get_depts_by_user_id")
     @Operation(summary = "通过用户id查询部门 - OpenFegin接口")
     public List<DeptOfUserDTO> getDeptofUser(@RequestParam List<Long> ids) {
-        return deptService.getDeptByUserIdList(ids);
+        List<DeptOfUserDTO> deptOfUserDTOs = new ArrayList<>();
+        List<SysUser> userList = userService.findByUserIds(ids);
+        Map<Long, Long> personIdToUserIdMap = userList.stream()
+                .filter(user -> user.getUserRelationId() != null)  // 过滤掉userRelationId为null的条目
+                .collect(Collectors.toMap(
+                        SysUser::getUserRelationId,
+                        SysUser::getUserId,
+                        (oldVal, newVal) -> oldVal
+                ));
+        List<Long> personIds = userList.stream().map(SysUser::getUserRelationId).collect(Collectors.toList());
+        List<SysDeptPersonPO> deptPersonPOs = deptPersonService.findByPersonId(personIds);
+        deptPersonPOs.forEach(deptPersonPO -> {
+            List<Dept> deptList = deptService.findByDeptIds(Arrays.asList(deptPersonPO.getDeptId()));
+            if(deptList != null && deptList.size() > 0) {
+                DeptOfUserDTO deptOfUserDTO = new DeptOfUserDTO();
+                deptOfUserDTO.setId(deptPersonPO.getDeptId());
+                deptOfUserDTO.setUserId(personIdToUserIdMap.get(deptPersonPO.getPersonId()));
+                deptOfUserDTO.setDepartmentName(deptList.get(0).getDepartmentName());
+                deptOfUserDTO.setParentOrgCode(deptList.get(0).getParentOrgCode());
+                deptOfUserDTO.setDepartmentOrder(deptList.get(0).getDepartmentOrder());
+                deptOfUserDTO.setRemark(deptList.get(0).getRemark());
+                deptOfUserDTO.setStatus(deptList.get(0).getStatus());
+                deptOfUserDTO.setDeleted("0".equals(deptList.get(0).getDeleted()) ? false : true);
+                deptOfUserDTOs.add(deptOfUserDTO);
+            }
+        });
+        return deptOfUserDTOs;
     }
 
     @GetMapping("/get_depts_by_user_name")
     @Operation(summary = "通过用户编码查询部门 - OpenFegin接口")
     public List<DeptOfUserDTO> getDeptofUserNameList(@RequestParam List<String> usernames) {
-        /*List<Long> userIds = userService.getUsersByUsernames(usernames).stream().map(UserIdAndNameVO::getId).collect(Collectors.toList());
-        return deptService.getDeptByUserIdList(userIds);*/
-        return null;
+        List<Long> personIds = personService.findByJobNos(usernames).stream().map(SysOrgPerson::getPersonId).collect(Collectors.toList());
+        List<Long> userIds = userService.findByRelationIds(personIds).stream().map(SysUser::getUserId).collect(Collectors.toList());
+        return getDeptofUser(userIds);
     }
 
     @PostMapping("/get_depts_by_company_id")

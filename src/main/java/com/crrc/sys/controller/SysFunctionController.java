@@ -13,11 +13,13 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.function.*;
+import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.FunctionTypeEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OpenMethodEnum;
 import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysApiService;
 import com.crrc.sys.service.SysFunctionService;
 import org.slf4j.Logger;
@@ -55,6 +57,8 @@ public class SysFunctionController {
     private SysFunctionService functionService;
     @Resource
     private SysApiService apiService;
+    @Resource
+    private ProjectService projectService;
 
     /**
      * 初始化所有低代码功能按钮权限
@@ -197,7 +201,13 @@ public class SysFunctionController {
         if (!LanguageEnum.contains(language)) {
             throw new ParamValidateException("language参数错误");
         }
-        return functionService.findById(functionId, language);
+        SysFunction function = functionService.findById(functionId, language);
+        Long projectId = function.getProjectId();
+        ProjectEntity project = projectService.getById(projectId);
+        if (!ObjectUtils.isEmpty(project)) {
+            function.setProject(project);
+        }
+        return function;
     }
 
 
@@ -375,11 +385,11 @@ public class SysFunctionController {
         if (!FunctionTypeEnum.contains(function.getFunctionType())) {
             throw new ParamValidateException("功能类型错误");
         }
-        if (ObjectUtils.isEmpty(function.getName())) {
-            throw new ParamValidateException("路由名称不能为空!");
-        }
         //功能编码唯一性校验：1.功能类型=A时，必须保证全局唯一；2.功能类型=B时，保证在此功能下唯一即可。
         if (FunctionTypeEnum.A.getValue().equals(function.getFunctionType())) {
+            if (ObjectUtils.isEmpty(function.getName())) {
+                throw new ParamValidateException("路由名称不能为空!");
+            }
             //根据功能编码查询功能信息
             SysFunction resultData = functionService.findByCode(function.getFunctionCode(), LanguageEnum.ZH_CN.getValue());
             if (!ObjectUtils.isEmpty(resultData) && resultData.getFunctionType().equals(function.getFunctionType())) {

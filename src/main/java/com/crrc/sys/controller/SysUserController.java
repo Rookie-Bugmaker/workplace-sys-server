@@ -11,7 +11,6 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
-import com.crrc.sys.entity.company.Company;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.excel.ExcelParams;
 import com.crrc.sys.entity.excel.ExcelResultData;
@@ -23,11 +22,11 @@ import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
 import com.crrc.sys.excel.ExcelImport;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
-import com.crrc.sys.model.org.person.SysOrgPersonDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.service.*;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -91,18 +90,25 @@ public class SysUserController {
     private SysDeptPersonService deptPersonService;
     @Resource
     private SysRoleController roleController;
-
     @Resource
     private CompanyService companyService;
     @Resource
     private DeptService deptService;
 
-    @Resource
-    private SysOrgPersonService orgPersonService;
 
-    public static void main(String[] args) {
-        //PasswordEncoder bcpe = new BCryptPasswordEncoder();
-        //System.out.println(bcpe.encode("111111"));
+    /**
+     * 测试接口(公寓测试配置文件通过api接口调用)
+     *
+     * @param param 参数
+     * @return 结果
+     */
+    @GetMapping("test/findUserPage")
+    public Map<String, Object> findUserPage(SysUserFindByPageParam param) {
+        PaginationGrid<SysUser> paginationGrid = userService.findByPage(param);
+        Map<String, Object> map = new HashMap<>();
+        map.put("total", paginationGrid.getTotal());
+        map.put("rows", paginationGrid.getRows());
+        return map;
     }
 
     /**
@@ -115,6 +121,7 @@ public class SysUserController {
     public PaginationGrid<SysUser> findByPageCopy(SysUserFindByPageParam param) {
         return userService.findByPage(param);
     }
+
 
     /**
      * 用户信息分页查询
@@ -1150,16 +1157,16 @@ public class SysUserController {
     /**
      * 根据部门ID查询用户列表(兼容旧平台)
      *
-     * @param deptId 部门ID
+     * @param deptid 部门ID
      */
     @GetMapping("get_dept_users")
-    public List<SysUserCompatibilityDTO> getUserByDeptId(Long deptId) {
-        if (ObjectUtils.isEmpty(deptId)) {
+    public List<SysUserCompatibilityDTO> getUserByDeptId(@RequestParam Long deptid) {
+        if (ObjectUtils.isEmpty(deptid)) {
             throw new ParamValidateException("部门ID不能为空!");
         }
         //根据部门ID查询人员列表
         LambdaQueryWrapper<SysDeptPersonPO> dpQueryWrapper = new LambdaQueryWrapper<>();
-        dpQueryWrapper.eq(SysDeptPersonPO::getDeptId, deptId);
+        dpQueryWrapper.eq(SysDeptPersonPO::getDeptId, deptid);
         List<SysDeptPersonPO> deptPersonList = deptPersonService.list(dpQueryWrapper);
         if (CollectionUtils.isEmpty(deptPersonList)) {
             return null;
@@ -1180,7 +1187,9 @@ public class SysUserController {
             dto.setId(user.getUserId());
             dto.setUserName(user.getUserName());
             dto.setStatus("Y".equals(user.getDisableState()) ? 1 : 0);
-            dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            if (user.getPasswordUpdateDate() != null) {
+                dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+            }
             //部门人员信息
             SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
             if (!ObjectUtils.isEmpty(deptPerson)) {
@@ -1275,6 +1284,26 @@ public class SysUserController {
     }
 
     /**
+     * 获取带角色的用户List
+     * @param ids
+     * @return
+     */
+    @PostMapping("get_users_with_role")
+    public List<UserGetRespVO> getUsersWithRoles(@RequestBody List<Long> ids) {
+        return userService.getUsersWithRoles(ids);
+    }
+
+    /**
+     * 通过用户名称获取带角色的用户
+     * @param username
+     * @return
+     */
+    @PostMapping("/get_user_with_role_by_username")
+    public UserGetRespVO getUsersWithRoles(@RequestBody String username) {
+        return userService.getUserWithRolesByUsername(username);
+    }
+
+    /**
      * 设置用户的其他属性：是否部门领导、用户姓名、手机号码、性别、邮箱
      *
      * @param userList 用户集合
@@ -1325,7 +1354,8 @@ public class SysUserController {
      */
     private List<UserGetRespVO> setUserAndDMRProperties(List<SysUser> userList) {
         //用户关联的人员ID
-        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+//        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+        List<Long> personIdList = userList.stream().map(SysUser::getUserRelationId).collect(Collectors.toList());
         //根据人员ID查询人员信息
         List<SysOrgPerson> personList = personService.findByIds(personIdList);
         //根据人员ID查询部门人员
@@ -1337,13 +1367,17 @@ public class SysUserController {
             dto.setId(user.getUserId());
             dto.setUserName(user.getUserName());
             dto.setStatus("Y".equals(user.getDisableState()) ? "1" : "0");
+            dto.setUserType(user.getUserType());
             if (!ObjectUtils.isEmpty(user.getPasswordUpdateDate())) {
                 dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
             }
             //部门人员信息
-            SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
-            if (!ObjectUtils.isEmpty(deptPerson)) {
-                dto.setLeader(ObjectUtils.isEmpty(deptPerson.getParentPersonId()));
+            dto.setLeader(false);
+            if (deptPersonList != null) {
+                SysDeptPersonPO deptPerson = deptPersonList.stream().filter(o -> o.getPersonId().equals(user.getUserRelationId())).findFirst().orElse(null);
+                if (!ObjectUtils.isEmpty(deptPerson)) {
+                    dto.setLeader(ObjectUtils.isEmpty(deptPerson.getParentPersonId()));
+                }
             }
             //关联人员信息
             if (!CollectionUtils.isEmpty(personList)) {
@@ -1370,12 +1404,15 @@ public class SysUserController {
             // 关联部门
             List<UserGetRespVO.Dept> depts = new ArrayList<>();
             deptList.forEach(sysDept -> {
-                UserGetRespVO.Dept dept = new UserGetRespVO.Dept();
-                dept.setId(sysDept.getId());
-                dept.setCompanyId(sysDept.getCompanyId());
-                dept.setOrgCode(sysDept.getOrgCode());
-                dept.setDepartmentName(sysDept.getDepartmentName());
-                depts.add(dept);
+                // 过滤临时部门
+                if (!("-".concat(String.valueOf(sysDept.getCompanyId()))).equals(sysDept.getOrgCode())) {
+                    UserGetRespVO.Dept dept = new UserGetRespVO.Dept();
+                    dept.setId(sysDept.getId());
+                    dept.setCompanyId(sysDept.getCompanyId());
+                    dept.setOrgCode(sysDept.getOrgCode());
+                    dept.setDepartmentName(sysDept.getDepartmentName());
+                    depts.add(dept);
+                }
             });
             List<Long> companyIdList = deptList.stream().map(Dept::getCompanyId).distinct().collect(Collectors.toList());
             // 关联部门

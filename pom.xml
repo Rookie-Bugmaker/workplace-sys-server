@@ -8,7 +8,6 @@
     <artifactId>workplace-sys-server</artifactId>
     <packaging>jar</packaging>
     <version>5.0.0</version>
-
     <name>workplace-sys-server</name>
     <description>系统服务</description>
 
@@ -60,6 +59,8 @@
         <mybatisplus.version>3.5.5</mybatisplus.version>
         <mybatis-plus-join.version>1.4.6</mybatis-plus-join.version>
         <mybatis-typehandlers.version>1.0.2</mybatis-typehandlers.version>
+        <!-- 与Agent版本一致 -->
+        <skywalking.version>8.9.0</skywalking.version>
     </properties>
 
     <dependencies>
@@ -213,6 +214,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
+
+        <!-- SkyWalking 日志工具包 -->
+        <dependency>
+            <groupId>org.apache.skywalking</groupId>
+            <artifactId>apm-toolkit-logback-1.x</artifactId>
+            <version>${skywalking.version}</version>
+        </dependency>
+        <!--主数据获取依赖-->
+<!--        <dependency>
+            <groupId>com.crrc</groupId>
+            <artifactId>workplace-main-data</artifactId>
+            <version>v1.0.0</version>
+        </dependency>-->
     </dependencies>
 
     <!-- 环境部署配置 -->

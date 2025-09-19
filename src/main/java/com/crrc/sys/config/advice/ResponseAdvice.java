@@ -34,7 +34,7 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
      * 不进行全局响应处理的URI地址
      */
     private final String[] IGNORE_URI = {
-            "/user/get_dept_users","/user/get_user_lists","/user/get_user_lists_by_user_name","/user/get_user","/user/get_user_with_role_by_username",
+            "/user/get_dept_users","/user/get_user_lists","/user/get_user_lists_by_user_name","/user/get_user","/user/get_user_with_role_by_username","/user/get_users_with_role",
             "/user/get_users_by_usernames","/user/get_user_page","/user/delete_dept_of_usernames","/user/create_user_dept_relative","/dept/get_depts_by_user_id",
             "/dept/get_depts_by_user_name","/menu/auto_config","/role/get_role_users_by_roleid","/dept/list","/dept/get_list","/dept/get_subdept_list",
             "/dept/get_depts_by_company_id","/dept/get_dept_by_org_code","/dept/get_dept_and_subDepts_by_orgCode","/company/get_company_by_ids","/company/get_all_company",
@@ -44,7 +44,7 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
             "/global/fileData/getFileData","/idDesign/nextId","/global/dict/get","/global/dict/getName","/global/dict/getCodes",
             "/global/dict/all","/global/dict/getItem","/global/dict/getItemName","/global/dict/getItemCode","/global/dict/getUserRealNameInDictExtends",
             "/global/dict/getDeptNameNameInDictExtends","/globalSetting/value/match/all","/globalSetting/value/match/get","/globalSetting/value/match/like",
-            "/org/person/findByCurrentUser"
+            "/org/person/findByCurrentUser","/user/test/findUserPage"
 
     };
 

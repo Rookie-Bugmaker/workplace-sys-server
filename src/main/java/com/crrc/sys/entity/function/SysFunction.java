@@ -3,6 +3,7 @@ package com.crrc.sys.entity.function;
 import com.crrc.sys.entity.function.column.SysFunctionColumn;
 import com.crrc.sys.entity.BaseEntityYunLing;
 import com.crrc.sys.entity.api.SysApi;
+import com.crrc.sys.entity.project.ProjectEntity;
 
 import java.util.List;
 
@@ -115,10 +116,7 @@ public class SysFunction extends BaseEntityYunLing {
 	 * 项目ID
 	 */
 	private Long projectId;
-	/**
-	 * 项目名称
-	 */
-	private String projectName;
+	private ProjectEntity project;
 
 	public Long getFunctionId() {
 		return functionId;
@@ -320,11 +318,11 @@ public class SysFunction extends BaseEntityYunLing {
 		this.projectId = projectId;
 	}
 
-	public String getProjectName() {
-		return projectName;
+	public ProjectEntity getProject() {
+		return project;
 	}
 
-	public void setProjectName(String projectName) {
-		this.projectName = projectName;
+	public void setProject(ProjectEntity project) {
+		this.project = project;
 	}
 }
