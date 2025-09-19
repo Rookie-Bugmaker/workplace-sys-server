@@ -4,6 +4,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseResult<T> {
+
+    /**
+     * 请求状态:true:请求成功、flase:请求失败
+     */
+    private Boolean success = false;
     /**
      * 状态码
      */
@@ -24,6 +29,13 @@ public class ResponseResult<T> {
 
     public ResponseResult(Integer code, T data) {
         this.code = code;
+        this.data = data;
+    }
+
+    public ResponseResult(Boolean success, Integer code, String msg, T data) {
+        this.success = success;
+        this.code = code;
+        this.msg = msg;
         this.data = data;
     }
 
@@ -49,6 +61,14 @@ public class ResponseResult<T> {
 
     public void setData(T data) {
         this.data = data;
+    }
+
+    public Boolean getSuccess() {
+        return success;
+    }
+
+    public void setSuccess(Boolean success) {
+        this.success = success;
     }
 
     public ResponseResult(Integer code, String msg, T data) {

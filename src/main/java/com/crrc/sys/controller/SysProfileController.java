@@ -7,6 +7,7 @@ import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
+import com.crrc.sys.common.ResponseResult;
 import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
@@ -228,17 +229,24 @@ public class SysProfileController {
                 //远程请求api接口
                 //请求案例：http://sys-server/user/test/findUserPage?usernames=18875012385&page=1&pageSize=10
                 //响应案例:{total:100,rows:[{值列:"1",编码列:"qqq",描述列:"描述",父级列:""}]}
-                LOGGER.debug("---> GET {}", search.getSql());
                 String url = search.getSql();
-                if (!url.contains("?")) {
-                    url += "?";
+                if (url.contains("?")) {
+                    url += "&page=1&pageSize=10";
+                } else {
+                    url += "?page=1&pageSize=10";
                 }
-                url += "page=1&pageSize=10";
+                url = url.replace("http://workplace-termdual-contract", "http://127.0.0.1:5568");
+                LOGGER.debug("---> GET {}", url);
                 ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
                 LOGGER.debug("<--- 响应 {}", JSON.toJSONString(exchange));
-                String body = exchange.getBody();
-                if (!ObjectUtils.isEmpty(body)) {
-                    paginationGrid = bodyHandler(search, body);
+                String responseResultStr = exchange.getBody();
+                if (!ObjectUtils.isEmpty(responseResultStr)) {
+                    ResponseResult<String> responseResult = JSON.parseObject(responseResultStr, new TypeReference<ResponseResult<String>>() {
+                    });
+                    if (!responseResult.getSuccess()) {
+                        throw new BizException(ObjectUtils.isEmpty(responseResult.getMsg()) ? "请求失败:" + url : responseResult.getMsg());
+                    }
+                    paginationGrid = bodyHandler(search, responseResult.getData());
                 }
                 break;
             default:
