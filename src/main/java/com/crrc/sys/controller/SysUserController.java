@@ -1294,6 +1294,16 @@ public class SysUserController {
     }
 
     /**
+     * 通过用户名称获取带角色的用户
+     * @param username
+     * @return
+     */
+    @PostMapping("/get_user_with_role_by_username")
+    public UserGetRespVO getUsersWithRoles(@RequestBody String username) {
+        return userService.getUserWithRolesByUsername(username);
+    }
+
+    /**
      * 设置用户的其他属性：是否部门领导、用户姓名、手机号码、性别、邮箱
      *
      * @param userList 用户集合

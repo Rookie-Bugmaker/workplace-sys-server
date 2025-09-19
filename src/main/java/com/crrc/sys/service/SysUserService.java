@@ -136,4 +136,6 @@ public interface SysUserService {
      * @return
      */
     List<UserGetRespVO> getUsersWithRoles(List<Long> ids);
+
+    UserGetRespVO getUserWithRolesByUsername(String username);
 }

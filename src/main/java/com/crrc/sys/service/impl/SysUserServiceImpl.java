@@ -364,4 +364,30 @@ public class SysUserServiceImpl implements SysUserService {
         }
         return dtoList;
     }
+
+    @Override
+    public UserGetRespVO getUserWithRolesByUsername(String username) {
+        // 查询用户列表
+        SysUser user = userMapper.findByUserName(username);
+        // 将角色列表设置到用户对象中
+        UserGetRespVO dto = new UserGetRespVO();
+        dto.setId(user.getUserId());
+        dto.setUserName(user.getUserName());
+        dto.setStatus("Y".equals(user.getDisableState()) ? "1" : "0");
+        dto.setUserType(user.getUserType());
+        if (!ObjectUtils.isEmpty(user.getPasswordUpdateDate())) {
+            dto.setPasswordUpdateTime(LocalDateTime.ofInstant(user.getPasswordUpdateDate().toInstant(), ZoneId.systemDefault()));
+        }
+        // 关联角色
+        List<UserGetRespVO.Role> roles = new ArrayList<>();
+        userRoleMapper.findByUserId(user.getUserId(), "zh-CN").forEach(sysRole -> {
+            UserGetRespVO.Role role = new UserGetRespVO.Role();
+            role.setId(String.valueOf(sysRole.getRoleId()));
+            role.setName(sysRole.getRoleName());
+            role.setRoleKey(sysRole.getRoleCode());
+            roles.add(role);
+        });
+        dto.setRoles(roles);
+        return dto;
+    }
 }
