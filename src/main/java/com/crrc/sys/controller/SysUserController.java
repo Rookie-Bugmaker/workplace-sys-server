@@ -26,6 +26,7 @@ import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.service.*;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -1267,19 +1268,39 @@ public class SysUserController {
      * @return 结果
      */
     @GetMapping("get_user_page")
-    public Page<SysUserCompatibilityDTO> getUserPage(@RequestParam Integer pageNo, @RequestParam Integer pageSize) {
+    public Page<UserGetRespVO> getUserPage(@RequestParam Integer pageNo, @RequestParam Integer pageSize) {
         SysUserFindByPageParam param = new SysUserFindByPageParam();
         param.setPage(pageNo);
         param.setPageSize(pageSize);
         PaginationGrid<SysUser> paginationGrid = userService.findByPage(param);
         List<SysUser> rows = paginationGrid.getRows();
-        Page<SysUserCompatibilityDTO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
+        Page<UserGetRespVO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
         if (CollectionUtils.isEmpty(rows)) {
             return page;
         }
         page.setTotal(paginationGrid.getTotal());
-        page.setRecords(setUserProperties(rows));
+        page.setRecords(setUserAndDMRProperties(rows));
         return page;
+    }
+
+    /**
+     * 获取带角色的用户List
+     * @param ids
+     * @return
+     */
+    @PostMapping("get_users_with_role")
+    public List<UserGetRespVO> getUsersWithRoles(@RequestBody List<Long> ids) {
+        return userService.getUsersWithRoles(ids);
+    }
+
+    /**
+     * 通过用户名称获取带角色的用户
+     * @param username
+     * @return
+     */
+    @PostMapping("/get_user_with_role_by_username")
+    public UserGetRespVO getUsersWithRoles(@RequestBody String username) {
+        return userService.getUserWithRolesByUsername(username);
     }
 
     /**

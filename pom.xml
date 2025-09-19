@@ -8,7 +8,6 @@
     <artifactId>workplace-sys-server</artifactId>
     <packaging>jar</packaging>
     <version>5.0.0</version>
-
     <name>workplace-sys-server</name>
     <description>系统服务</description>
 
