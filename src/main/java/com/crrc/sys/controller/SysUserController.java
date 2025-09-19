@@ -1267,18 +1267,18 @@ public class SysUserController {
      * @return 结果
      */
     @GetMapping("get_user_page")
-    public Page<SysUserCompatibilityDTO> getUserPage(@RequestParam Integer pageNo, @RequestParam Integer pageSize) {
+    public Page<UserGetRespVO> getUserPage(@RequestParam Integer pageNo, @RequestParam Integer pageSize) {
         SysUserFindByPageParam param = new SysUserFindByPageParam();
         param.setPage(pageNo);
         param.setPageSize(pageSize);
         PaginationGrid<SysUser> paginationGrid = userService.findByPage(param);
         List<SysUser> rows = paginationGrid.getRows();
-        Page<SysUserCompatibilityDTO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
+        Page<UserGetRespVO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
         if (CollectionUtils.isEmpty(rows)) {
             return page;
         }
         page.setTotal(paginationGrid.getTotal());
-        page.setRecords(setUserProperties(rows));
+        page.setRecords(setUserAndDMRProperties(rows));
         return page;
     }
 
