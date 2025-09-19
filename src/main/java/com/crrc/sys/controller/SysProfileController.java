@@ -235,7 +235,6 @@ public class SysProfileController {
                 } else {
                     url += "?page=1&pageSize=10";
                 }
-                url = url.replace("http://workplace-termdual-contract", "http://127.0.0.1:5568");
                 LOGGER.debug("---> GET {}", url);
                 ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
                 LOGGER.debug("<--- 响应 {}", JSON.toJSONString(exchange));
