@@ -233,6 +233,33 @@ public class SysDeptPersonController {
     }
 
     /**
+     * 根据部门id查询人员信息
+     * @param deptId
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @GetMapping("find_person_by_dept_id")
+    public IPage<SysDeptPersonDTO> findPersonByDeptId(@RequestParam("deptId") Long deptId,
+                                                      @RequestParam(value = "page") Long page,
+                                                      @RequestParam("pageSize")Long pageSize) {
+        if (ObjectUtils.isEmpty(page) || page <= 0) {
+            throw new ParamValidateException("page不能为空且必须>0");
+        }
+        if (ObjectUtils.isEmpty(pageSize)) {
+            throw new ParamValidateException("pageSize不能为空");
+        }
+        LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(!ObjectUtils.isEmpty(deptId), SysDeptPersonPO::getDeptId, deptId);
+        IPage<SysDeptPersonDTO> resPage = new Page<>(page, pageSize);
+        IPage<SysDeptPersonPO> readPage = deptPersonService.page(new Page<>(page, pageSize), queryWrapper);
+        resPage.setTotal(readPage.getTotal());
+        resPage.setPages(readPage.getPages());
+        resPage.setRecords(poToDto(readPage.getRecords()));
+        return resPage;
+    }
+
+    /**
      * PO转DTO，同时设置人员姓名
      *
      * @param personPoList 人员实体集合
