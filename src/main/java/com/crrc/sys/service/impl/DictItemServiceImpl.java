@@ -195,8 +195,12 @@ public class DictItemServiceImpl extends ServiceImpl<DictItemMapper, DictItem> i
         queryWrapper.like(StringUtils.isNotBlank(pageReqVO.getItemCode()), DictItem::getItemCode, pageReqVO.getItemCode());
         queryWrapper.like(StringUtils.isNotBlank(pageReqVO.getItemName()), DictItem::getItemName, pageReqVO.getItemName());
         queryWrapper.eq(pageReqVO.getDictId() != null, DictItem::getDictId, pageReqVO.getDictId());
-        queryWrapper.orderByAsc(DictItem::getSorted);
+//        queryWrapper.orderByAsc(DictItem::getSorted);
         page = this.page(page, queryWrapper);
+        List<DictItem> sortedList = page.getRecords().stream()
+                .sorted(Comparator.comparingInt(item -> Integer.parseInt(item.getSorted())))
+                .collect(Collectors.toList());
+        page.setRecords(sortedList);
         return PaginationGrid.success(page);
     }
 
@@ -208,7 +212,10 @@ public class DictItemServiceImpl extends ServiceImpl<DictItemMapper, DictItem> i
         queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getItemName()), DictItem::getItemName, queryReqVO.getItemName());
         queryWrapper.eq(StringUtils.isNotBlank(queryReqVO.getSorted()), DictItem::getSorted, queryReqVO.getSorted());
         queryWrapper.eq(queryReqVO.getDictId() != null, DictItem::getDictId, queryReqVO.getDictId());
-        queryWrapper.orderByAsc(DictItem::getSorted);
-        return this.list(queryWrapper);
+//        queryWrapper.orderByAsc(DictItem::getSorted);
+        List<DictItem> sortedList = this.list(queryWrapper).stream()
+                .sorted(Comparator.comparingInt(item -> Integer.parseInt(item.getSorted())))
+                .collect(Collectors.toList());
+        return sortedList;
     }
 }
