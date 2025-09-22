@@ -28,6 +28,8 @@ public interface DictService extends IService<Dict> {
     PaginationGrid<Dict> page(DictPageReqVO pageReqVO);
 
     List<Dict> query(DictListReqVO queryReqVO);
+
+    List<Dict> query(DictExcelVO queryReqVO);
     Dict getByCode(String dictCode);
     List<Dict> getByName(String dictName);
     List<Dict> getAll();

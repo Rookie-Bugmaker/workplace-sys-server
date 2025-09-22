@@ -1,36 +1,44 @@
 package com.crrc.sys.model.dict;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.write.style.ColumnWidth;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "字典及字典项导入VO")
 public class DictAndItemExcelVO {
     @Schema(description = "字典编码")
     @ExcelProperty(value = {"字典编码"}, index = 0)
+    @ColumnWidth(40)
     private String dictCode;
 
     @Schema(description = "字典名称")
     @ExcelProperty(value = {"字典名称"}, index = 1)
+    @ColumnWidth(40)
     private String dictName;
 
     @Schema(description = "字典类型 0：系统 1：业务")
     @ExcelProperty(value = {"字典类型 0：系统 1：业务"}, index = 2)
+    @ColumnWidth(20)
     private String dictType;
 
     @Schema(description = "字典说明")
     @ExcelProperty(value = {"字典说明"}, index = 3)
+    @ColumnWidth(20)
     private String dictRemark;
 
     @Schema(description = "字典项编码")
     @ExcelProperty(value = {"字典项编码"}, index = 4)
+    @ColumnWidth(40)
     private String itemCode;
 
     @Schema(description = "字典项名称")
     @ExcelProperty(value = {"字典项名称"}, index = 5)
+    @ColumnWidth(40)
     private String itemName;
 
     @Schema(description = "字典项排序")
     @ExcelProperty(value = {"字典项排序"}, index = 6)
+    @ColumnWidth(20)
     private String itemSorted;
 
     // Getters and Setters

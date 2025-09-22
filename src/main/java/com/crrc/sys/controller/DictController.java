@@ -22,10 +22,7 @@ import com.crrc.sys.enums.OperateType;
 import com.crrc.sys.listener.DictAndItemImportListener;
 import com.crrc.sys.model.company.CompanyGetRespVO;
 import com.crrc.sys.model.dept.DeptExportRespVO;
-import com.crrc.sys.model.dict.DictAndItemExcelVO;
-import com.crrc.sys.model.dict.DictExcelVO;
-import com.crrc.sys.model.dict.DictListReqVO;
-import com.crrc.sys.model.dict.DictPageReqVO;
+import com.crrc.sys.model.dict.*;
 import com.crrc.sys.service.DictCacheService;
 import com.crrc.sys.service.impl.DictItemServiceImpl;
 import com.crrc.sys.service.impl.DictServiceImpl;
@@ -190,7 +187,7 @@ public class DictController {
     @PostMapping("/importAll")
     @Operation(summary = "导入字典及字典项")
     @AuditLog(value = "导入字典及字典项", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
-    public Boolean importDictAndItems(MultipartFile file) throws IOException {
+    public Boolean importAllDictAndItems(MultipartFile file) throws IOException {
         DictAndItemImportListener listener = new DictAndItemImportListener(dictService, dictItemService, dictCacheService);
         EasyExcel.read(file.getInputStream(), DictAndItemExcelVO.class, listener).sheet().doRead();
         return true;
@@ -198,14 +195,63 @@ public class DictController {
 
     @GetMapping("/download/templateAll")
     @Operation(summary = "下载字典及字典项导入模板")
-    public void downloadTemplate(HttpServletResponse response) throws IOException {
+    public void downloadAllTemplate(HttpServletResponse response) throws IOException {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("utf-8");
         String fileName = URLEncoder.encode("字典及字典项导入模板", "UTF-8").replaceAll("\\+", "%20");
-        response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+        response.setHeader("Content-disposition", "attachment;filename=utf-8''" + fileName + ".xlsx");
 
         EasyExcel.write(response.getOutputStream(), DictAndItemExcelVO.class)
                 .sheet("字典数据")
                 .doWrite(new ArrayList<>());
+    }
+
+    @GetMapping("/download/exportAll")
+    @Operation(summary = "导出字典及字典项")
+    public void exportAllTemplate(@Validated @RequestBody(required = false) DictExcelVO exportReqVO, HttpServletResponse response) throws IOException {
+        List<Dict> dictList = dictService.query(exportReqVO);
+        List<DictAndItemExcelVO> exportList = new ArrayList<>();
+        dictList.forEach(dict -> {
+            DictVO dictVO = convertToDictVO(dict);
+            dictVO.getItems().forEach(item -> {
+                DictAndItemExcelVO exportData = new DictAndItemExcelVO();
+                exportData.setDictCode(dictVO.getDictCode());
+                exportData.setDictName(dictVO.getDictName());
+                exportData.setDictType(dictVO.getDictType());
+                exportData.setDictRemark(dictVO.getRemark());
+                exportData.setItemCode(item.getItemCode());
+                exportData.setItemName(item.getItemName());
+                exportData.setItemSorted(item.getSorted());
+                exportList.add(exportData);
+            });
+        });
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = URLEncoder.encode("字典及字典项数据", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=utf-8''" + fileName + ".xlsx");
+
+        EasyExcel.write(response.getOutputStream(), DictAndItemExcelVO.class)
+                .sheet("字典数据")
+                .doWrite(exportList);
+    }
+
+    // 转换方法
+    private DictVO convertToDictVO(Dict dict) {
+        DictVO dictVO = new DictVO();
+        org.springframework.beans.BeanUtils.copyProperties(dict, dictVO);
+
+        // 加载关联的字典项
+        List<DictItem> items = dictItemService.getItemByMainId(dict.getId());
+        dictVO.setItems(items.stream()
+                .map(this::convertToDictItemVO)
+                .collect(Collectors.toList()));
+
+        return dictVO;
+    }
+
+    private DictItemVO convertToDictItemVO(DictItem item) {
+        DictItemVO itemVO = new DictItemVO();
+        org.springframework.beans.BeanUtils.copyProperties(item, itemVO);
+        return itemVO;
     }
 }

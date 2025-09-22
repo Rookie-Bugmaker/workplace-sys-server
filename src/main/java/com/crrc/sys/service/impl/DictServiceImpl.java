@@ -82,6 +82,18 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
     }
 
     @Override
+    public List<Dict> query(DictExcelVO queryReqVO) {
+        queryReqVO = (queryReqVO == null) ? new DictExcelVO() : queryReqVO;
+        LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getDictName()), Dict::getDictName, queryReqVO.getDictName());
+        queryWrapper.eq(StringUtils.isNotBlank(queryReqVO.getDictType()), Dict::getDictType, queryReqVO.getDictType());
+        queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getDictCode()), Dict::getDictCode, queryReqVO.getDictCode());
+        queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getRemark()), Dict::getRemark, queryReqVO.getRemark());
+        queryWrapper.orderByDesc(BaseEntity::getUpdateTime);
+        return this.list(queryWrapper);
+    }
+
+    @Override
     public Dict getByCode(String dictCode) {
         if (StringUtils.isBlank(dictCode)) {
             return null;
