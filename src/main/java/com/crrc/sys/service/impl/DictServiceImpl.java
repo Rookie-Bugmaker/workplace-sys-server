@@ -82,6 +82,18 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
     }
 
     @Override
+    public List<Dict> query(DictExcelVO queryReqVO) {
+        queryReqVO = (queryReqVO == null) ? new DictExcelVO() : queryReqVO;
+        LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getDictName()), Dict::getDictName, queryReqVO.getDictName());
+        queryWrapper.eq(StringUtils.isNotBlank(queryReqVO.getDictType()), Dict::getDictType, queryReqVO.getDictType());
+        queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getDictCode()), Dict::getDictCode, queryReqVO.getDictCode());
+        queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getRemark()), Dict::getRemark, queryReqVO.getRemark());
+        queryWrapper.orderByDesc(BaseEntity::getUpdateTime);
+        return this.list(queryWrapper);
+    }
+
+    @Override
     public Dict getByCode(String dictCode) {
         if (StringUtils.isBlank(dictCode)) {
             return null;
@@ -168,6 +180,29 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
             EasyExcel.write(response.getOutputStream(), DictExcelVO.class)
                     .sheet("字典数据")
                     .doWrite(excelData);
+        } catch (IOException e) {
+            throw new BizException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void template(HttpServletResponse response) {
+        // 1. 设置响应头
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = null;
+        try {
+            fileName = URLEncoder.encode("字典导入模板", "UTF-8").replaceAll("\\+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new BizException(e.getMessage());
+        }
+        response.setHeader("Content-disposition", "attachment;filename=utf-8''" + fileName + ".xlsx");
+
+        // 4. 使用EasyExcel导出
+        try {
+            EasyExcel.write(response.getOutputStream(), DictExcelVO.class)
+                    .sheet("字典数据")
+                    .doWrite(new ArrayList<>());
         } catch (IOException e) {
             throw new BizException(e.getMessage());
         }

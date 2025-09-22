@@ -1,6 +1,8 @@
 package com.crrc.sys.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -8,16 +10,19 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.annotation.AuditLog;
 import com.crrc.sys.cache.RedisCache;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.CollectionUtils;
+import com.crrc.sys.common.CustomFileUtils;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.dict.Dict;
 import com.crrc.sys.entity.dict.DictItem;
 import com.crrc.sys.enums.LogType;
 import com.crrc.sys.enums.OperateType;
+import com.crrc.sys.listener.DictAndItemImportListener;
 import com.crrc.sys.model.company.CompanyGetRespVO;
-import com.crrc.sys.model.dict.DictExcelVO;
-import com.crrc.sys.model.dict.DictListReqVO;
-import com.crrc.sys.model.dict.DictPageReqVO;
+import com.crrc.sys.model.dept.DeptExportRespVO;
+import com.crrc.sys.model.dict.*;
 import com.crrc.sys.service.DictCacheService;
 import com.crrc.sys.service.impl.DictItemServiceImpl;
 import com.crrc.sys.service.impl.DictServiceImpl;
@@ -35,6 +40,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -141,14 +148,21 @@ public class DictController {
         }
         return result;
     }
-    @GetMapping("/export")
+    @GetMapping("/download/export")
     @Operation(summary = "导出字典")
     @AuditLog(value = "导出字典", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
-    public void exportDict(@Validated @RequestBody(required = false) DictExcelVO exportReqVO, HttpServletResponse response){
+    public void exportDict(DictExcelVO exportReqVO, HttpServletResponse response){
         // 实现导出方法
         dictService.exports(exportReqVO, response);
     }
 
+    @GetMapping("/download/template")
+    @Operation(summary = "导出模板")
+    @AuditLog(value = "导出模板", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    public void templateDict(HttpServletResponse response){
+        // 实现导出方法
+        dictService.template(response);
+    }
 
     @PostMapping("/import")
     @Operation(summary = "导入字典")
@@ -168,5 +182,76 @@ public class DictController {
             dictCacheService.setDictCache(BeanUtils.toBean(data, Dict.class));
         });
         return true;
+    }
+
+    @PostMapping("/importAll")
+    @Operation(summary = "导入字典及字典项")
+    @AuditLog(value = "导入字典及字典项", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
+    public Boolean importAllDictAndItems(MultipartFile file) throws IOException {
+        DictAndItemImportListener listener = new DictAndItemImportListener(dictService, dictItemService, dictCacheService);
+        EasyExcel.read(file.getInputStream(), DictAndItemExcelVO.class, listener).sheet().doRead();
+        return true;
+    }
+
+    @GetMapping("/download/templateAll")
+    @Operation(summary = "下载字典及字典项导入模板")
+    public void downloadAllTemplate(HttpServletResponse response) throws IOException {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = URLEncoder.encode("字典及字典项导入模板", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=utf-8''" + fileName + ".xlsx");
+
+        EasyExcel.write(response.getOutputStream(), DictAndItemExcelVO.class)
+                .sheet("字典数据")
+                .doWrite(new ArrayList<>());
+    }
+
+    @GetMapping("/download/exportAll")
+    @Operation(summary = "导出字典及字典项")
+    public void exportAllTemplate(DictExcelVO exportReqVO, HttpServletResponse response) throws IOException {
+        List<Dict> dictList = dictService.query(exportReqVO);
+        List<DictAndItemExcelVO> exportList = new ArrayList<>();
+        dictList.forEach(dict -> {
+            DictVO dictVO = convertToDictVO(dict);
+            dictVO.getItems().forEach(item -> {
+                DictAndItemExcelVO exportData = new DictAndItemExcelVO();
+                exportData.setDictCode(dictVO.getDictCode());
+                exportData.setDictName(dictVO.getDictName());
+                exportData.setDictType(dictVO.getDictType());
+                exportData.setDictRemark(dictVO.getRemark());
+                exportData.setItemCode(item.getItemCode());
+                exportData.setItemName(item.getItemName());
+                exportData.setItemSorted(item.getSorted());
+                exportList.add(exportData);
+            });
+        });
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = URLEncoder.encode("字典及字典项数据", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=utf-8''" + fileName + ".xlsx");
+
+        EasyExcel.write(response.getOutputStream(), DictAndItemExcelVO.class)
+                .sheet("字典数据")
+                .doWrite(exportList);
+    }
+
+    // 转换方法
+    private DictVO convertToDictVO(Dict dict) {
+        DictVO dictVO = new DictVO();
+        org.springframework.beans.BeanUtils.copyProperties(dict, dictVO);
+
+        // 加载关联的字典项
+        List<DictItem> items = dictItemService.getItemByMainId(dict.getId());
+        dictVO.setItems(items.stream()
+                .map(this::convertToDictItemVO)
+                .collect(Collectors.toList()));
+
+        return dictVO;
+    }
+
+    private DictItemVO convertToDictItemVO(DictItem item) {
+        DictItemVO itemVO = new DictItemVO();
+        org.springframework.beans.BeanUtils.copyProperties(item, itemVO);
+        return itemVO;
     }
 }
