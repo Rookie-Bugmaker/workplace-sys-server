@@ -10,17 +10,20 @@ import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.convert.SysDeptPersonConvert;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
+import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.enums.OperationTypeEnum;
 import com.crrc.sys.model.dept.person.SysDeptPersonDTO;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.service.DeptService;
 import com.crrc.sys.service.SysDeptPersonService;
 import com.crrc.sys.service.SysOrgPersonService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -241,21 +244,48 @@ public class SysDeptPersonController {
      */
     @GetMapping("find_person_by_dept_id")
     public IPage<SysDeptPersonDTO> findPersonByDeptId(@RequestParam("deptId") Long deptId,
+                                                      @RequestParam(value = "realName", required = false, defaultValue = "") String realName,
                                                       @RequestParam(value = "page") Long page,
-                                                      @RequestParam("pageSize")Long pageSize) {
+                                                      @RequestParam("pageSize") Long pageSize) {
+        // 参数校验
         if (ObjectUtils.isEmpty(page) || page <= 0) {
             throw new ParamValidateException("page不能为空且必须>0");
         }
         if (ObjectUtils.isEmpty(pageSize)) {
             throw new ParamValidateException("pageSize不能为空");
         }
+
+        // 1. 先根据部门ID和realName模糊查询人员ID列表
+        List<Long> personIdList = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(realName)) {
+            // 模糊查询人员信息
+            SysOrgPersonFindByPageParam param = new SysOrgPersonFindByPageParam();
+            param.setFullName(realName);
+            param.setLanguage("zh-CN");
+            List<SysOrgPerson> personList = personService.findList(param);
+            if (!CollectionUtils.isEmpty(personList)) {
+                personIdList = personList.stream().map(SysOrgPerson::getPersonId).collect(Collectors.toList());
+            }
+        }
+
+        // 2. 构建部门人员查询条件
         LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(!ObjectUtils.isEmpty(deptId), SysDeptPersonPO::getDeptId, deptId);
+
+        // 如果realName不为空且查询到了相关人员ID，则添加人员ID条件
+        if (!ObjectUtils.isEmpty(realName) && !CollectionUtils.isEmpty(personIdList)) {
+            queryWrapper.in(SysDeptPersonPO::getPersonId, personIdList);
+        }
+
+        // 3. 执行分页查询
         IPage<SysDeptPersonDTO> resPage = new Page<>(page, pageSize);
         IPage<SysDeptPersonPO> readPage = deptPersonService.page(new Page<>(page, pageSize), queryWrapper);
+
+        // 4. 设置分页结果
         resPage.setTotal(readPage.getTotal());
         resPage.setPages(readPage.getPages());
         resPage.setRecords(poToDto(readPage.getRecords()));
+
         return resPage;
     }
 
