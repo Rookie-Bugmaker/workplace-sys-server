@@ -151,7 +151,7 @@ public class DictController {
     @GetMapping("/download/export")
     @Operation(summary = "导出字典")
     @AuditLog(value = "导出字典", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
-    public void exportDict(@Validated @RequestBody(required = false) DictExcelVO exportReqVO, HttpServletResponse response){
+    public void exportDict(DictExcelVO exportReqVO, HttpServletResponse response){
         // 实现导出方法
         dictService.exports(exportReqVO, response);
     }
@@ -208,7 +208,7 @@ public class DictController {
 
     @GetMapping("/download/exportAll")
     @Operation(summary = "导出字典及字典项")
-    public void exportAllTemplate(@Validated @RequestBody(required = false) DictExcelVO exportReqVO, HttpServletResponse response) throws IOException {
+    public void exportAllTemplate(DictExcelVO exportReqVO, HttpServletResponse response) throws IOException {
         List<Dict> dictList = dictService.query(exportReqVO);
         List<DictAndItemExcelVO> exportList = new ArrayList<>();
         dictList.forEach(dict -> {
