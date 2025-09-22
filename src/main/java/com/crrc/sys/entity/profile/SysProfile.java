@@ -49,7 +49,7 @@ public class SysProfile extends BaseEntityYunLing {
      */
     private String profileComponentType;
 	/**
-	 * 配置分类(来源于值集)
+	 * 配置分类(SYS_CONFIG:系统配置、APPROVER_LIST:审批人列表、SYS_DATA_PERMISSION:数据权限)
 	 */
 	private String profileType;
 	/**
