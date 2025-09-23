@@ -117,7 +117,9 @@ public interface SysUserMapper {
      * @param roleCode
      * @return
      */
-    List<SysUser> findUsersByRoleCode(@Param("roleCode") String roleCode);
+    List<SysUser> findUsersByRoleCode(@Param("roleCodes") List<String> roleCode);
+
+    List<SysUser> findUsersByOrgCode(@Param("orgCode") String orgCode, @Param("companyId") Long companyId);
 
 
     /**

@@ -20,6 +20,7 @@ import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.*;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
+import com.crrc.sys.entity.user.dto.SysUserRequestDTO;
 import com.crrc.sys.entity.user.dto.WorkflowUserPageDTO;
 import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
@@ -356,16 +357,26 @@ public class SysUserController {
 
     /**
      * 根据角色code查询用户信息
-     * @param roleCode
+     * @param sysUserRequestDTO
      * @return
      */
     @PostMapping("findUsersByRoleCode")
-    public ResponseResult<WorkflowUserPageDTO> findUsersByRoleCode(String roleCode) {
+    public ResponseResult<WorkflowUserPageDTO> findUsersByRoleCode(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
         WorkflowUserPageDTO workflowUserPageDTO = new WorkflowUserPageDTO();
-        if (ObjectUtils.isEmpty(roleCode)) {
+        List<String> roleCodes = sysUserRequestDTO.getRoleCodes();
+        String orgCode = sysUserRequestDTO.getOrgCode();
+        if (ObjectUtils.isEmpty(roleCodes)) {
             return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "角色编码不能为空!");
         }
-        List<SysUser> usersByRoleCode = userService.findUsersByRoleCode(roleCode);
+        if (ObjectUtils.isEmpty(orgCode)) {
+            return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "部门编码不能为空!");
+        }
+        ResultData<SysUser> currentUserResultData = authClient.currentUser();
+        if (ObjectUtils.isEmpty(currentUserResultData.getResult().getCurrentCompanyId())) {
+            return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "当前租户id为空!");
+        }
+
+        List<SysUser> usersByRoleCode = userService.findUsersByRoleCode(roleCodes);
         List<SysUserDTO> userDTOs = usersByRoleCode.stream()
                 .map(user -> {
                     SysUserDTO dto = new SysUserDTO();
@@ -373,7 +384,48 @@ public class SysUserController {
                     return dto;
                 })
                 .collect(Collectors.toList());
-        workflowUserPageDTO.setRows(userDTOs);
+        // 通过角色集合获取的用户去重
+        Set<Long> seenIds = new HashSet<>();
+        List<SysUserDTO> distinctUserListByRoles = userDTOs.stream()
+                .filter(dto -> seenIds.add(dto.getUserId())) // 利用Set的add返回值判断是否已存在
+                .collect(Collectors.toList());
+
+        if (ObjectUtils.isEmpty(distinctUserListByRoles)) {
+            return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "通过角色编码查询的用户为空!");
+        }
+
+        //查询当前租户下的当前当前部门用户
+        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, currentUserResultData.getResult().getCurrentCompanyId());
+//        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, 467L);
+        if (ObjectUtils.isEmpty(usersByOrgCode)) {
+            return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "通过部门编码和当前用户租户id查询的用户为空!");
+        }
+        // 转化DTO
+        List<SysUserDTO> usersByOrgCodeDTOs = usersByOrgCode.stream()
+                .map(user -> {
+                    SysUserDTO dto = new SysUserDTO();
+                    BeanUtils.copyProperties(user, dto); // 注意参数顺序：源在前，目标在后
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        // 求distinctUserListByRoles和usersByOrgCodeDTOs集合交集
+        Set<Long> userIds = usersByOrgCodeDTOs.stream()
+                .map(SysUserDTO::getUserId)
+                .collect(Collectors.toSet());
+
+        List<SysUserDTO> finalUserList = distinctUserListByRoles.stream()
+                .filter(user -> userIds.contains(user.getUserId()))
+                .collect(Collectors.toList());
+
+        if (ObjectUtils.isEmpty(finalUserList)) {
+            return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "findUsersByRoleCode查询的用户为空!");
+        }
+
+
+
+        workflowUserPageDTO.setRows(finalUserList);
+        workflowUserPageDTO.setTotal((long) finalUserList.size());
         return ResponseResult.success(workflowUserPageDTO);
     }
 

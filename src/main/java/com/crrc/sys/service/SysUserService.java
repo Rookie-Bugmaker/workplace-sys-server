@@ -25,10 +25,13 @@ public interface SysUserService {
 
     /**
      * 根据角色code查询用户信息
-     * @param roleCode
+     * @param roleCodes
      * @return
      */
-    List<SysUser> findUsersByRoleCode(String roleCode);
+    List<SysUser> findUsersByRoleCode(List<String> roleCodes);
+
+    public List<SysUser> findUsersByOrgCode(String orgCode, Long companyId);
+
 
     /**
      * 用户信息分页查询

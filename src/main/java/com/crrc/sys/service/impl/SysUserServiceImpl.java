@@ -73,12 +73,20 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public List<SysUser> findUsersByRoleCode(String roleCode) {
-        List<SysUser> userList = userMapper.findUsersByRoleCode(roleCode);
+    public List<SysUser> findUsersByRoleCode(List<String> roleCodes) {
+        List<SysUser> userList = userMapper.findUsersByRoleCode(roleCodes);
         if (CollectionUtils.isEmpty(userList)) {
             return null;
         }
-        return userMapper.findUsersByRoleCode(roleCode);
+        return userMapper.findUsersByRoleCode(roleCodes);
+    }
+
+    public List<SysUser> findUsersByOrgCode(String orgCode, Long companyId) {
+        List<SysUser> userList = userMapper.findUsersByOrgCode(orgCode, companyId);
+        if (CollectionUtils.isEmpty(userList)) {
+            return null;
+        }
+        return userMapper.findUsersByOrgCode(orgCode, companyId);
     }
 
 
