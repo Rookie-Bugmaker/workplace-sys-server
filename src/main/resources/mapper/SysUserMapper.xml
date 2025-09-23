@@ -170,6 +170,24 @@
         </if>
 	</select>
 
+    <!--根据角色Code查询绑定的用户集合-->
+    <select id="findUsersByRoleCode" resultMap="userMap">
+        SELECT
+            u.*,
+            r.role_code
+        FROM
+            sys_user u
+                INNER JOIN
+            sys_user_role ur ON u.user_id = ur.user_id
+                INNER JOIN
+            sys_role_b r ON ur.role_id = r.role_id
+        WHERE
+            r.role_code = #{roleCode}
+          AND u.DISABLE_STATE = 'N'
+        ORDER BY
+            u.CREATE_DATE DESC;
+    </select>
+
     <!--根据用户ID批量查询并模糊查询-->
     <select id="findByUserIdsAndFuzzy" resultMap="userMap">
         select t.* from (

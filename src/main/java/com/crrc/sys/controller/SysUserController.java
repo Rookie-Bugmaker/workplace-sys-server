@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.*;
+import com.crrc.sys.common.response.ResponseResult;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
@@ -18,6 +19,8 @@ import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.*;
+import com.crrc.sys.entity.user.dto.SysUserDTO;
+import com.crrc.sys.entity.user.dto.WorkflowUserPageDTO;
 import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
 import com.crrc.sys.excel.ExcelImport;
@@ -29,6 +32,7 @@ import com.crrc.sys.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.CollectionUtils;
@@ -348,6 +352,29 @@ public class SysUserController {
             throw new ParamValidateException("userName不能为空!");
         }
         return userService.findByUserName(userName);
+    }
+
+    /**
+     * 根据角色code查询用户信息
+     * @param roleCode
+     * @return
+     */
+    @PostMapping("findUsersByRoleCode")
+    public ResponseResult<WorkflowUserPageDTO> findUsersByRoleCode(String roleCode) {
+        WorkflowUserPageDTO workflowUserPageDTO = new WorkflowUserPageDTO();
+        if (ObjectUtils.isEmpty(roleCode)) {
+            return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "角色编码不能为空!");
+        }
+        List<SysUser> usersByRoleCode = userService.findUsersByRoleCode(roleCode);
+        List<SysUserDTO> userDTOs = usersByRoleCode.stream()
+                .map(user -> {
+                    SysUserDTO dto = new SysUserDTO();
+                    BeanUtils.copyProperties(user, dto); // 注意参数顺序：源在前，目标在后
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        workflowUserPageDTO.setRows(userDTOs);
+        return ResponseResult.success(workflowUserPageDTO);
     }
 
     /**

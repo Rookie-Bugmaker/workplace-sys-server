@@ -113,6 +113,14 @@ public interface SysUserMapper {
     List<SysUser> findByUserNameList(@Param("userNameList") List<String> userNameList);
 
     /**
+     * 根据角色code查询用户信息
+     * @param roleCode
+     * @return
+     */
+    List<SysUser> findUsersByRoleCode(@Param("roleCode") String roleCode);
+
+
+    /**
      * 批量保存
      *
      * @param list 用户集合
