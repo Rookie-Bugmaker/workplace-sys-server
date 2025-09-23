@@ -20,9 +20,28 @@ public class SysDeptPersonDetailDTO {
      */
     private Long companyId;
     /**
+     * 用户ID
+     */
+    private Long userId;
+    /**
+     * 用户名
+     */
+    private String userName;
+
+    /**
+     * 用户类型
+     * EMPLOYEE：员工、SUPPLIER：供应商、CUSTOMER：客户
+     */
+    private String userType;
+    /**
      * 部门ID
      */
     private Long deptId;
+
+    /**
+     * 名称ID
+     */
+    private String departmentName;
     /**
      * 人员ID
      */
