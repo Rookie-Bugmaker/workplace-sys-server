@@ -3,6 +3,7 @@ package com.crrc.sys.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
@@ -13,6 +14,7 @@ import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.enums.OperationTypeEnum;
 import com.crrc.sys.model.dept.person.SysDeptPersonDTO;
+import com.crrc.sys.model.dept.person.SysDeptPersonDetailDTO;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.service.DeptService;
 import com.crrc.sys.service.SysDeptPersonService;
@@ -243,7 +245,7 @@ public class SysDeptPersonController {
      * @return
      */
     @GetMapping("find_person_by_dept_id")
-    public IPage<SysDeptPersonDTO> findPersonByDeptId(@RequestParam("deptId") Long deptId,
+    public IPage<SysDeptPersonDetailDTO> findPersonByDeptId(@RequestParam("deptId") Long deptId,
                                                       @RequestParam(value = "realName", required = false, defaultValue = "") String realName,
                                                       @RequestParam(value = "page") Long page,
                                                       @RequestParam("pageSize") Long pageSize) {
@@ -278,13 +280,13 @@ public class SysDeptPersonController {
         }
 
         // 3. 执行分页查询
-        IPage<SysDeptPersonDTO> resPage = new Page<>(page, pageSize);
+        IPage<SysDeptPersonDetailDTO> resPage = new Page<>(page, pageSize);
         IPage<SysDeptPersonPO> readPage = deptPersonService.page(new Page<>(page, pageSize), queryWrapper);
 
         // 4. 设置分页结果
         resPage.setTotal(readPage.getTotal());
         resPage.setPages(readPage.getPages());
-        resPage.setRecords(poToDto(readPage.getRecords()));
+        resPage.setRecords(poToDtoDetail(readPage.getRecords()));
 
         return resPage;
     }
@@ -321,5 +323,40 @@ public class SysDeptPersonController {
             }
         }
         return personDtoList;
+    }
+
+    private List<SysDeptPersonDetailDTO> poToDtoDetail(List<SysDeptPersonPO> personPoList) {
+        List<SysDeptPersonDetailDTO> personDetailDTOList = new ArrayList<>();
+        List<SysDeptPersonDTO> personDtoList = SysDeptPersonConvert.INSTANCE.poToDto(personPoList);
+        List<Long> personIdList1 = personDtoList.stream().map(SysDeptPersonDTO::getPersonId).collect(Collectors.toList());
+        List<Long> personIdList2 = personDtoList.stream().map(SysDeptPersonDTO::getParentPersonId).filter(o -> !ObjectUtils.isEmpty(o)).collect(Collectors.toList());
+        if (!ObjectUtils.isEmpty(personIdList2)) {
+            personIdList1.addAll(personIdList2);
+        }
+        //根据人员ID查询人员信息
+        List<SysOrgPerson> personList = personService.findByIds(personIdList1);
+        if (CollectionUtils.isEmpty(personList)) {
+            return personDetailDTOList;
+        }
+        for (SysDeptPersonDTO personDto : personDtoList) {
+            SysDeptPersonDetailDTO personDetailDTO = BeanUtils.toBean(personDto, SysDeptPersonDetailDTO.class);
+            //查找人员信息
+            SysOrgPerson person = personList.stream().filter(o -> o.getPersonId().equals(personDto.getPersonId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(person)) {
+                personDetailDTO.setPersonName(person.getFullName());
+                personDetailDTO.setJobNo(person.getJobNo());
+                personDetailDTO.setGender(person.getGender());
+                personDetailDTO.setPhone(person.getPhone());
+                personDetailDTO.setEmail(person.getEmail());
+                personDetailDTO.setStatus(person.getStatus());
+            }
+            //查找人员信息
+            person = personList.stream().filter(o -> o.getPersonId().equals(personDto.getParentPersonId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(person)) {
+                personDetailDTO.setParentPersonName(person.getFullName());
+            }
+            personDetailDTOList.add(personDetailDTO);
+        }
+        return personDetailDTOList;
     }
 }
