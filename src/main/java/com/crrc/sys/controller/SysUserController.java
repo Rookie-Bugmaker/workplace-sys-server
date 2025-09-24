@@ -399,8 +399,8 @@ public class SysUserController {
         }
 
         //查询当前租户下的当前当前部门用户
-//        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, currentUserResultData.getResult().getCurrentCompanyId());
-        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, 467L);
+        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, currentUserResultData.getResult().getCurrentCompanyId());
+//        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, 467L);
         if (ObjectUtils.isEmpty(usersByOrgCode)) {
             return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "通过部门编码和当前用户租户id查询的用户为空!");
         }
