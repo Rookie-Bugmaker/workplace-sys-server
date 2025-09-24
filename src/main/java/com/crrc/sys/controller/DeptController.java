@@ -45,27 +45,22 @@ public class DeptController {
     private DeptService deptService;
     @Autowired
     private SysUserService userService;
-
     @Autowired
     private SysOrgPersonService personService;
-
     @Autowired
     private SysDeptPersonService deptPersonService;
-    /*@Autowired
-    DeptRoleService deptRoleService;
-    @Autowired
-    RoleService roleService;
-    @Autowired
-    UserDeptService userDeptService;
-    @Autowired
-    UserCompanyService userCompanyService;
-    @Autowired
-    UserService userService;*/
 
     @PostMapping("/create")
     @Operation(summary = "创建部门")
     @AuditLog(value = "创建菜单", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
     public Long createDept(@Valid @RequestBody DeptCreateReqVO createReqVO) {
+        if (ObjectUtils.isEmpty(createReqVO.getOrgCode())) {
+            throw new BizException("部门编码不能为空");
+        }
+        Dept deptOld = deptService.findByCode(createReqVO.getOrgCode());
+        if (!ObjectUtils.isEmpty(deptOld)) {
+            throw new BizException("该部门编码已存在!");
+        }
         Dept dept = BeanUtils.toBean(createReqVO, Dept.class);
         deptService.save(dept);
         return dept.getId();
@@ -75,6 +70,16 @@ public class DeptController {
     @Operation(summary = "更新部门")
     @AuditLog(value = "更新部门", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
     public Long updateDept(@Valid @RequestBody DeptUpdateReqVO updateReqVO) {
+        if (ObjectUtils.isEmpty(updateReqVO.getId())) {
+            throw new BizException("部门ID不能为空");
+        }
+        if (ObjectUtils.isEmpty(updateReqVO.getOrgCode())) {
+            throw new BizException("部门编码不能为空");
+        }
+        Dept deptOld = deptService.findByCode(updateReqVO.getOrgCode());
+        if (!ObjectUtils.isEmpty(deptOld) && !deptOld.getId().equals(updateReqVO.getId())) {
+            throw new BizException("该部门编码已存在!");
+        }
         Dept dept = BeanUtils.toBean(updateReqVO, Dept.class);
         Dept deptInDB = deptService.getById(dept.getId());
         if (deptInDB == null) {
@@ -233,7 +238,7 @@ public class DeptController {
         List<SysDeptPersonPO> deptPersonPOs = deptPersonService.findByPersonId(personIds);
         deptPersonPOs.forEach(deptPersonPO -> {
             List<Dept> deptList = deptService.findByDeptIds(Arrays.asList(deptPersonPO.getDeptId()));
-            if(deptList != null && deptList.size() > 0) {
+            if (deptList != null && deptList.size() > 0) {
                 DeptOfUserDTO deptOfUserDTO = new DeptOfUserDTO();
                 deptOfUserDTO.setId(deptPersonPO.getDeptId());
                 deptOfUserDTO.setUserId(personIdToUserIdMap.get(deptPersonPO.getPersonId()));
