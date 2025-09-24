@@ -444,7 +444,7 @@ public class SysUserController {
      * @return
      */
     @PostMapping("findUserByRoleCodes")
-    public List<SysUser> findByUserIds(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+    public List<SysUser> findUserByRoleCodes(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
         List<String> roleCodes = sysUserRequestDTO.getRoleCodes();
         if (ObjectUtils.isEmpty(roleCodes)) {
             throw new ParamValidateException("角色编码不能为空!");
