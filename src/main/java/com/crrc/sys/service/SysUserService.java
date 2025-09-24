@@ -1,7 +1,6 @@
 package com.crrc.sys.service;
 
 import com.crrc.sys.common.PaginationGrid;
-import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.model.user.UserGetRespVO;
@@ -23,6 +22,16 @@ public interface SysUserService {
      * @return 用户信息
      */
     SysUser findByUserName(String userName);
+
+    /**
+     * 根据角色code查询用户信息
+     * @param roleCodes
+     * @return
+     */
+    List<SysUser> findUsersByRoleCode(List<String> roleCodes);
+
+    public List<SysUser> findUsersByOrgCode(String orgCode, Long companyId);
+
 
     /**
      * 用户信息分页查询

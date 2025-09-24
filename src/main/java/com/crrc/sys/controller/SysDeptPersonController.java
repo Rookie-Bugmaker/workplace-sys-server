@@ -3,6 +3,7 @@ package com.crrc.sys.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
@@ -10,19 +11,24 @@ import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.convert.SysDeptPersonConvert;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
+import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
+import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.OperationTypeEnum;
 import com.crrc.sys.model.dept.person.SysDeptPersonDTO;
+import com.crrc.sys.model.dept.person.SysDeptPersonDetailDTO;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.service.DeptService;
 import com.crrc.sys.service.SysDeptPersonService;
 import com.crrc.sys.service.SysOrgPersonService;
+import com.crrc.sys.service.SysUserService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +49,8 @@ public class SysDeptPersonController {
     private DeptService deptService;
     @Resource
     private SysOrgPersonService personService;
+    @Resource
+    private SysUserService userService;
 
 
     /**
@@ -240,22 +248,56 @@ public class SysDeptPersonController {
      * @return
      */
     @GetMapping("find_person_by_dept_id")
-    public IPage<SysDeptPersonDTO> findPersonByDeptId(@RequestParam("deptId") Long deptId,
+    public IPage<SysDeptPersonDetailDTO> findPersonByDeptId(@RequestParam("deptId") Long deptId,
+                                                      @RequestParam(value = "realName", required = false, defaultValue = "") String realName,
                                                       @RequestParam(value = "page") Long page,
-                                                      @RequestParam("pageSize")Long pageSize) {
+                                                      @RequestParam("pageSize") Long pageSize) {
+        // 参数校验
         if (ObjectUtils.isEmpty(page) || page <= 0) {
             throw new ParamValidateException("page不能为空且必须>0");
         }
         if (ObjectUtils.isEmpty(pageSize)) {
             throw new ParamValidateException("pageSize不能为空");
         }
+
+        List<Dept> deptList = deptService.findByDeptIds(Collections.singletonList(deptId));
+        if (deptList.size() != 1) {
+            throw new BizException(String.format("部门id为：%d的部门不存在",deptId));
+        }
+        Dept currentDept = deptList.get(0);
+
+        // 1. 先根据部门ID和realName模糊查询人员ID列表
+        List<Long> personIdList = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(realName)) {
+            // 模糊查询人员信息
+            SysOrgPersonFindByPageParam param = new SysOrgPersonFindByPageParam();
+            param.setFullName(realName);
+            param.setLanguage("zh-CN");
+            List<SysOrgPerson> personList = personService.findList(param);
+            if (!CollectionUtils.isEmpty(personList)) {
+                personIdList = personList.stream().map(SysOrgPerson::getPersonId).collect(Collectors.toList());
+            }
+        }
+
+        // 2. 构建部门人员查询条件
         LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(!ObjectUtils.isEmpty(deptId), SysDeptPersonPO::getDeptId, deptId);
-        IPage<SysDeptPersonDTO> resPage = new Page<>(page, pageSize);
+
+        // 如果realName不为空且查询到了相关人员ID，则添加人员ID条件
+        if (!ObjectUtils.isEmpty(realName) && !CollectionUtils.isEmpty(personIdList)) {
+            queryWrapper.in(SysDeptPersonPO::getPersonId, personIdList);
+        }
+
+
+        // 3. 执行分页查询
+        IPage<SysDeptPersonDetailDTO> resPage = new Page<>(page, pageSize);
         IPage<SysDeptPersonPO> readPage = deptPersonService.page(new Page<>(page, pageSize), queryWrapper);
+
+        // 4. 设置分页结果
         resPage.setTotal(readPage.getTotal());
         resPage.setPages(readPage.getPages());
-        resPage.setRecords(poToDto(readPage.getRecords()));
+        resPage.setRecords(poToDtoDetail(readPage.getRecords(),currentDept));
+
         return resPage;
     }
 
@@ -291,5 +333,58 @@ public class SysDeptPersonController {
             }
         }
         return personDtoList;
+    }
+
+    private List<SysDeptPersonDetailDTO> poToDtoDetail(List<SysDeptPersonPO> personPoList, Dept currentDept) {
+        List<SysDeptPersonDetailDTO> personDetailDTOList = new ArrayList<>();
+        List<SysDeptPersonDTO> personDtoList = SysDeptPersonConvert.INSTANCE.poToDto(personPoList);
+        List<Long> personIdList1 = personDtoList.stream().map(SysDeptPersonDTO::getPersonId).collect(Collectors.toList());
+        List<Long> personIdList2 = personDtoList.stream().map(SysDeptPersonDTO::getParentPersonId).filter(o -> !ObjectUtils.isEmpty(o)).collect(Collectors.toList());
+        if (!ObjectUtils.isEmpty(personIdList2)) {
+            personIdList1.addAll(personIdList2);
+        }
+        //根据人员ID查询人员信息
+        List<SysOrgPerson> personList = personService.findByIds(personIdList1);
+        if (CollectionUtils.isEmpty(personList)) {
+            return personDetailDTOList;
+        }
+        List<SysUser> userList = userService.findByRelationIds(personIdList1);
+        Map<Long, SysUser> userMap = userList.stream()
+                .filter(user -> user.getUserRelationId() != null)  // 过滤null键
+                .collect(Collectors.toMap(
+                        SysUser::getUserRelationId,
+                        Function.identity(),
+                        (u1, u2) -> u1
+                ));
+
+
+        for (SysDeptPersonDTO personDto : personDtoList) {
+            SysDeptPersonDetailDTO personDetailDTO = BeanUtils.toBean(personDto, SysDeptPersonDetailDTO.class);
+            //查找人员信息
+            SysOrgPerson person = personList.stream().filter(o -> o.getPersonId().equals(personDto.getPersonId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(person)) {
+                personDetailDTO.setPersonName(person.getFullName());
+                personDetailDTO.setJobNo(person.getJobNo());
+                personDetailDTO.setGender(person.getGender());
+                personDetailDTO.setPhone(person.getPhone());
+                personDetailDTO.setEmail(person.getEmail());
+                personDetailDTO.setStatus(person.getStatus());
+                personDetailDTO.setDepartmentName(currentDept.getDepartmentName());
+                SysUser relationUser = userMap.get(person.getPersonId());
+                if (!Objects.isNull(relationUser)) {
+                    personDetailDTO.setUserId(relationUser.getUserId());
+                    personDetailDTO.setUserName(relationUser.getUserName());
+                    personDetailDTO.setUserType(relationUser.getUserType());
+                }
+
+            }
+            //查找人员信息
+            person = personList.stream().filter(o -> o.getPersonId().equals(personDto.getParentPersonId())).findFirst().orElse(null);
+            if (!ObjectUtils.isEmpty(person)) {
+                personDetailDTO.setParentPersonName(person.getFullName());
+            }
+            personDetailDTOList.add(personDetailDTO);
+        }
+        return personDetailDTOList;
     }
 }
