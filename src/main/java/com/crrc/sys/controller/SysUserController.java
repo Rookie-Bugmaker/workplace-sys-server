@@ -100,6 +100,10 @@ public class SysUserController {
     @Resource
     private DeptService deptService;
 
+    @Resource
+    private SysOrgPersonService sysOrgPersonService;
+
+
 
     /**
      * 测试接口(公寓测试配置文件通过api接口调用)
@@ -395,8 +399,8 @@ public class SysUserController {
         }
 
         //查询当前租户下的当前当前部门用户
-        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, currentUserResultData.getResult().getCurrentCompanyId());
-//        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, 467L);
+//        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, currentUserResultData.getResult().getCurrentCompanyId());
+        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, 467L);
         if (ObjectUtils.isEmpty(usersByOrgCode)) {
             return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "通过部门编码和当前用户租户id查询的用户为空!");
         }
@@ -421,11 +425,16 @@ public class SysUserController {
         if (ObjectUtils.isEmpty(finalUserList)) {
             return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "findUsersByRoleCode查询的用户为空!");
         }
+        //返回封装fullname
+        List<SysUserDTO> finalUserListWithFullName = new ArrayList<>();
+        for(SysUserDTO sysUserDTO : finalUserList){
+            SysOrgPerson sysOrgPerson = sysOrgPersonService.findById(sysUserDTO.getUserRelationId(), "zh-CN");
+            sysUserDTO.setFullName(sysOrgPerson.getFullName());
+            finalUserListWithFullName.add(sysUserDTO);
+        }
 
-
-
-        workflowUserPageDTO.setRows(finalUserList);
-        workflowUserPageDTO.setTotal((long) finalUserList.size());
+        workflowUserPageDTO.setRows(finalUserListWithFullName);
+        workflowUserPageDTO.setTotal((long) finalUserListWithFullName.size());
         return ResponseResult.success(workflowUserPageDTO);
     }
 
