@@ -360,11 +360,11 @@ public class SysUserController {
     }
 
     /**
-     * 根据角色code查询用户信息
+     * 根据角色codes和部门信息查询用户信息
      * @param sysUserRequestDTO
      * @return
      */
-    @PostMapping("findUsersByRoleCode")
+    @PostMapping("findUsersByRoleCodesAndDeptCode")
     public ResponseResult<WorkflowUserPageDTO> findUsersByRoleCode(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
         WorkflowUserPageDTO workflowUserPageDTO = new WorkflowUserPageDTO();
         List<String> roleCodes = sysUserRequestDTO.getRoleCodes();
@@ -437,6 +437,21 @@ public class SysUserController {
         workflowUserPageDTO.setTotal((long) finalUserListWithFullName.size());
         return ResponseResult.success(workflowUserPageDTO);
     }
+
+    /**
+     * 通过角色编码获取用户 roleCodes
+     * @param sysUserRequestDTO
+     * @return
+     */
+    @PostMapping("findUserByRoleCodes")
+    public List<SysUser> findByUserIds(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+        List<String> roleCodes = sysUserRequestDTO.getRoleCodes();
+        if (ObjectUtils.isEmpty(roleCodes)) {
+            throw new ParamValidateException("角色编码不能为空!");
+        }
+        return userService.findUsersByRoleCode(roleCodes);
+    }
+
 
     /**
      * 密码修改
