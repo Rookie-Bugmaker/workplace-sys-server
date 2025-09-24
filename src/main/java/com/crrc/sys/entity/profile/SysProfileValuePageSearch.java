@@ -26,9 +26,10 @@ public class SysProfileValuePageSearch extends SysProfile{
     private String fuzzyQuery;
     /**
      * 动态参数值列表，例如：{"personId": "12345"}
-     * ${user.organizationId} 当前组织ID
-     * ${user.roleId} 当前角色ID
      * ${user.userId} 当前用户ID
+     * ${user.roleId} 当前角色ID
+     * ${user.companyId} 当前公司ID
+     * ${user.deptId} 当前部门ID
      * ${?} 其他
      */
     private String paramMapStr;
