@@ -185,4 +185,17 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
         queryWrapper.in(Dept::getId, deptIdList);
         return super.list(queryWrapper);
     }
+
+    /**
+     * 根据部门编码查询部门信息
+     *
+     * @param deptCode 部门编码
+     * @return 部门信息
+     */
+    @Override
+    public Dept findByCode(String deptCode) {
+        LambdaQueryWrapper<Dept> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dept::getOrgCode, deptCode);
+        return super.getOne(queryWrapper);
+    }
 }

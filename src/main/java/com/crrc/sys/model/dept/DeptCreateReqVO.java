@@ -9,7 +9,10 @@ import javax.validation.constraints.NotNull;
 @Schema(description = "菜单管理 - 创建菜单 Req VO")
 public class DeptCreateReqVO {
 
-    @Schema(description = "组织编码", example = "2")
+    /**
+     * 部门编码
+     */
+    @Schema(description = "部门编码", example = "2")
     private String orgCode;
 
     @Schema(description = "父组织编码", example = "2")

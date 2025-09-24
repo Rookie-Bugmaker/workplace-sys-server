@@ -18,8 +18,10 @@ public interface DeptService extends IService<Dept> {
     List<Dept> getDeptListByCompanyId(Long companyId);
 
     Dept getDeptByOrgCode(String orgCode);
+
     /**
      * 根据组织编码获取部门及其所有子部门
+     *
      * @param orgCode 组织编码
      * @return 部门列表
      */
@@ -27,8 +29,17 @@ public interface DeptService extends IService<Dept> {
 
     /**
      * 根据部门ID查询部门信息
+     *
      * @param deptIdList 部门ID集合
      * @return 部门信息
      */
     List<Dept> findByDeptIds(List<Long> deptIdList);
+
+    /**
+     * 根据部门编码查询部门信息
+     *
+     * @param deptCode 部门编码
+     * @return 部门信息
+     */
+    Dept findByCode(String deptCode);
 }
