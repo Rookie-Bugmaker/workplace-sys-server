@@ -452,6 +452,26 @@ public class SysUserController {
         return userService.findUsersByRoleCode(roleCodes);
     }
 
+    /**
+     * 通过姓名查询用户
+     * @param sysUserRequestDTO
+     * @return
+     */
+    @PostMapping("findUserByFullName")
+    public List<SysUserDTO> findUserByFullName(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+        String fullName = sysUserRequestDTO.getFullName();
+        if (ObjectUtils.isEmpty(fullName)) {
+            throw new ParamValidateException("姓名不能为空!");
+        }
+        ResultData<SysUser> currentUserResultData = authClient.currentUser();
+        if (ObjectUtils.isEmpty(currentUserResultData.getResult().getCurrentCompanyId())) {
+            throw new ParamValidateException("租户id不能为空!");
+        }
+        return userService.findUsersByfullName(fullName, currentUserResultData.getResult().getCurrentCompanyId());
+    }
+
+
+
 
     /**
      * 密码修改

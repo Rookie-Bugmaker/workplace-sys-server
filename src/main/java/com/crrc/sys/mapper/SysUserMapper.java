@@ -2,6 +2,7 @@ package com.crrc.sys.mapper;
 
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
+import com.crrc.sys.entity.user.dto.SysUserDTO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -120,6 +121,14 @@ public interface SysUserMapper {
     List<SysUser> findUsersByRoleCode(@Param("roleCodes") List<String> roleCode);
 
     List<SysUser> findUsersByOrgCode(@Param("orgCode") String orgCode, @Param("companyId") Long companyId);
+
+    /**
+     *  根据用户全名查询用户信息列表
+     * @param fullName
+     * @param companyId
+     * @return
+     */
+    List<SysUserDTO> findUsersByfullName(@Param("fullName") String fullName, @Param("companyId") Long companyId);
 
 
     /**

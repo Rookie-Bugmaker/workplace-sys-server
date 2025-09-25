@@ -3,6 +3,7 @@ package com.crrc.sys.service;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
+import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
 
 import java.util.List;
@@ -29,6 +30,14 @@ public interface SysUserService {
      * @return
      */
     List<SysUser> findUsersByRoleCode(List<String> roleCodes);
+
+    /**
+     * 根据用户全名查询用户信息列表
+     * @param fullName
+     * @param companyId
+     * @return
+     */
+    List<SysUserDTO> findUsersByfullName(String fullName, Long companyId);
 
     public List<SysUser> findUsersByOrgCode(String orgCode, Long companyId);
 

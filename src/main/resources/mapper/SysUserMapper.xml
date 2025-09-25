@@ -207,6 +207,24 @@
         ORDER BY u.CREATE_DATE DESC;
     </select>
 
+    <!--根据用户全名查询用户信息列表-->
+    <select id="findUsersByfullName" resultType="com.crrc.sys.entity.user.dto.SysUserDTO">
+        SELECT u.*,
+               dp.company_id,
+               dp.dept_id,
+               ptl.FULL_NAME
+        FROM sys_user u
+                 INNER JOIN
+             sys_org_person_tl ptl ON u.USER_RELATION_ID = ptl.PERSON_ID
+                 INNER JOIN
+             sys_dept_person dp ON dp.person_id = u.USER_RELATION_ID
+        WHERE u.DISABLE_STATE = 'N'
+          AND ptl.`LANGUAGE` = 'zh-CN'
+          AND ptl.FULL_NAME = #{fullName}
+          AND dp.company_id = #{companyId}
+        ORDER BY u.CREATE_DATE DESC;
+    </select>
+
     <!--根据用户ID批量查询并模糊查询-->
     <select id="findByUserIdsAndFuzzy" resultMap="userMap">
         select t.* from (

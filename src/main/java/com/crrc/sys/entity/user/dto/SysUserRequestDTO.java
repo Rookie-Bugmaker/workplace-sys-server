@@ -18,4 +18,6 @@ public class SysUserRequestDTO {
      */
     private String orgCode;
 
+    private String fullName;
+
 }

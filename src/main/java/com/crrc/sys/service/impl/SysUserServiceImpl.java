@@ -14,6 +14,7 @@ import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
+import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.mapper.SysDataAuthMapper;
 import com.crrc.sys.mapper.SysDataAuthValueMapper;
 import com.crrc.sys.mapper.SysUserMapper;
@@ -79,6 +80,15 @@ public class SysUserServiceImpl implements SysUserService {
             return null;
         }
         return userMapper.findUsersByRoleCode(roleCodes);
+    }
+
+    @Override
+    public List<SysUserDTO> findUsersByfullName(String fullName, Long companyId) {
+        List<SysUserDTO> userList = userMapper.findUsersByfullName(fullName, companyId);
+        if (CollectionUtils.isEmpty(userList)) {
+            return null;
+        }
+        return userMapper.findUsersByfullName(fullName, companyId);
     }
 
     public List<SysUser> findUsersByOrgCode(String orgCode, Long companyId) {
