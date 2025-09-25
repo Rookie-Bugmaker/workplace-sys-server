@@ -29,8 +29,10 @@ import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
+import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.*;
 import io.swagger.v3.oas.annotations.Operation;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
@@ -102,8 +104,8 @@ public class SysUserController {
 
     @Resource
     private SysOrgPersonService sysOrgPersonService;
-
-
+    @Resource
+    private SysUserService sysUserService;
 
     /**
      * 测试接口(公寓测试配置文件通过api接口调用)
@@ -436,6 +438,20 @@ public class SysUserController {
         workflowUserPageDTO.setRows(finalUserListWithFullName);
         workflowUserPageDTO.setTotal((long) finalUserListWithFullName.size());
         return ResponseResult.success(workflowUserPageDTO);
+    }
+
+    /**
+     * 根据用户ids查询角色编码
+     * @param sysUserRequestDTO
+     * @return
+     */
+    @PostMapping("findUserRolesByUserId")
+    public List<SysUserRoleDTO> findUserRolesByUserId(@RequestBody SysUserRequestDTO sysUserRequestDTO){
+        List<Long> userIdList = sysUserRequestDTO.getUserIdList();
+        if (ObjectUtils.isEmpty(userIdList)) {
+            throw new ParamValidateException("用户id不能为空!");
+        }
+        return sysUserService.findUserRoleByUserId(userIdList);
     }
 
     /**

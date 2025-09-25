@@ -20,4 +20,6 @@ public class SysUserRequestDTO {
 
     private String fullName;
 
+    private List<Long> userIdList;
+
 }

@@ -5,6 +5,8 @@ import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
+import com.crrc.sys.model.user.role.SysUserRoleDTO;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -23,6 +25,13 @@ public interface SysUserService {
      * @return 用户信息
      */
     SysUser findByUserName(String userName);
+
+    /**
+     * 根据用户id查询角色
+     * @param userIdList
+     * @return
+     */
+    List<SysUserRoleDTO> findUserRoleByUserId(@Param("userIdList") List<Long> userIdList);
 
     /**
      * 根据角色code查询用户信息

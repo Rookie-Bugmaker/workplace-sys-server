@@ -21,6 +21,7 @@ import com.crrc.sys.mapper.SysUserMapper;
 import com.crrc.sys.mapper.SysUserRoleMapper;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.model.user.UserGetRespVO;
+import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.SysUserService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -72,6 +73,12 @@ public class SysUserServiceImpl implements SysUserService {
         }
         return sysUser;
     }
+
+    @Override
+    public List<SysUserRoleDTO> findUserRoleByUserId(List<Long> userIdList) {
+        return userRoleMapper.findUserRoleByUserId(userIdList);
+    }
+
 
     @Override
     public List<SysUser> findUsersByRoleCode(List<String> roleCodes) {
