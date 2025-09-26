@@ -9,13 +9,13 @@ package com.crrc.sys.entity.profile;
 public class SysProfileValuePageSearch extends SysProfile{
 
     /**
-     * 当前页码
+     * 当前页码(不分页page和pageSize传null)
      */
-    private int page;
+    private Integer page;
     /**
-     * 偏移量
+     * 偏移量(不分页page和pageSize传null)
      */
-    private int pageSize;
+    private Integer pageSize;
     /**
      * SQL语句
      */
@@ -38,7 +38,7 @@ public class SysProfileValuePageSearch extends SysProfile{
         return page;
     }
 
-    public void setPage(int page) {
+    public void setPage(Integer page) {
         this.page = page;
     }
 
@@ -46,7 +46,7 @@ public class SysProfileValuePageSearch extends SysProfile{
         return pageSize;
     }
 
-    public void setPageSize(int pageSize) {
+    public void setPageSize(Integer pageSize) {
         this.pageSize = pageSize;
     }
 

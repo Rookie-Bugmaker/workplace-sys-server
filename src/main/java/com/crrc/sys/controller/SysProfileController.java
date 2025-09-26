@@ -190,10 +190,10 @@ public class SysProfileController {
             throw new ParamValidateException("参数错误!");
         }
         if (ObjectUtils.isEmpty(search.getPage()) || search.getPage() <= 0) {
-            throw new ParamValidateException("page不能为空且必须>0");
+            throw new ParamValidateException("page必填且>0");
         }
         if (ObjectUtils.isEmpty(search.getPageSize()) || search.getPageSize() < 0) {
-            throw new ParamValidateException("pageSize不能为空且必须>=0");
+            throw new ParamValidateException("pageSize必填且>=0");
         }
         if (ObjectUtils.isEmpty(search.getProfileCode())) {
             throw new ParamValidateException("profileCode不能为空");
@@ -227,13 +227,19 @@ public class SysProfileController {
                 paginationGrid = profileService.findValuePageBySql(search);
             case "api":
                 //远程请求api接口
-                //请求案例：http://sys-server/user/test/findUserPage?usernames=18875012385&page=1&pageSize=10
-                //响应案例:{total:100,rows:[{值列:"1",编码列:"qqq",描述列:"描述",父级列:""}]}
+                //请求案例(分页)：http://sys-server/user/test/findUserPage?usernames=18875012385&page=1&pageSize=10
+                //响应案例(分页):{total:100,rows:[{值列:"1",编码列:"qqq",描述列:"描述",父级列:""}]}
+                //请求案例(不分页)：http://sys-server/user/test/findUserPage?usernames=18875012385
+                //响应案例(不分页):[{值列:"1",编码列:"qqq",描述列:"描述",父级列:""}]
                 String url = search.getSql();
-                if (url.contains("?")) {
-                    url += "&page=1&pageSize=10";
-                } else {
-                    url += "?page=1&pageSize=10";
+                //判断是否是分页查询(即page和pageSize有值)，在分页查询的情况下，才需要拼接分页信息
+                if (!ObjectUtils.isEmpty(search.getPageSize()) && search.getPageSize() > 0) {
+                    String pageStr = ("&page=" + search.getPage() + "&pageSize=" + search.getPageSize());
+                    if (url.contains("?")) {
+                        url += ("&" + pageStr);
+                    } else {
+                        url += ("?" + pageStr);
+                    }
                 }
                 LOGGER.debug("---> GET {}", url);
                 ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
@@ -245,7 +251,15 @@ public class SysProfileController {
                     if (!responseResult.getSuccess()) {
                         throw new BizException(ObjectUtils.isEmpty(responseResult.getMsg()) ? "请求失败:" + url : responseResult.getMsg());
                     }
-                    paginationGrid = bodyHandler(search, responseResult.getData());
+                    String dataStr = responseResult.getData();
+                    if (dataStr.contains("total")) {
+                        //说明是分页返回，需要使用分页解析
+                        paginationGrid = bodyHandlerPage(search, responseResult.getData());
+                    } else {
+                        //不分页返回，直接返回的集合，使用集合
+                        List<ValueSet> valueSetList = bodyHandlerList(search, dataStr);
+                        paginationGrid.setRows(valueSetList);
+                    }
                 }
                 break;
             default:
@@ -255,12 +269,12 @@ public class SysProfileController {
     }
 
     /**
-     * 处理响应数据
+     * 处理响应数据(分页)
      *
-     * @param body 响应案例:{total:100,rows:[{值列:"1",编码列:"qqq",描述列:"描述",父级列:""}]}
+     * @param body 响应案例:{"total":100,"rows":[{"值列":"1","编码列":"qqq","描述列":"描述","父级列":""}]}
      * @return
      */
-    private PaginationGrid<ValueSet> bodyHandler(SysProfileValuePageSearch search, String body) {
+    private PaginationGrid<ValueSet> bodyHandlerPage(SysProfileValuePageSearch search, String body) {
         PaginationGrid<ValueSet> paginationGrid = new PaginationGrid<>(search.getPage(), search.getPageSize());
         Map<String, String> resultMap = JSON.parseObject(body, new TypeReference<Map<String, String>>() {
         });
@@ -273,12 +287,28 @@ public class SysProfileController {
             return paginationGrid;
         }
         String rowsStr = resultMap.get("rows");
-        List<Map<String, String>> rows = JSON.parseObject(rowsStr, new TypeReference<List<Map<String, String>>>() {
+        //处理rows转对象
+        List<ValueSet> valueSetList = bodyHandlerList(search, rowsStr);
+        paginationGrid.setRows(valueSetList);
+        return paginationGrid;
+    }
+
+    /**
+     * 处理响应数据(不分页)
+     *
+     * @param rowsJson 案例:[{值列:"1",编码列:"qqq",描述列:"描述",父级列:""}]
+     * @return List<ValueSet>
+     */
+    private List<ValueSet> bodyHandlerList(SysProfileValuePageSearch search, String rowsJson) {
+        List<ValueSet> valueSetList = new ArrayList<>();
+        if (ObjectUtils.isEmpty(rowsJson)) {
+            return valueSetList;
+        }
+        List<Map<String, String>> rows = JSON.parseObject(rowsJson, new TypeReference<List<Map<String, String>>>() {
         });
         if (CollectionUtils.isEmpty(rows)) {
-            return paginationGrid;
+            return valueSetList;
         }
-        List<ValueSet> valueSetList = new ArrayList<>();
         for (Map<String, String> row : rows) {
             //值列
             String value = row.get(search.getProfileValueColumn());
@@ -292,8 +322,7 @@ public class SysProfileController {
             valueSet.setParentId(parent);
             valueSetList.add(valueSet);
         }
-        paginationGrid.setRows(valueSetList);
-        return paginationGrid;
+        return valueSetList;
     }
 
     /**

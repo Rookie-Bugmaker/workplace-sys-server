@@ -21,7 +21,6 @@ import com.crrc.sys.service.DeptService;
 import com.crrc.sys.service.SysDeptPersonService;
 import com.crrc.sys.service.SysOrgPersonService;
 import com.crrc.sys.service.SysUserService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -193,31 +192,13 @@ public class SysDeptPersonController {
     /**
      * 根据部门ID查询部门人员列表
      *
-     * @param deptId   部门ID
-     * @param page     当前页码
-     * @param pageSize 查询数据条数(pageSize<=0查询所有)
+     * @param deptId 部门ID
      * @return 部门人员列表
      */
     @GetMapping("findByDeptId/{deptId}")
-    public PaginationGrid<SysDeptPersonDTO> findByDeptId(@PathVariable("deptId") Long deptId, Long page, Long pageSize) {
-        if (ObjectUtils.isEmpty(page) || page <= 0) {
-            throw new ParamValidateException("page不能为空且必须>0");
-        }
-        if (ObjectUtils.isEmpty(pageSize)) {
-            throw new ParamValidateException("pageSize不能为空");
-        }
-        LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(!ObjectUtils.isEmpty(deptId), SysDeptPersonPO::getDeptId, deptId);
-        IPage<SysDeptPersonPO> iPage = new Page<>(page, pageSize);
-        iPage = deptPersonService.page(iPage, queryWrapper);
-        List<SysDeptPersonPO> records = iPage.getRecords();
-        PaginationGrid<SysDeptPersonDTO> paginationGrid = new PaginationGrid<>((int) iPage.getCurrent(), (int) iPage.getSize());
-        paginationGrid.setTotal(iPage.getTotal());
-        if (ObjectUtils.isEmpty(records)) {
-            return paginationGrid;
-        }
-        paginationGrid.setRows(poToDto(records));
-        return paginationGrid;
+    public List<SysDeptPersonDTO> findByDeptId(@PathVariable("deptId") Long deptId) {
+        List<SysDeptPersonPO> records = deptPersonService.findByDeptId(deptId);
+        return poToDto(records);
     }
 
     /**
@@ -242,6 +223,7 @@ public class SysDeptPersonController {
 
     /**
      * 根据部门id查询人员信息
+     *
      * @param deptId
      * @param page
      * @param pageSize
@@ -249,9 +231,9 @@ public class SysDeptPersonController {
      */
     @GetMapping("find_person_by_dept_id")
     public IPage<SysDeptPersonDetailDTO> findPersonByDeptId(@RequestParam("deptId") Long deptId,
-                                                      @RequestParam(value = "realName", required = false, defaultValue = "") String realName,
-                                                      @RequestParam(value = "page") Long page,
-                                                      @RequestParam("pageSize") Long pageSize) {
+                                                            @RequestParam(value = "realName", required = false, defaultValue = "") String realName,
+                                                            @RequestParam(value = "page") Long page,
+                                                            @RequestParam("pageSize") Long pageSize) {
         // 参数校验
         if (ObjectUtils.isEmpty(page) || page <= 0) {
             throw new ParamValidateException("page不能为空且必须>0");
@@ -262,7 +244,7 @@ public class SysDeptPersonController {
 
         List<Dept> deptList = deptService.findByDeptIds(Collections.singletonList(deptId));
         if (deptList.size() != 1) {
-            throw new BizException(String.format("部门id为：%d的部门不存在",deptId));
+            throw new BizException(String.format("部门id为：%d的部门不存在", deptId));
         }
         Dept currentDept = deptList.get(0);
 
@@ -296,7 +278,7 @@ public class SysDeptPersonController {
         // 4. 设置分页结果
         resPage.setTotal(readPage.getTotal());
         resPage.setPages(readPage.getPages());
-        resPage.setRecords(poToDtoDetail(readPage.getRecords(),currentDept));
+        resPage.setRecords(poToDtoDetail(readPage.getRecords(), currentDept));
 
         return resPage;
     }
