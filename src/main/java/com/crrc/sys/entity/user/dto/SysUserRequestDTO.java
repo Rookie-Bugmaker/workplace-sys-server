@@ -22,4 +22,6 @@ public class SysUserRequestDTO {
 
     private List<Long> userIdList;
 
+    private List<String> userNameList;
+
 }

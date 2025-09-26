@@ -75,8 +75,8 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public List<SysUserRoleDTO> findUserRoleByUserId(List<Long> userIdList) {
-        return userRoleMapper.findUserRoleByUserId(userIdList);
+    public List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(List<Long> userIdList, List<String> userNameList) {
+        return userRoleMapper.findUserRoleByUserIdOrUserName(userIdList, userNameList);
     }
 
 

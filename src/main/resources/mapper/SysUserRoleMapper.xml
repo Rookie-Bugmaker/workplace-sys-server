@@ -46,14 +46,28 @@
     </select>
 
     <!--  根据用户ids查询角色编码-->
-    <select id="findUserRoleByUserId" resultType="com.crrc.sys.model.user.role.SysUserRoleDTO">
-        select s.*, b.ROLE_CODE
-        from sys_user_role s
-                 inner join sys_role_b b on s.role_id = b.role_id
-        where s.user_id in
-        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
-            #{userId}
-        </foreach>
+    <select id="findUserRoleByUserIdOrUserName" resultType="com.crrc.sys.model.user.role.SysUserRoleDTO">
+        SELECT
+        s.*,
+        b.ROLE_CODE,
+        su.USER_NAME
+        FROM sys_user_role s
+        LEFT JOIN sys_role_b b ON s.role_id = b.role_id
+        LEFT JOIN sys_user su ON su.user_id = s.USER_ID
+        <where>
+            <if test="userIds != null and userIds.size() > 0">
+                AND su.user_id IN
+                <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+                    #{userId}
+                </foreach>
+            </if>
+            <if test="userNames != null and userNames.size() > 0">
+                AND su.user_name IN
+                <foreach collection="userNames" item="userName" open="(" separator="," close=")">
+                    #{userName}
+                </foreach>
+            </if>
+        </where>
     </select>
 
 </mapper>

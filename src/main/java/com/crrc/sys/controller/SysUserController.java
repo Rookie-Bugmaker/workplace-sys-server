@@ -445,13 +445,14 @@ public class SysUserController {
      * @param sysUserRequestDTO
      * @return
      */
-    @PostMapping("findUserRolesByUserId")
-    public List<SysUserRoleDTO> findUserRolesByUserId(@RequestBody SysUserRequestDTO sysUserRequestDTO){
+    @PostMapping("findUserRolesByUserIdOrUserName")
+    public List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@RequestBody SysUserRequestDTO sysUserRequestDTO){
         List<Long> userIdList = sysUserRequestDTO.getUserIdList();
-        if (ObjectUtils.isEmpty(userIdList)) {
-            throw new ParamValidateException("用户id不能为空!");
+        List<String> userNameList = sysUserRequestDTO.getUserNameList();
+        if (ObjectUtils.isEmpty(userIdList) && ObjectUtils.isEmpty(userNameList)) {
+            throw new ParamValidateException("用户id和用户名不能同时为空!");
         }
-        return sysUserService.findUserRoleByUserId(userIdList);
+        return sysUserService.findUserRoleByUserIdOrUserName(userIdList,userNameList);
     }
 
     /**

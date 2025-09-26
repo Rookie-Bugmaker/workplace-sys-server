@@ -31,7 +31,7 @@ public interface SysUserService {
      * @param userIdList
      * @return
      */
-    List<SysUserRoleDTO> findUserRoleByUserId(@Param("userIdList") List<Long> userIdList);
+    List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@Param("userIdList") List<Long> userIdList,@Param("userNameList") List<String> userNameList);
 
     /**
      * 根据角色code查询用户信息

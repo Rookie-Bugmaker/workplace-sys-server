@@ -57,6 +57,6 @@ public interface SysUserRoleMapper {
     List<Long> findUserIdByRoleId(@Param("roleId") long roleId);
 
 
-    List<SysUserRoleDTO> findUserRoleByUserId(@Param("userIds") List<Long> userIds);
+    List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@Param("userIds") List<Long> userIds,@Param("userNames") List<String> userNames);
 
 }

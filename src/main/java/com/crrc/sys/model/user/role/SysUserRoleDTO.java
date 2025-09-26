@@ -11,6 +11,11 @@ public class SysUserRoleDTO {
      * 用户ID
      */
     private Long userId;
+
+    /**
+     * 用户名
+     */
+    private String userName;
     /**
      * 角色ID
      */
