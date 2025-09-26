@@ -104,7 +104,13 @@
 
     <!--根据用户ID查询用户-->
     <select id="findById" resultMap="userMap" parameterType="java.lang.Long">
-        select * from sys_user where user_id = #{userId}
+        select u.user_id,u.user_name,u.password,u.password_update_date,u.user_type,u.user_relation_id,
+               u.login_error_count,u.last_login_info_id,u.last_update_login,u.disable_deadline_date,u.disable_state,
+               ifnull(tl.full_name, u.user_description) user_description
+        from sys_user u
+         left join sys_org_person_b b on b.person_id = u.user_relation_id
+         left join sys_org_person_tl tl on b.person_id = tl.person_id and tl.language = 'zh-CN'
+        where u.user_id = #{userId}
     </select>
 
     <!--修改用户最后登录信息ID-->
