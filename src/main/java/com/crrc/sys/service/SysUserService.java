@@ -110,6 +110,8 @@ public interface SysUserService {
      */
     List<SysUser> findByUserIds(List<Long> userIds);
 
+    List<SysUserDTO> findByUserIdListWithFullName(List<Long> userIds);
+
     /**
      * 密码修改
      *

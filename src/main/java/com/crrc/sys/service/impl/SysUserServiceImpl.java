@@ -281,6 +281,11 @@ public class SysUserServiceImpl implements SysUserService {
         return userMapper.findByUserIds(userIds);
     }
 
+    @Override
+    public List<SysUserDTO> findByUserIdListWithFullName(List<Long> userIds) {
+        return userMapper.findByUserIdListWithFullName(userIds);
+    }
+
     /**
      * 密码修改
      *

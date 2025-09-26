@@ -144,6 +144,26 @@
         </if>
 	</select>
 
+
+    <select id="findByUserIdListWithFullName" resultType="com.crrc.sys.entity.user.dto.SysUserDTO">
+        SELECT
+        u.*,
+        ptl.FULL_NAME
+        FROM
+        sys_user u
+        INNER JOIN
+        sys_org_person_tl ptl ON u.user_relation_id = ptl.person_id
+        WHERE
+        u.DISABLE_STATE = 'N'
+        AND ptl.LANGUAGE = 'zh-CN'
+        AND u.user_id in
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        ORDER BY
+        u.CREATE_DATE DESC;
+    </select>
+
 	<!--密码修改-->
 	<update id="updatePassword">
 		update sys_user

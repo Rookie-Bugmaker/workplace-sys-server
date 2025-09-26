@@ -87,6 +87,9 @@ public interface SysUserMapper {
      */
     List<SysUser> findByUserIds(@Param("userIds") List<Long> userIds);
 
+
+    List<SysUserDTO> findByUserIdListWithFullName(@Param("userIds") List<Long> userIds);
+
     /**
      * 密码修改
      *

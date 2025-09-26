@@ -624,6 +624,16 @@ public class SysUserController {
         return userService.findByUserIds(userIds);
     }
 
+
+    @PostMapping("findByUserIdListWithFullName")
+    public List<SysUserDTO> findByUserIdListWithFullName(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+        List<Long> userIdList = sysUserRequestDTO.getUserIdList();
+        if (CollectionUtils.isEmpty(userIdList)) {
+            throw new ParamValidateException("userIds不能为空!");
+        }
+        return userService.findByUserIdListWithFullName(userIdList);
+    }
+
     /**
      * 密码错误次数保存
      *
