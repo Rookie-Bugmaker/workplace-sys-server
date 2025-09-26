@@ -2,6 +2,7 @@ package com.crrc.sys.mapper;
 
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUserRole;
+import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -54,4 +55,8 @@ public interface SysUserRoleMapper {
      * @return 用户ID
      */
     List<Long> findUserIdByRoleId(@Param("roleId") long roleId);
+
+
+    List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@Param("userIds") List<Long> userIds,@Param("userNames") List<String> userNames);
+
 }

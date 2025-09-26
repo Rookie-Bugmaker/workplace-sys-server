@@ -18,4 +18,10 @@ public class SysUserRequestDTO {
      */
     private String orgCode;
 
+    private String fullName;
+
+    private List<Long> userIdList;
+
+    private List<String> userNameList;
+
 }

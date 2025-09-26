@@ -29,8 +29,10 @@ import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
+import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.*;
 import io.swagger.v3.oas.annotations.Operation;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
@@ -102,8 +104,8 @@ public class SysUserController {
 
     @Resource
     private SysOrgPersonService sysOrgPersonService;
-
-
+    @Resource
+    private SysUserService sysUserService;
 
     /**
      * 测试接口(公寓测试配置文件通过api接口调用)
@@ -399,8 +401,8 @@ public class SysUserController {
         }
 
         //查询当前租户下的当前当前部门用户
-//        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, currentUserResultData.getResult().getCurrentCompanyId());
-        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, 467L);
+        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, currentUserResultData.getResult().getCurrentCompanyId());
+//        List<SysUser> usersByOrgCode = userService.findUsersByOrgCode(orgCode, 467L);
         if (ObjectUtils.isEmpty(usersByOrgCode)) {
             return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "通过部门编码和当前用户租户id查询的用户为空!");
         }
@@ -439,18 +441,53 @@ public class SysUserController {
     }
 
     /**
+     * 根据用户ids查询角色编码
+     * @param sysUserRequestDTO
+     * @return
+     */
+    @PostMapping("findUserRolesByUserIdOrUserName")
+    public List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@RequestBody SysUserRequestDTO sysUserRequestDTO){
+        List<Long> userIdList = sysUserRequestDTO.getUserIdList();
+        List<String> userNameList = sysUserRequestDTO.getUserNameList();
+        if (ObjectUtils.isEmpty(userIdList) && ObjectUtils.isEmpty(userNameList)) {
+            throw new ParamValidateException("用户id和用户名不能同时为空!");
+        }
+        return sysUserService.findUserRoleByUserIdOrUserName(userIdList,userNameList);
+    }
+
+    /**
      * 通过角色编码获取用户 roleCodes
      * @param sysUserRequestDTO
      * @return
      */
     @PostMapping("findUserByRoleCodes")
-    public List<SysUser> findByUserIds(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+    public List<SysUser> findUserByRoleCodes(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
         List<String> roleCodes = sysUserRequestDTO.getRoleCodes();
         if (ObjectUtils.isEmpty(roleCodes)) {
             throw new ParamValidateException("角色编码不能为空!");
         }
         return userService.findUsersByRoleCode(roleCodes);
     }
+
+    /**
+     * 通过姓名查询用户
+     * @param sysUserRequestDTO
+     * @return
+     */
+    @PostMapping("findUserByFullName")
+    public List<SysUserDTO> findUserByFullName(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+        String fullName = sysUserRequestDTO.getFullName();
+        if (ObjectUtils.isEmpty(fullName)) {
+            throw new ParamValidateException("姓名不能为空!");
+        }
+        ResultData<SysUser> currentUserResultData = authClient.currentUser();
+        if (ObjectUtils.isEmpty(currentUserResultData.getResult().getCurrentCompanyId())) {
+            throw new ParamValidateException("租户id不能为空!");
+        }
+        return userService.findUsersByfullName(fullName, currentUserResultData.getResult().getCurrentCompanyId());
+    }
+
+
 
 
     /**

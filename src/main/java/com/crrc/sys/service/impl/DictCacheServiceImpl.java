@@ -355,12 +355,12 @@ public class DictCacheServiceImpl implements DictCacheService {
             // 更新字典索引
             redisCache.setCacheMapValue(CacheKeyGenerator.getDictIndexKey(),
                     dictVO.getDictCode(), dictVO.getDictName());
-            // 更新字典数据
+            // 更新字典数据 - 确保不放入null值
             Map<String, Object> dictMap = new HashMap<>();
-            dictMap.put("dictCode", dictVO.getDictCode());
-            dictMap.put("dictName", dictVO.getDictName());
-            dictMap.put("dictType", dictVO.getDictType());
-            dictMap.put("remark", dictVO.getRemark());
+            dictMap.put("dictCode", StringUtils.defaultIfBlank(dictVO.getDictCode(), ""));
+            dictMap.put("dictName", StringUtils.defaultIfBlank(dictVO.getDictName(), ""));
+            dictMap.put("dictType", StringUtils.defaultIfBlank(dictVO.getDictType(),""));
+            dictMap.put("remark", StringUtils.defaultIfBlank(dictVO.getRemark(),""));
             redisCache.setCacheMap(dictKey, dictMap);
 
             // 更新字典项
@@ -381,9 +381,9 @@ public class DictCacheServiceImpl implements DictCacheService {
 
         LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
             Map<String, String> itemMap = new HashMap<>();
-            itemMap.put("itemCode", itemVO.getItemCode());
-            itemMap.put("itemName", itemVO.getItemName());
-            itemMap.put("sorted", itemVO.getSorted());
+            itemMap.put("itemCode", StringUtils.defaultIfBlank(itemVO.getItemCode(),""));
+            itemMap.put("itemName", StringUtils.defaultIfBlank(itemVO.getItemName(),""));
+            itemMap.put("sorted", StringUtils.defaultIfBlank(itemVO.getSorted(),""));
             redisCache.setCacheMap(itemKey, itemMap);
         });
     }

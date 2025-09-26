@@ -14,12 +14,14 @@ import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
+import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.mapper.SysDataAuthMapper;
 import com.crrc.sys.mapper.SysDataAuthValueMapper;
 import com.crrc.sys.mapper.SysUserMapper;
 import com.crrc.sys.mapper.SysUserRoleMapper;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.model.user.UserGetRespVO;
+import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.SysUserService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -73,12 +75,27 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
+    public List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(List<Long> userIdList, List<String> userNameList) {
+        return userRoleMapper.findUserRoleByUserIdOrUserName(userIdList, userNameList);
+    }
+
+
+    @Override
     public List<SysUser> findUsersByRoleCode(List<String> roleCodes) {
         List<SysUser> userList = userMapper.findUsersByRoleCode(roleCodes);
         if (CollectionUtils.isEmpty(userList)) {
             return null;
         }
         return userMapper.findUsersByRoleCode(roleCodes);
+    }
+
+    @Override
+    public List<SysUserDTO> findUsersByfullName(String fullName, Long companyId) {
+        List<SysUserDTO> userList = userMapper.findUsersByfullName(fullName, companyId);
+        if (CollectionUtils.isEmpty(userList)) {
+            return null;
+        }
+        return userMapper.findUsersByfullName(fullName, companyId);
     }
 
     public List<SysUser> findUsersByOrgCode(String orgCode, Long companyId) {
