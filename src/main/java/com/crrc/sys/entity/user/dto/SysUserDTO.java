@@ -39,6 +39,11 @@ public class SysUserDTO {
      */
     private Long companyId;
 
+    /**
+     * 角色编码
+     */
+    private String roleCode;
+
 
 
 
