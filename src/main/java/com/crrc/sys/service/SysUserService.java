@@ -40,6 +40,8 @@ public interface SysUserService {
      */
     List<SysUser> findUsersByRoleCode(List<String> roleCodes);
 
+    List<SysUserDTO> findUserByRoleCodeAndCompanyId(String roleCode, Long companyId);
+
     /**
      * 根据用户全名查询用户信息列表
      * @param fullName

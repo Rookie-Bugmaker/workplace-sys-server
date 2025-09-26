@@ -122,6 +122,9 @@ public interface SysUserMapper {
 
     List<SysUser> findUsersByOrgCode(@Param("orgCode") String orgCode, @Param("companyId") Long companyId);
 
+
+    List<SysUserDTO> findUserByRoleCodeAndCompanyId(@Param("roleCode") String roleCode, @Param("companyId") Long companyId);
+
     /**
      *  根据用户全名查询用户信息列表
      * @param fullName
