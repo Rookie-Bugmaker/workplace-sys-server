@@ -250,9 +250,9 @@
              sys_org_person_tl ptl ON u.user_relation_id = ptl.person_id
         WHERE r.role_code = #{roleCode}
           AND dp.company_id = #{companyId}
-          -- 状态过滤（N表示启用）
           AND u.DISABLE_STATE = 'N'
           AND ptl.LANGUAGE = 'zh-CN'
+        GROUP BY u.user_name
         ORDER BY u.CREATE_DATE DESC;
     </select>
 
