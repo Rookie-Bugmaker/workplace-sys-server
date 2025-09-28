@@ -1479,7 +1479,8 @@ public class SysUserController {
      */
     private List<SysUserCompatibilityDTO> setUserProperties(List<SysUser> userList) {
         //用户关联的人员ID
-        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+//        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+        List<Long> personIdList = userList.stream().map(SysUser::getUserRelationId).collect(Collectors.toList());
         //根据人员ID查询人员信息
         List<SysOrgPerson> personList = personService.findByIds(personIdList);
         //根据人员ID查询部门人员
