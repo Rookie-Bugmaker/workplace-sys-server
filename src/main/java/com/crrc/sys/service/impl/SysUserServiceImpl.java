@@ -99,6 +99,15 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
+    public List<SysUserDTO> findUserByRoleCode(String roleCode, Long companyId, Long deptId) {
+        List<SysUserDTO> userList = userMapper.findUserByRoleCode(roleCode, companyId, deptId);
+        if (CollectionUtils.isEmpty(userList)) {
+            return null;
+        }
+        return userMapper.findUserByRoleCode(roleCode, companyId, deptId);
+    }
+
+    @Override
     public List<SysUserDTO> findUsersByfullName(String fullName, Long companyId) {
         List<SysUserDTO> userList = userMapper.findUsersByfullName(fullName, companyId);
         if (CollectionUtils.isEmpty(userList)) {

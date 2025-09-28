@@ -33,4 +33,9 @@ public class SysUserRequestDTO {
      */
     private Long companyId;
 
+    /**
+     * 部门id
+     */
+    private Long deptId;
+
 }

@@ -256,6 +256,30 @@
         ORDER BY u.CREATE_DATE DESC;
     </select>
 
+    <select id="findUserByRoleCode" resultType="com.crrc.sys.entity.user.dto.SysUserDTO">
+        SELECT u.*,
+               r.role_code,
+               ptl.FULL_NAME,
+               dp.company_id,
+               dp.dept_id
+        FROM sys_user u
+                 INNER JOIN
+             sys_user_role ur ON u.user_id = ur.user_id
+                 INNER JOIN
+             sys_role_b r ON ur.role_id = r.role_id
+                 INNER JOIN
+             sys_dept_person dp ON u.user_relation_id = dp.person_id
+                 INNER JOIN
+             sys_org_person_tl ptl ON u.user_relation_id = ptl.person_id
+        WHERE r.role_code = #{roleCode}
+          AND dp.company_id = #{companyId}
+          AND dp.dept_id = #{deptId}
+          AND u.DISABLE_STATE = 'N'
+          AND ptl.LANGUAGE = 'zh-CN'
+        GROUP BY u.user_name
+        ORDER BY u.CREATE_DATE DESC;
+    </select>
+
 
     <!--根据用户全名查询用户信息列表-->
     <select id="findUsersByfullName" resultType="com.crrc.sys.entity.user.dto.SysUserDTO">

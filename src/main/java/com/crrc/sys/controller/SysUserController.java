@@ -488,10 +488,28 @@ public class SysUserController {
     }
 
     /**
-     * 根据角色编码和租户id获取用户信息
+     * 根据用户部门id和companyId和角色编码信息 查询用户
      * @param sysUserRequestDTO
      * @return
      */
+    @PostMapping("findUserByRoleCode")
+    public List<SysUserDTO> findUserByRoleCode(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+        Long companyId = sysUserRequestDTO.getCompanyId();
+        String roleCode = sysUserRequestDTO.getRoleCode();
+        Long deptId = sysUserRequestDTO.getDeptId();
+        if (ObjectUtils.isEmpty(companyId)) {
+            throw new ParamValidateException("companyId不能为空!");
+        }
+        if (ObjectUtils.isEmpty(roleCode)) {
+            throw new ParamValidateException("roleCode不能为空!");
+        }
+        if (ObjectUtils.isEmpty(deptId)) {
+            throw new ParamValidateException("deptId不能为空!");
+        }
+        return userService.findUserByRoleCode(roleCode, companyId, deptId);
+    }
+
+
     @PostMapping("findUserByRoleCodeAndCompanyId")
     public List<SysUserDTO> findUserByRoleCodeAndCompanyId(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
         Long companyId = sysUserRequestDTO.getCompanyId();
