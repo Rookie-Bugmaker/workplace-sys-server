@@ -87,6 +87,9 @@ public interface SysUserMapper {
      */
     List<SysUser> findByUserIds(@Param("userIds") List<Long> userIds);
 
+
+    List<SysUserDTO> findByUserIdListWithFullName(@Param("userIds") List<Long> userIds);
+
     /**
      * 密码修改
      *
@@ -124,6 +127,8 @@ public interface SysUserMapper {
 
 
     List<SysUserDTO> findUserByRoleCodeAndCompanyId(@Param("roleCode") String roleCode, @Param("companyId") Long companyId);
+
+    List<SysUserDTO> findUserByRoleCode(@Param("roleCode") String roleCode, @Param("companyId") Long companyId, @Param("deptId") Long deptId);
 
     /**
      *  根据用户全名查询用户信息列表

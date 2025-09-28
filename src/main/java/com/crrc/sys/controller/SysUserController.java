@@ -488,10 +488,28 @@ public class SysUserController {
     }
 
     /**
-     * 根据角色编码和租户id获取用户信息
+     * 根据用户部门id和companyId和角色编码信息 查询用户
      * @param sysUserRequestDTO
      * @return
      */
+    @PostMapping("findUserByRoleCode")
+    public List<SysUserDTO> findUserByRoleCode(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+        Long companyId = sysUserRequestDTO.getCompanyId();
+        String roleCode = sysUserRequestDTO.getRoleCode();
+        Long deptId = sysUserRequestDTO.getDeptId();
+        if (ObjectUtils.isEmpty(companyId)) {
+            throw new ParamValidateException("companyId不能为空!");
+        }
+        if (ObjectUtils.isEmpty(roleCode)) {
+            throw new ParamValidateException("roleCode不能为空!");
+        }
+        if (ObjectUtils.isEmpty(deptId)) {
+            throw new ParamValidateException("deptId不能为空!");
+        }
+        return userService.findUserByRoleCode(roleCode, companyId, deptId);
+    }
+
+
     @PostMapping("findUserByRoleCodeAndCompanyId")
     public List<SysUserDTO> findUserByRoleCodeAndCompanyId(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
         Long companyId = sysUserRequestDTO.getCompanyId();
@@ -622,6 +640,16 @@ public class SysUserController {
             throw new ParamValidateException("userIds不能为空!");
         }
         return userService.findByUserIds(userIds);
+    }
+
+
+    @PostMapping("findByUserIdListWithFullName")
+    public List<SysUserDTO> findByUserIdListWithFullName(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+        List<Long> userIdList = sysUserRequestDTO.getUserIdList();
+        if (CollectionUtils.isEmpty(userIdList)) {
+            throw new ParamValidateException("userIds不能为空!");
+        }
+        return userService.findByUserIdListWithFullName(userIdList);
     }
 
     /**
@@ -1469,7 +1497,8 @@ public class SysUserController {
      */
     private List<SysUserCompatibilityDTO> setUserProperties(List<SysUser> userList) {
         //用户关联的人员ID
-        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+//        List<Long> personIdList = userList.stream().filter(o -> UserTypeEnum.EMPLOYEE.getValue().equals(o.getUserType())).map(SysUser::getUserRelationId).collect(Collectors.toList());
+        List<Long> personIdList = userList.stream().map(SysUser::getUserRelationId).collect(Collectors.toList());
         //根据人员ID查询人员信息
         List<SysOrgPerson> personList = personService.findByIds(personIdList);
         //根据人员ID查询部门人员
