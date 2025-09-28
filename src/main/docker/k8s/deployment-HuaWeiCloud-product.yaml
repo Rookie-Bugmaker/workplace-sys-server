@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: container-workplace-sys-server
-          image: swr.ckgf-global-1.cccar.com.cn/work_place/workplace-sys-server-prod:5.0.0
+          image: swr.ckgf-global-1.cccar.com.cn/work_place/workplace-sys-server-product:5.0.0
           resources:
             limits:
               cpu: '4'
