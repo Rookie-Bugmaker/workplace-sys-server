@@ -1,7 +1,10 @@
 package com.crrc.sys.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.mapper.SysDeptPersonMapper;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.service.SysDeptPersonService;
@@ -50,5 +53,22 @@ public class SysDeptPersonServiceImpl extends ServiceImpl<SysDeptPersonMapper, S
         LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(SysDeptPersonPO::getDeptId, deptId);
         return super.baseMapper.selectList(queryWrapper);
+    }
+
+    /**
+     * 根据部门ID查询让部门人员列表(分页查询)
+     *
+     * @param page     当前页码
+     * @param pageSize 查询数据条数
+     * @param deptId   部门ID
+     * @return 结果
+     */
+    @Override
+    public PaginationGrid<SysDeptPersonPO> findPageByDeptId(Integer page, Integer pageSize, Long deptId) {
+        IPage<SysDeptPersonPO> iPage = new Page<>(page, pageSize);
+        LambdaQueryWrapper<SysDeptPersonPO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysDeptPersonPO::getDeptId, deptId);
+        iPage = super.baseMapper.selectPage(iPage, queryWrapper);
+        return PaginationGrid.success(iPage);
     }
 }

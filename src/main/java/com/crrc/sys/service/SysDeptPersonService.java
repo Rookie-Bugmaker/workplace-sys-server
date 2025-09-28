@@ -1,6 +1,7 @@
 package com.crrc.sys.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 
 import java.util.List;
@@ -28,4 +29,12 @@ public interface SysDeptPersonService extends IService<SysDeptPersonPO> {
      * @return 部门人员列表
      */
     List<SysDeptPersonPO> findByDeptId(Long deptId);
+
+    /**
+     * 根据部门ID查询让部门人员列表(分页)
+     *
+     * @param deptId 部门ID
+     * @return 部门人员列表
+     */
+    PaginationGrid<SysDeptPersonPO> findPageByDeptId(Integer page, Integer pageSize, Long deptId);
 }

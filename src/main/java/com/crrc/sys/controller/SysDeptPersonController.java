@@ -202,6 +202,29 @@ public class SysDeptPersonController {
     }
 
     /**
+     * 根据部门ID查询部门人员列表(分页)
+     *
+     * @param deptId 部门ID
+     * @return 部门人员列表
+     */
+    @GetMapping("findPageByDeptId/{deptId}")
+    public PaginationGrid<SysDeptPersonDTO> findPageByDeptId(@PathVariable("deptId") Long deptId, Integer page, Integer pageSize) {
+        if (ObjectUtils.isEmpty(page)) {
+            throw new ParamValidateException("page不能为空且>0");
+        }
+        if (ObjectUtils.isEmpty(pageSize)) {
+            throw new ParamValidateException("pageSize不能为空且>=0");
+        }
+        PaginationGrid<SysDeptPersonPO> paginationGrid = deptPersonService.findPageByDeptId(page, pageSize, deptId);
+        List<SysDeptPersonPO> rows = paginationGrid.getRows();
+        PaginationGrid<SysDeptPersonDTO> grid = new PaginationGrid<>(page, pageSize);
+        grid.setTotal(paginationGrid.getTotal());
+        grid.setRows(poToDto(rows));
+        return grid;
+    }
+
+
+    /**
      * 批量新增
      *
      * @param deptPersons 参数
