@@ -15,6 +15,11 @@ spec:
         app: workplace-sys-server
         version: v1
     spec:
+      volumes:
+        - name: vol-175905817651477719
+          configMap:
+            name: workplace-sys-server-config
+            defaultMode: 420
       containers:
         - name: container-workplace-sys-server
           image: swr.ckgf-global-1.cccar.com.cn/work_place/workplace-sys-server-product:5.0.0
@@ -25,6 +30,11 @@ spec:
             requests:
               cpu: '2'
               memory: 2Gi
+          volumeMounts:
+            - name: vol-175905817651477719
+              readOnly: true
+              mountPath: /home/workplace/application.yml
+              subPath: application.yml
           lifecycle:
             preStop:
               exec:
