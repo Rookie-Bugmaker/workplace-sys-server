@@ -1,23 +1,23 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: workplace-gateway-server
-  namespace: test
+  name: workplace-sys-server
+  namespace: dev
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: workplace-gateway-server
+      app: workplace-sys-server
       version: v1
   template:
     metadata:
       labels:
-        app: workplace-gateway-server
+        app: workplace-sys-server
         version: v1
     spec:
       containers:
-        - name: container-workplace-gateway-server
-          image: swr.ckgf-global-1.cccar.com.cn/work_place/workplace-gateway-server-test:5.0.0
+        - name: container-workplace-sys-server
+          image: swr.ckgf-global-1.cccar.com.cn/work_place/workplace-sys-server-test:5.0.0
           resources:
             limits:
               cpu: '4'
