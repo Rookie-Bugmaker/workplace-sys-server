@@ -16,7 +16,7 @@ spec:
         version: v1
     spec:
       volumes:
-        - name: vol-175905817651477719
+        - name: vol-workplace-sys-server-config
           configMap:
             name: workplace-sys-server-config
             defaultMode: 420
@@ -31,7 +31,7 @@ spec:
               cpu: '2'
               memory: 2Gi
           volumeMounts:
-            - name: vol-175905817651477719
+            - name: vol-workplace-sys-server-config
               readOnly: true
               mountPath: /home/workplace/application.yml
               subPath: application.yml
