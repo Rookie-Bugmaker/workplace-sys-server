@@ -79,7 +79,7 @@
         </filter>
     </appender>
 
-    <springProfile name="dev | test">
+    <springProfile name="dev | test | product">
         <logger name="com.crrc.sys" level="debug" />
         <!-- 日志输出级别 -->
         <root level="INFO">
@@ -89,7 +89,7 @@
         </root>
     </springProfile>
 
-    <springProfile name="product">
+    <springProfile name="product1">
         <logger name="com.crrc.sys" level="debug" />
         <!-- logstash 设置 -->
         <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
