@@ -20,6 +20,10 @@ public class HomeNotice {
      * 消息内容
      */
     private String message;
+    /**
+     * 服务名称(用于区分该消息来自哪个服务)
+     */
+    private String serverName;
 
     public Long getUserId() {
         return userId;
@@ -43,5 +47,13 @@ public class HomeNotice {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
     }
 }
