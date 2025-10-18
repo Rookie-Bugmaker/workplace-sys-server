@@ -10,6 +10,7 @@ import com.crrc.sys.model.iddesign.IdDesignListReqVO;
 import com.crrc.sys.model.iddesign.IdDesignPageReqVO;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -26,7 +27,7 @@ public interface IdDesignService extends IService<IdDesign> {
 
     List<IdDesign> query(IdDesignListReqVO queryReqVO);
 
-    String nextId(String businessId);
+    String nextId(String businessId, Map<Integer, String> positionToParamMap);
 
-    String safeNextId(String businessId);
+    String safeNextId(String businessId, Map<Integer, String> positionToParamMap);
 }

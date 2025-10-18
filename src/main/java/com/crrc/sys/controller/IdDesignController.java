@@ -21,10 +21,12 @@ import com.crrc.sys.model.dict.DictListReqVO;
 import com.crrc.sys.model.iddesign.IdDesignExcelVO;
 import com.crrc.sys.model.iddesign.IdDesignListReqVO;
 import com.crrc.sys.model.iddesign.IdDesignPageReqVO;
+import com.crrc.sys.model.iddesign.IdRequest;
 import com.crrc.sys.service.impl.IdDesignServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
@@ -40,6 +42,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -111,6 +114,9 @@ public class IdDesignController {
                 .set(IdDesign::getStringPosition, updateReqVO.getStringPosition())
                 .set(IdDesign::getCustomString, updateReqVO.getCustomString())
                 .set(IdDesign::getEnableString, updateReqVO.getEnableString())
+                .set(IdDesign::getEnableCycle, updateReqVO.getEnableCycle())
+                .set(IdDesign::getCycleUnit, updateReqVO.getCycleUnit())
+                .set(IdDesign::getCycleDate, updateReqVO.getCycleDate())
                 .eq(IdDesign::getId, updateReqVO.getId());
         return idDesignService.update(queryWrapper);
     }
@@ -160,11 +166,13 @@ public class IdDesignController {
         return true;
     }
 
-    @GetMapping("/nextId")
+    @PostMapping("/nextId")
     @Operation(summary = "获得对应业务标识的下一个id-openfeign接口")
-    @Parameter(name = "businessId", description = "业务标识", required = true, example = "1")
-    public String nextId(@RequestParam("businessId") String businessId) {
-        return idDesignService.safeNextId(businessId);
+    public String nextId(@RequestBody IdRequest request) {
+        if(StringUtils.isBlank(request.getBusinessId())){
+            throw new BizException("业务标识不能为空");
+        }
+        return idDesignService.safeNextId(request.getBusinessId(), request.getPositionToParamMap());
     }
 
 }

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import com.crrc.sys.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
+import net.sf.jsqlparser.expression.DateTimeLiteralExpression;
 
 /**
  * <p>
@@ -85,6 +86,19 @@ public class IdDesign extends BaseEntity implements Serializable {
 
     @Schema(description = "分隔符", example = "")
     private String spliceSeparator;
+
+    @Schema(description = "启用循环（0 启用 1不启用）", example = "")
+    private String enableCycle;
+
+    @Schema(description = "循环单位（HOUR DAY WEEK MONTH YEAR）", example = "")
+    private String cycleUnit;
+
+    @Schema(description = "循环日期", example = "")
+    private Integer cycleDate;
+
+    @Schema(description = "最后一次重置日期", example = "")
+    private LocalDateTime lastResetDate;
+
 
     public IdDesign() {
     }
@@ -238,6 +252,38 @@ public class IdDesign extends BaseEntity implements Serializable {
 
     public void setSpliceSeparator(String spliceSeparator) {
         this.spliceSeparator = spliceSeparator;
+    }
+
+    public String getEnableCycle() {
+        return enableCycle;
+    }
+
+    public void setEnableCycle(String enableCycle) {
+        this.enableCycle = enableCycle;
+    }
+
+    public String getCycleUnit() {
+        return cycleUnit;
+    }
+
+    public void setCycleUnit(String cycleUnit) {
+        this.cycleUnit = cycleUnit;
+    }
+
+    public Integer getCycleDate() {
+        return cycleDate;
+    }
+
+    public void setCycleDate(Integer cycleDate) {
+        this.cycleDate = cycleDate;
+    }
+
+    public LocalDateTime getLastResetDate() {
+        return lastResetDate;
+    }
+
+    public void setLastResetDate(LocalDateTime lastResetDate) {
+        this.lastResetDate = lastResetDate;
     }
 
     @Override

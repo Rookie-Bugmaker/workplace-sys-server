@@ -1,9 +1,11 @@
 package com.crrc.sys.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
+import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import org.apache.ibatis.annotations.Param;
@@ -171,4 +173,6 @@ public interface SysUserService {
     List<UserGetRespVO> getUsersWithRoles(List<Long> ids);
 
     UserGetRespVO getUserWithRolesByUsername(String username);
+
+    PaginationGrid<SysUser> getUserPageWithPersonInform(SysOrgPersonParamOfUserPageDTO param);
 }

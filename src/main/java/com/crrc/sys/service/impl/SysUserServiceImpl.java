@@ -2,6 +2,7 @@ package com.crrc.sys.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
@@ -10,21 +11,21 @@ import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
+import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
-import com.crrc.sys.mapper.SysDataAuthMapper;
-import com.crrc.sys.mapper.SysDataAuthValueMapper;
-import com.crrc.sys.mapper.SysUserMapper;
-import com.crrc.sys.mapper.SysUserRoleMapper;
+import com.crrc.sys.mapper.*;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.SysUserService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -55,6 +56,10 @@ public class SysUserServiceImpl implements SysUserService {
     private SysDataAuthMapper dataAuthMapper;
     @Resource
     private SysDataAuthValueMapper dataAuthValueMapper;
+
+    @Resource
+    private SysOrgPersonMapper personMapper;
+
     @Resource
     private AuthClient authClient;
 
@@ -447,5 +452,29 @@ public class SysUserServiceImpl implements SysUserService {
         });
         dto.setRoles(roles);
         return dto;
+    }
+
+    @Override
+    public PaginationGrid<SysUser> getUserPageWithPersonInform(SysOrgPersonParamOfUserPageDTO param) {
+        // 查询人员
+        SysOrgPersonFindByPageParam personParam = new SysOrgPersonFindByPageParam();
+        personParam.setLanguage("zh-CN");
+        if(StringUtils.isNotBlank(param.getJobNo())){
+            personParam.setJobNo(param.getJobNo());
+        }
+        if(StringUtils.isNotBlank(param.getFullName())){
+            personParam.setFullName(param.getFullName());
+        }
+        if (!ObjectUtils.isEmpty(personParam.getJobNo()) && !ObjectUtils.isEmpty(personParam.getFullName()) && ObjectUtils.isEmpty(personParam.getMontage())) {
+            personParam.setMontage("and");
+        }
+        List<Long> personIdList = personMapper.findByFuzzy(personParam).stream().map(SysOrgPerson::getPersonId).collect(Collectors.toList());
+        // 通过人员id关联查询用户
+        List<SysUser> rows = new ArrayList<>();
+        if(personIdList != null && personIdList.size() > 0) {
+            rows = userMapper.findByRelationIds(personIdList);
+        }
+        PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
+        return PaginationGrid.success(pageInfo);
     }
 }

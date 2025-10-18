@@ -19,10 +19,16 @@ import com.crrc.sys.service.IdDesignService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -36,9 +42,12 @@ import java.util.concurrent.TimeUnit;
  * @author lijiangtao
  * @since 2025-07-11 11:55:04
  */
+@EnableScheduling
 @Service
 @Slf4j
 public class IdDesignServiceImpl extends ServiceImpl<IdDesignMapper, IdDesign> implements IdDesignService {
+
+    private static final long TIME_BUFFER_MILLIS = 1000; // 1秒时间缓冲窗口
 
     @Override
     public PaginationGrid<IdDesign> page(IdDesignPageReqVO pageReqVO) {
@@ -65,7 +74,7 @@ public class IdDesignServiceImpl extends ServiceImpl<IdDesignMapper, IdDesign> i
     }
 
     @Override
-    public String nextId(String businessId) {
+    public String nextId(String businessId, Map<Integer, String> positionToParamMap) {
         // 查询自定义ID配置
         LambdaQueryWrapper<IdDesign> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(IdDesign::getBusinessIdentifier, businessId);
@@ -76,6 +85,10 @@ public class IdDesignServiceImpl extends ServiceImpl<IdDesignMapper, IdDesign> i
 
         // 创建 concatMap，用于存储各部分内容
         Map<Integer, String> concatMap = new TreeMap<>();
+        // 如果动态参数不为空，加入配置中
+        if(positionToParamMap != null && positionToParamMap.size() > 0){
+            concatMap.putAll(positionToParamMap);
+        }
 
         // 1. 处理唯一编码类型
         String uniqueCode;
@@ -139,7 +152,7 @@ public class IdDesignServiceImpl extends ServiceImpl<IdDesignMapper, IdDesign> i
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public String safeNextId(String businessId) {
+    public String safeNextId(String businessId, Map<Integer, String> positionToParamMap) {
         log.info("开始生成ID，业务标识: {}", businessId);
         String lockKey = "id_generation_lock_" + businessId;
         RLock lock = RedissonManager.getRedissonClient().getFairLock(lockKey); // 使用公平锁
@@ -164,7 +177,7 @@ public class IdDesignServiceImpl extends ServiceImpl<IdDesignMapper, IdDesign> i
                 }
 
                 // 生成ID的逻辑
-                String id = this.nextId(businessId);
+                String id = this.nextId(businessId, positionToParamMap);
                 log.info("成功生成ID: {}, 业务标识: {}", id, businessId);
                 return id;
             } catch (InterruptedException e) {
@@ -183,5 +196,111 @@ public class IdDesignServiceImpl extends ServiceImpl<IdDesignMapper, IdDesign> i
             }
         }
         throw new BizException("重试次数耗尽，生成ID失败");
+    }
+
+    // 新增定时任务方法
+    // 每天 0 0 0 * * *
+    // 每小时 0 0 * * * *
+    // 每分钟 0 * * * * *
+    // 每秒钟 * * * * * *
+    @Scheduled(cron = "0 0 * * * *") // 每小时执行一次
+    public void scheduledResetSerialNumbers() {
+        RLock lock = RedissonManager.getRedissonClient().getLock("serial_number_reset_lock");
+        try {
+            if (lock.tryLock(10, 30, TimeUnit.SECONDS)) {
+                log.info("开始执行流水号周期重置检查...");
+                resetAllCycleSerialNumbers();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("定时任务获取锁中断", e);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
+    private Boolean cycleDateOver(IdDesign idDesign) {
+        if (idDesign.getLastResetDate() == null || idDesign.getCycleUnit() == null || idDesign.getCycleDate() == null) {
+            return true;
+        }
+        // 精确到纳秒
+        Instant now = Instant.now();
+        Instant lastResetInstant = idDesign.getLastResetDate().atZone(ZoneId.systemDefault()).toInstant();
+
+        // 计算精确的下次重置时间点
+        Instant nextResetTime = calculateNextResetTime(lastResetInstant, idDesign);
+
+        // 添加时间缓冲窗口：当前时间 >= (下次重置时间 - 缓冲窗口)
+        return !now.isBefore(nextResetTime.minusMillis(TIME_BUFFER_MILLIS));
+    }
+
+    // 计算精确的下次重置时间
+    private Instant calculateNextResetTime(Instant lastReset, IdDesign idDesign) {
+        switch (idDesign.getCycleUnit()) {
+            case "HOUR":
+                return lastReset.plus(idDesign.getCycleDate(), ChronoUnit.HOURS);
+            case "DAY":
+                return lastReset.plus(idDesign.getCycleDate(), ChronoUnit.DAYS);
+            case "WEEK":
+                return lastReset.plus(idDesign.getCycleDate() * 7L, ChronoUnit.DAYS);
+            case "MONTH":
+                // 转换为ZonedDateTime处理月份加减
+                return lastReset.atZone(ZoneId.systemDefault())
+                        .plusMonths(idDesign.getCycleDate())
+                        .toInstant();
+            case "YEAR":
+                // 转换为ZonedDateTime处理年份加减
+                return lastReset.atZone(ZoneId.systemDefault())
+                        .plusYears(idDesign.getCycleDate())
+                        .toInstant();
+            default:
+                throw new BizException("未知的循环单位: " + idDesign.getCycleUnit());
+        }
+    }
+
+    @Transactional
+    void resetSerialNumberCurrent(IdDesign idDesign) {
+        // 重置流水号为起始值
+        idDesign.setSerialNumberCurrent(idDesign.getSerialNumberStart());
+        // 更新最后重置时间为当前时间
+        idDesign.setLastResetDate(LocalDateTime.now());
+        // 更新数据库记录
+        this.updateById(idDesign);
+        log.info("重置流水号成功，业务标识: {}, 当前值: {}",
+                idDesign.getBusinessIdentifier(),
+                idDesign.getSerialNumberCurrent());
+    }
+
+    // 批量重置方法
+    private void resetAllCycleSerialNumbers() {
+        int pageSize = 100;
+        int currentPage = 1;
+        boolean hasMore = true;
+
+        while (hasMore) {
+            Page<IdDesign> page = new Page<>(currentPage, pageSize);
+            LambdaQueryWrapper<IdDesign> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(IdDesign::getUniqueCodeType, "2")
+                    .eq(IdDesign::getEnableCycle, "0")
+                    .isNotNull(IdDesign::getCycleUnit)
+                    .isNotNull(IdDesign::getCycleDate);
+
+            IPage<IdDesign> result = this.page(page, queryWrapper);
+            List<IdDesign> records = result.getRecords();
+
+            for (IdDesign config : records) {
+                if (cycleDateOver(config)) {
+                    resetSerialNumberCurrent(config);
+                    log.info("定时重置流水号: {} => {}",
+                            config.getBusinessIdentifier(),
+                            config.getSerialNumberStart());
+                }
+            }
+
+            hasMore = currentPage * pageSize < result.getTotal();
+            currentPage++;
+        }
     }
 }

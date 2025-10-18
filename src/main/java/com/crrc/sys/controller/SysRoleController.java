@@ -448,10 +448,9 @@ public class SysRoleController {
         SysUser currentUser = userResultData.getResult();
         List<SysRole> roleList = findRoleListByUserId(currentUser.getUserId());
         if (!CollectionUtils.isEmpty(roleList)) {
-            //剔除非当前项目的角色
-            roleList.removeIf(o -> !o.getProjectCode().equals(projectCode));
+            return roleList.stream().filter(o -> o.getProjectCode().equals(projectCode)).collect(Collectors.toList());
         }
-        return roleList;
+        return null;
     }
 
     /**
