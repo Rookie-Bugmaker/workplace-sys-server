@@ -26,13 +26,12 @@ import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
 import com.crrc.sys.excel.ExcelImport;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.*;
-import io.swagger.v3.oas.annotations.Operation;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
@@ -1487,6 +1486,20 @@ public class SysUserController {
     @PostMapping("/get_user_with_role_by_username")
     public UserGetRespVO getUsersWithRoles(@RequestBody String username) {
         return userService.getUserWithRolesByUsername(username);
+    }
+
+    @PostMapping("/get_user_page_with_person_inform")
+    public Page<UserGetRespVO> getUserPageWithPersonInform(@RequestBody SysOrgPersonParamOfUserPageDTO param) {
+        param = param == null ? new SysOrgPersonParamOfUserPageDTO() : param;
+        PaginationGrid<SysUser> paginationGrid = userService.getUserPageWithPersonInform(param);
+        List<SysUser> rows = paginationGrid.getRows();
+        Page<UserGetRespVO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
+        if (CollectionUtils.isEmpty(rows)) {
+            return page;
+        }
+        page.setTotal(paginationGrid.getTotal());
+        page.setRecords(setUserAndDMRProperties(rows));
+        return page;
     }
 
     /**
