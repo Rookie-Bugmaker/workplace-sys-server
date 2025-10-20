@@ -29,6 +29,7 @@ import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
+import com.crrc.sys.model.user.SysUserParamDTO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.*;
@@ -1488,10 +1489,43 @@ public class SysUserController {
         return userService.getUserWithRolesByUsername(username);
     }
 
+    /**
+     * 通过人员信息获取其下创建的用户（分页）
+     * @param param
+     * @return
+     */
     @PostMapping("/get_user_page_with_person_inform")
     public Page<UserGetRespVO> getUserPageWithPersonInform(@RequestBody SysOrgPersonParamOfUserPageDTO param) {
         param = param == null ? new SysOrgPersonParamOfUserPageDTO() : param;
         PaginationGrid<SysUser> paginationGrid = userService.getUserPageWithPersonInform(param);
+        List<SysUser> rows = paginationGrid.getRows();
+        Page<UserGetRespVO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
+        if (CollectionUtils.isEmpty(rows)) {
+            return page;
+        }
+        page.setTotal(paginationGrid.getTotal());
+        page.setRecords(setUserAndDMRProperties(rows));
+        return page;
+    }
+
+    /**
+     * 通过用户信息获取其下创建的用户（分页）
+     * @param param
+     * @return
+     */
+    @PostMapping("/get_user_page_with_user_inform")
+    public Page<UserGetRespVO> getUserPageWithUserInform(@RequestBody SysUserParamDTO param) {
+        param = param == null ? new SysUserParamDTO() : param;
+        SysUserFindByPageParam findByPageParam = new SysUserFindByPageParam();
+        findByPageParam.setPage(param.getPageNo());
+        findByPageParam.setPageSize(param.getPageSize());
+        if(StringUtils.hasText(param.getUserName())){
+            findByPageParam.setUserName(param.getUserName());
+        }
+        if(StringUtils.hasText(param.getNickName())){
+            findByPageParam.setUserDescription(param.getNickName());
+        }
+        PaginationGrid<SysUser> paginationGrid = userService.findByPage(findByPageParam);
         List<SysUser> rows = paginationGrid.getRows();
         Page<UserGetRespVO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
         if (CollectionUtils.isEmpty(rows)) {
