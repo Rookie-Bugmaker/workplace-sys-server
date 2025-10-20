@@ -35,6 +35,22 @@ spec:
               readOnly: true
               mountPath: /home/workplace/application.yml
               subPath: application.yml
+          livenessProbe:
+            tcpSocket:
+              port: 11501
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: 11501
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 30
           lifecycle:
             preStop:
               exec:
