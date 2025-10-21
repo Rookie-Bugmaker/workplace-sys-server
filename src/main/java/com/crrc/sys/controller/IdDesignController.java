@@ -117,6 +117,7 @@ public class IdDesignController {
                 .set(IdDesign::getEnableCycle, updateReqVO.getEnableCycle())
                 .set(IdDesign::getCycleUnit, updateReqVO.getCycleUnit())
                 .set(IdDesign::getCycleDate, updateReqVO.getCycleDate())
+                .set(IdDesign::getLastResetDate, updateReqVO.getLastResetDate())
                 .eq(IdDesign::getId, updateReqVO.getId());
         return idDesignService.update(queryWrapper);
     }
