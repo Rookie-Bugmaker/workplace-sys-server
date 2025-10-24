@@ -45,7 +45,8 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
             "/global/dict/all","/global/dict/getItem","/global/dict/getItemName","/global/dict/getItemCode","/global/dict/getUserRealNameInDictExtends",
             "/global/dict/getDeptNameNameInDictExtends","/globalSetting/value/match/all","/globalSetting/value/match/get","/globalSetting/value/match/like",
             "/org/person/findByCurrentUser","/user/test/findUserPage","/dept/person/find_person_by_dept_id","/user/get_user_page_with_person_inform",
-            "/user/get_user_page_with_user_inform"
+            "/user/get_user_page_with_user_inform",
+            "/v3/api-docs"
 
     };
 
