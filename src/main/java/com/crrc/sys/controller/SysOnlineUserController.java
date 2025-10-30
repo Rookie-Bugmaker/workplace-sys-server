@@ -145,7 +145,7 @@ public class SysOnlineUserController {
      * @param userName 用户名
      * @return 结果
      */
-    @PostMapping("offine")
+    @PostMapping("offline")
     public void offine(String userName) {
         if (ObjectUtils.isEmpty(userName)) {
             throw new ParamValidateException("用户名不能为空!");
