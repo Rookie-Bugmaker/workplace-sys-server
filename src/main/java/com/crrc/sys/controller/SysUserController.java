@@ -581,6 +581,7 @@ public class SysUserController {
         Calendar calender = Calendar.getInstance();
         //加N天
         calender.add(Calendar.DATE, Integer.parseInt(passwordLifespanDay));
+        sysUser.setPasswordExpireDate(calender.getTime());
         int result = userService.updatePassword(sysUser);
         if (result <= 0) {
             throw new BizException("保存失败!");

@@ -93,12 +93,10 @@ public interface SysUserMapper {
     /**
      * 密码修改
      *
-     * @param userId               用户ID
-     * @param password             密码
-     * @param passwordUpdateDate   修改时间
+     * @param user 用户
      * @return 结果
      */
-    int updatePassword(@Param("userId") long userId, @Param("password") String password, @Param("passwordUpdateDate") Date passwordUpdateDate);
+    int updatePassword(@Param("user") SysUser user);
 
     /**
      * 根据用户关联ID(员工ID/供应商ID/客户ID)查询用户信息
@@ -118,6 +116,7 @@ public interface SysUserMapper {
 
     /**
      * 根据角色code查询用户信息
+     *
      * @param roleCode
      * @return
      */
@@ -131,7 +130,8 @@ public interface SysUserMapper {
     List<SysUserDTO> findUserByRoleCode(@Param("roleCode") String roleCode, @Param("companyId") Long companyId, @Param("deptId") Long deptId);
 
     /**
-     *  根据用户全名查询用户信息列表
+     * 根据用户全名查询用户信息列表
+     *
      * @param fullName
      * @param companyId
      * @return

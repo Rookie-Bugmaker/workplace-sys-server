@@ -173,10 +173,12 @@
 	<update id="updatePassword">
 		update sys_user
 		<set>
-			PASSWORD = #{password},
-			PASSWORD_UPDATE_DATE = #{passwordUpdateDate}
+			PASSWORD = #{user.password},
+			PASSWORD_UPDATE_DATE = #{user.passwordUpdateDate},
+            PASSWORD_EXPIRE_DATE = #{user.passwordExpireDate},
+            NEXT_LOGIN_UPDATE_PASSWORD = #{user.nextLoginUpdatePassword}
 		</set>
-		where user_id = #{userId}
+		where user_id = #{user.userId}
 	</update>
 
 	<!--根据用户关联ID(员工ID/供应商ID/客户ID)查询用户信息-->
