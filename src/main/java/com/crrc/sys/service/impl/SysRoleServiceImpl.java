@@ -53,6 +53,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     private ProjectService projectService;
     @Resource
     private SysRoleCompanyDeptService roleCompanyDeptService;
+    @Resource
+    private SysUserRoleMapper userRoleMapper;
 
     /**
      * 角色信息分页查询
@@ -317,12 +319,17 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int delete(List<Long> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            throw new BizException("参数错误");
+        }
         //删除角色列权限值集
         roleColumnValueSetMapper.deleteByRoleIds(ids);
         //删除列权限
         roleFunctionColumnMapper.deleteByRoleIds(ids);
         //角色菜单中间表删除
         roleMenuMapper.deleteByRoleIds(ids);
+        //用户角色中间表删除
+        userRoleMapper.deleteByRoleIds(ids);
         //删除角色数据权限值
         dataAuthValueMapper.deleteByObjectIds(ids);
         //删除角色数据权限
