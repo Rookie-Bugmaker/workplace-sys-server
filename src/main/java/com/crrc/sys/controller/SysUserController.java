@@ -303,9 +303,18 @@ public class SysUserController {
         if (ObjectUtils.isEmpty(userIds)) {
             throw new ParamValidateException("userIds不能为空!");
         }
-        int result = userService.delete(Arrays.stream(userIds.split(",")).map(Long::parseLong).collect(Collectors.toList()));
+        List<Long> userIdList = Arrays.stream(userIds.split(",")).map(Long::parseLong).collect(Collectors.toList());
+        List<SysUser> userList = userService.findByUserIds(userIdList);
+        if (CollectionUtils.isEmpty(userIdList)) {
+            throw new BizException("用户不存在");
+        }
+        userIdList = userList.stream().map(SysUser::getUserId).collect(Collectors.toList());
+        int result = userService.delete(userIdList);
         if (result <= 0) {
             throw new BizException("删除失败!");
+        }
+        for (SysUser user : userList) {
+            authClient.clear(user.getUserName());
         }
     }
 
@@ -363,6 +372,7 @@ public class SysUserController {
 
     /**
      * 根据角色codes和部门信息查询用户信息
+     *
      * @param sysUserRequestDTO
      * @return
      */
@@ -429,7 +439,7 @@ public class SysUserController {
         }
         //返回封装fullname
         List<SysUserDTO> finalUserListWithFullName = new ArrayList<>();
-        for(SysUserDTO sysUserDTO : finalUserList){
+        for (SysUserDTO sysUserDTO : finalUserList) {
             SysOrgPerson sysOrgPerson = sysOrgPersonService.findById(sysUserDTO.getUserRelationId(), "zh-CN");
             sysUserDTO.setFullName(sysOrgPerson.getFullName());
             finalUserListWithFullName.add(sysUserDTO);
@@ -442,21 +452,23 @@ public class SysUserController {
 
     /**
      * 根据用户ids查询角色编码
+     *
      * @param sysUserRequestDTO
      * @return
      */
     @PostMapping("findUserRolesByUserIdOrUserName")
-    public List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@RequestBody SysUserRequestDTO sysUserRequestDTO){
+    public List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
         List<Long> userIdList = sysUserRequestDTO.getUserIdList();
         List<String> userNameList = sysUserRequestDTO.getUserNameList();
         if (ObjectUtils.isEmpty(userIdList) && ObjectUtils.isEmpty(userNameList)) {
             throw new ParamValidateException("用户id和用户名不能同时为空!");
         }
-        return sysUserService.findUserRoleByUserIdOrUserName(userIdList,userNameList);
+        return sysUserService.findUserRoleByUserIdOrUserName(userIdList, userNameList);
     }
 
     /**
      * 通过角色编码获取用户 roleCodes
+     *
      * @param sysUserRequestDTO
      * @return
      */
@@ -471,6 +483,7 @@ public class SysUserController {
 
     /**
      * 通过姓名查询用户
+     *
      * @param sysUserRequestDTO
      * @return
      */
@@ -489,6 +502,7 @@ public class SysUserController {
 
     /**
      * 根据用户部门id和companyId和角色编码信息 查询用户
+     *
      * @param sysUserRequestDTO
      * @return
      */
@@ -522,8 +536,6 @@ public class SysUserController {
         }
         return userService.findUserByRoleCodeAndCompanyId(roleCode, companyId);
     }
-
-
 
 
     /**
@@ -1472,6 +1484,7 @@ public class SysUserController {
 
     /**
      * 获取带角色的用户List
+     *
      * @param ids
      * @return
      */
@@ -1482,6 +1495,7 @@ public class SysUserController {
 
     /**
      * 通过用户名称获取带角色的用户
+     *
      * @param username
      * @return
      */
@@ -1492,6 +1506,7 @@ public class SysUserController {
 
     /**
      * 通过人员信息获取其下创建的用户（分页）
+     *
      * @param param
      * @return
      */
@@ -1511,6 +1526,7 @@ public class SysUserController {
 
     /**
      * 通过用户信息获取其下创建的用户（分页）
+     *
      * @param param
      * @return
      */
@@ -1520,10 +1536,10 @@ public class SysUserController {
         SysUserFindByPageParam findByPageParam = new SysUserFindByPageParam();
         findByPageParam.setPage(param.getPageNo());
         findByPageParam.setPageSize(param.getPageSize());
-        if(StringUtils.hasText(param.getUserName())){
+        if (StringUtils.hasText(param.getUserName())) {
             findByPageParam.setUserName(param.getUserName());
         }
-        if(StringUtils.hasText(param.getNickName())){
+        if (StringUtils.hasText(param.getNickName())) {
             findByPageParam.setUserDescription(param.getNickName());
         }
         PaginationGrid<SysUser> paginationGrid = userService.findByPage(findByPageParam);
