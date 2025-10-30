@@ -1,6 +1,8 @@
 package com.crrc.sys.controller;
 
+import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.PaginationGrid;
+import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
@@ -44,6 +46,8 @@ public class SysOnlineUserController {
     private SysUserService userService;
     @Resource
     private SysOrgPersonService personService;
+    @Resource
+    private AuthClient authClient;
 
     /**
      * 分页查询在线用户
@@ -133,5 +137,22 @@ public class SysOnlineUserController {
             keys.add(new String(scan.next()));
         }
         return keys;
+    }
+
+    /**
+     * 用户下线
+     *
+     * @param userName 用户名
+     * @return 结果
+     */
+    @PostMapping("offine")
+    public void offine(String userName) {
+        if (ObjectUtils.isEmpty(userName)) {
+            throw new ParamValidateException("用户名不能为空!");
+        }
+        ResultData<Void> resultData = authClient.clear(userName);
+        if (!resultData.getSuccess()) {
+            throw new BizException(resultData.getMessage());
+        }
     }
 }
