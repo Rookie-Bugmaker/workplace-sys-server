@@ -3,6 +3,7 @@ package com.crrc.sys.entity.user;
 import com.crrc.sys.entity.BaseEntityYunLing;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.role.SysRole;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 import java.util.List;
@@ -36,6 +37,11 @@ public class SysUser extends BaseEntityYunLing {
      */
     private Date passwordUpdateDate;
     /**
+     * 密码失效时间
+     */
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date passwordExpireDate;
+    /**
      * 用户类型
      * EMPLOYEE：员工、SUPPLIER：供应商、CUSTOMER：客户
      */
@@ -60,6 +66,10 @@ public class SysUser extends BaseEntityYunLing {
      * 禁用状态(Y/N)
      */
     private String disableState;
+    /**
+     * 下一次登录修改密码(Y:是、N:否)
+     */
+    private String nextLoginUpdatePassword = "N";
     /**
      * 拥有的角色信息
      */
@@ -244,5 +254,21 @@ public class SysUser extends BaseEntityYunLing {
 
     public void setCurrentDeptId(Long currentDeptId) {
         this.currentDeptId = currentDeptId;
+    }
+
+    public Date getPasswordExpireDate() {
+        return passwordExpireDate;
+    }
+
+    public void setPasswordExpireDate(Date passwordExpireDate) {
+        this.passwordExpireDate = passwordExpireDate;
+    }
+
+    public String getNextLoginUpdatePassword() {
+        return nextLoginUpdatePassword;
+    }
+
+    public void setNextLoginUpdatePassword(String nextLoginUpdatePassword) {
+        this.nextLoginUpdatePassword = nextLoginUpdatePassword;
     }
 }

@@ -284,7 +284,7 @@ public class SysUserController {
             throw new BizException("保存失败!");
         }
         //清空用户登录信息
-        //1.如果用户禁用状态==Y，则请求改用户的token缓存信息
+        //1.如果用户禁用状态==Y，则清空该用户的token缓存信息
         //2.如果修改了用户密码，则也需要清空
         if (EnableFlagEnum.Y.getValue().equals(user.getDisableState()) || !ObjectUtils.isEmpty(user.getPassword())) {
             //清空该用户登录信息

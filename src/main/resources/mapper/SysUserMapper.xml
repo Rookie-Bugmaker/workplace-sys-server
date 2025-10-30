@@ -19,13 +19,15 @@
         <result column="LAST_UPDATE_BY" property="lastUpdateBy" jdbcType="NUMERIC" />
         <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="TIMESTAMP" />
         <result column="LAST_UPDATE_LOGIN" property="lastUpdateLogin" jdbcType="NUMERIC" />
+        <result column="PASSWORD_EXPIRE_DATE" property="passwordExpireDate" jdbcType="TIMESTAMP" />
+        <result column="NEXT_LOGIN_UPDATE_PASSWORD" property="nextLoginUpdatePassword" jdbcType="VARCHAR" />
     </resultMap>
 
     <!--根据用户名查询用户信息-->
     <select id="findByUserName" resultMap="userMap">
         select u.user_id,u.user_name,u.password,u.password_update_date,u.user_type,u.user_relation_id,
                u.login_error_count,u.last_login_info_id,u.last_update_login,u.disable_deadline_date,u.disable_state,
-               ifnull(tl.full_name, u.user_description) user_description
+               u.password_expire_date,u.next_login_update_password,ifnull(tl.full_name, u.user_description) user_description
         from sys_user u
         left join sys_org_person_b b on b.person_id = u.user_relation_id
         left join sys_org_person_tl tl on b.person_id = tl.person_id and tl.language = 'zh-CN'
@@ -36,7 +38,8 @@
     <select id="findByFuzzy" resultMap="userMap">
 		select * from (
 			select u.user_id,u.user_name,u.password_update_date,u.user_type,u.user_relation_id,u.disable_deadline_date,u.disable_state,
-			u.create_by,u.create_date,u.last_update_by,u.last_update_date,ifnull(tl.full_name, u.user_description) user_description
+			u.create_by,u.create_date,u.last_update_by,u.last_update_date,ifnull(tl.full_name, u.user_description) user_description,
+			u.password_expire_date,u.next_login_update_password
 			from sys_user u
 			<if test="roleId != null">
                 join sys_user_role ur on ur.user_id = u.user_id and ur.role_id = #{roleId}
@@ -62,15 +65,15 @@
 
     <!--用户添加-->
     <insert id="insert">
-        insert into sys_user(USER_ID,USER_NAME,USER_DESCRIPTION,PASSWORD,USER_TYPE,USER_RELATION_ID,CREATE_BY,CREATE_DATE,DISABLE_STATE)
-        values (#{userId},#{userName},#{userDescription},#{password},#{userType},#{userRelationId},#{createBy},#{createDate},#{disableState})
+        insert into sys_user(USER_ID,USER_NAME,USER_DESCRIPTION,PASSWORD,USER_TYPE,USER_RELATION_ID,CREATE_BY,CREATE_DATE,DISABLE_STATE,PASSWORD_EXPIRE_DATE,NEXT_LOGIN_UPDATE_PASSWORD)
+        values (#{userId},#{userName},#{userDescription},#{password},#{userType},#{userRelationId},#{createBy},#{createDate},#{disableState},#{passwordExpireDate},#{nextLoginUpdatePassword})
     </insert>
 
     <!--批量保存-->
     <insert id="insertAll">
-		insert into sys_user(USER_ID,USER_NAME,USER_DESCRIPTION,PASSWORD,USER_TYPE,USER_RELATION_ID,CREATE_BY,CREATE_DATE,DISABLE_STATE) values
+		insert into sys_user(USER_ID,USER_NAME,USER_DESCRIPTION,PASSWORD,USER_TYPE,USER_RELATION_ID,CREATE_BY,CREATE_DATE,DISABLE_STATE,PASSWORD_EXPIRE_DATE,NEXT_LOGIN_UPDATE_PASSWORD) values
        <foreach collection="list" item = "item" separator=",">
-            (#{item.userId},#{item.userName},#{item.userDescription},#{item.password},#{item.userType},#{item.userRelationId},#{item.createBy},#{item.createDate},#{item.disableState})
+            (#{item.userId},#{item.userName},#{item.userDescription},#{item.password},#{item.userType},#{item.userRelationId},#{item.createBy},#{item.createDate},#{item.disableState},#{item.passwordExpireDate},#{item.nextLoginUpdatePassword})
        </foreach>
 	</insert>
 
@@ -89,7 +92,9 @@
             LAST_UPDATE_BY = #{lastUpdateBy},
             LAST_UPDATE_DATE = #{lastUpdateDate},
             LAST_UPDATE_LOGIN = #{lastUpdateLogin},
-            DISABLE_STATE = #{disableState}
+            DISABLE_STATE = #{disableState},
+            PASSWORD_EXPIRE_DATE = #{passwordExpireDate},
+            NEXT_LOGIN_UPDATE_PASSWORD = #{nextLoginUpdatePassword}
         </set>
         where user_id = #{userId}
     </update>
