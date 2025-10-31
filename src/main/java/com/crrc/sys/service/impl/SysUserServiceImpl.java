@@ -1,15 +1,11 @@
 package com.crrc.sys.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
-import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.role.SysRole;
@@ -18,8 +14,9 @@ import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.mapper.*;
-import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
+import com.crrc.sys.model.user.SysOnlineUserParamDTO;
+import com.crrc.sys.model.user.SysOnlineUserVO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.SysUserService;
@@ -34,7 +31,9 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -217,7 +216,11 @@ public class SysUserServiceImpl implements SysUserService {
             dataAuthValueMapper.insertList(dataAuthList.stream().map(SysDataAuth::getDataAuthValueList).flatMap(Collection::stream).collect(Collectors.toList()));
         }
         //12.修改用户信息
-        return userMapper.update(user);
+        int result = userMapper.update(user);
+        if (result <= 0) {
+            throw new BizException("用户信息修改失败");
+        }
+        return result;
     }
 
     /**
@@ -309,14 +312,14 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int updatePassword(SysUser user) {
-        long userId = user.getUserId();
-        String password = user.getPassword();
-        Date passwordUpdateDate = user.getPasswordUpdateDate();
+        //将下一次修改密码字段设置为N
+        user.setNextLoginUpdatePassword("N");
         //修改密码
-        int result = userMapper.updatePassword(userId, password, passwordUpdateDate);
+        int result = userMapper.updatePassword(user);
         if (result <= 0) {
             throw new BizException("修改失败");
         }
+        authClient.updateNextLoginUpdatePassword(user.getNextLoginUpdatePassword());
         return result;
     }
 
@@ -340,6 +343,18 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public List<SysUser> findByUserNameList(List<String> userNameList) {
         return userMapper.findByUserNameList(userNameList);
+    }
+
+    /**
+     * 根据用户名集合查询用户信息
+     *
+     * @param userNameList 用户名集合
+     * @param search       搜索条件
+     * @return 用户信息
+     */
+    @Override
+    public List<SysOnlineUserVO> findByUserNamesAndFuzzy(List<String> userNameList, SysOnlineUserParamDTO search) {
+        return userMapper.findByUserNamesAndFuzzy(userNameList, search);
     }
 
     /**
@@ -459,10 +474,10 @@ public class SysUserServiceImpl implements SysUserService {
         // 查询人员
         SysOrgPersonFindByPageParam personParam = new SysOrgPersonFindByPageParam();
         personParam.setLanguage("zh-CN");
-        if(StringUtils.isNotBlank(param.getJobNo())){
+        if (StringUtils.isNotBlank(param.getJobNo())) {
             personParam.setJobNo(param.getJobNo());
         }
-        if(StringUtils.isNotBlank(param.getFullName())){
+        if (StringUtils.isNotBlank(param.getFullName())) {
             personParam.setFullName(param.getFullName());
         }
         if (!ObjectUtils.isEmpty(personParam.getJobNo()) && !ObjectUtils.isEmpty(personParam.getFullName()) && ObjectUtils.isEmpty(personParam.getMontage())) {
@@ -471,7 +486,7 @@ public class SysUserServiceImpl implements SysUserService {
         List<Long> personIdList = personMapper.findByFuzzy(personParam).stream().map(SysOrgPerson::getPersonId).collect(Collectors.toList());
         // 通过人员id关联查询用户
         List<SysUser> rows = new ArrayList<>();
-        if(personIdList != null && personIdList.size() > 0) {
+        if (personIdList != null && personIdList.size() > 0) {
             rows = userMapper.findByRelationIds(personIdList);
         }
         PageInfo<SysUser> pageInfo = new PageInfo<>(rows);

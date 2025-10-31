@@ -3,9 +3,10 @@ package com.crrc.sys.mapper;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
+import com.crrc.sys.model.user.SysOnlineUserParamDTO;
+import com.crrc.sys.model.user.SysOnlineUserVO;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -93,12 +94,10 @@ public interface SysUserMapper {
     /**
      * 密码修改
      *
-     * @param userId               用户ID
-     * @param password             密码
-     * @param passwordUpdateDate   修改时间
+     * @param user 用户
      * @return 结果
      */
-    int updatePassword(@Param("userId") long userId, @Param("password") String password, @Param("passwordUpdateDate") Date passwordUpdateDate);
+    int updatePassword(@Param("user") SysUser user);
 
     /**
      * 根据用户关联ID(员工ID/供应商ID/客户ID)查询用户信息
@@ -118,6 +117,7 @@ public interface SysUserMapper {
 
     /**
      * 根据角色code查询用户信息
+     *
      * @param roleCode
      * @return
      */
@@ -131,7 +131,8 @@ public interface SysUserMapper {
     List<SysUserDTO> findUserByRoleCode(@Param("roleCode") String roleCode, @Param("companyId") Long companyId, @Param("deptId") Long deptId);
 
     /**
-     *  根据用户全名查询用户信息列表
+     * 根据用户全名查询用户信息列表
+     *
      * @param fullName
      * @param companyId
      * @return
@@ -156,4 +157,13 @@ public interface SysUserMapper {
      * @return 结果
      */
     List<SysUser> findByUserIdsAndFuzzy(@Param("userIdList") List<Long> userIdList, @Param("userName") String userName, @Param("fullName") String fullName);
+
+    /**
+     * 根据用户名集合查询用户信息
+     *
+     * @param userNameList 用户名集合
+     * @param search       搜索条件
+     * @return 用户信息
+     */
+    List<SysOnlineUserVO> findByUserNamesAndFuzzy(@Param("userNameList") List<String> userNameList, @Param("search") SysOnlineUserParamDTO search);
 }

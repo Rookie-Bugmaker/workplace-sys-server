@@ -57,6 +57,12 @@ public interface SysUserRoleMapper {
     List<Long> findUserIdByRoleId(@Param("roleId") long roleId);
 
 
-    List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@Param("userIds") List<Long> userIds,@Param("userNames") List<String> userNames);
+    List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@Param("userIds") List<Long> userIds, @Param("userNames") List<String> userNames);
 
+    /**
+     * 用户角色中间表删除
+     *
+     * @param roleIdList 角色集合
+     */
+    void deleteByRoleIds(@Param("roleIdList") List<Long> roleIdList);
 }

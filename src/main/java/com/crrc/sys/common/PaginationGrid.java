@@ -68,6 +68,7 @@ public class PaginationGrid<T> {
             this.offset = 0;
             this.endset = pageSize;
         } else {
+            //目前该处算法为mysql，如需兼容其他数据库，需要扩展该else
             this.offset = (page - 1) * pageSize;
             this.endset = page * pageSize;
         }

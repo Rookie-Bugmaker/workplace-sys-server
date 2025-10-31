@@ -42,4 +42,10 @@ public class AuthClientFallBack implements AuthClient {
         logger.error("AuthClient.clear已进入熔断器, userName={}", userName);
         return ResultData.fallback();
     }
+
+    @Override
+    public ResultData<Boolean> updateNextLoginUpdatePassword(String nextLoginUpdatePassword) {
+        logger.error("AuthClient.updateNextLoginUpdatePassword已进入熔断器, nextLoginUpdatePassword={}", nextLoginUpdatePassword);
+        return ResultData.fallback();
+    }
 }

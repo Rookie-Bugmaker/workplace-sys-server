@@ -48,4 +48,13 @@ public interface AuthClient {
      */
     @GetMapping("clear")
     ResultData<Void> clear(@RequestParam("userName") String userName);
+
+    /**
+     * 更新下一次强制修改密码缓存
+     *
+     * @param nextLoginUpdatePassword 下一次登录强制修改密码
+     * @return 结果(true:更新成功)
+     */
+    @PutMapping("updateNextLoginUpdatePassword")
+    ResultData<Boolean> updateNextLoginUpdatePassword(@RequestParam String nextLoginUpdatePassword);
 }

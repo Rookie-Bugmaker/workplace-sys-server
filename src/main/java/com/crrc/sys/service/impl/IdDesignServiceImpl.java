@@ -74,6 +74,23 @@ public class IdDesignServiceImpl extends ServiceImpl<IdDesignMapper, IdDesign> i
     }
 
     @Override
+    public List<IdDesign> queryExcel(IdDesignListReqVO queryReqVO) {
+        queryReqVO = (queryReqVO == null) ? new IdDesignListReqVO() : queryReqVO;
+        LambdaQueryWrapper<IdDesign> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(IdDesign::getBusinessIdentifier, IdDesign::getTimeFormat, IdDesign::getTimePosition,
+                IdDesign::getEnableTime, IdDesign::getUniqueCodeType, IdDesign::getSerialNumberStart,
+                IdDesign::getSerialNumberCurrent, IdDesign::getSerialNumberDigits, IdDesign::getUniqueCodePosition,
+                IdDesign::getCustomString, IdDesign::getStringPosition, IdDesign::getEnableString,
+                IdDesign::getSpliceSeparator, IdDesign::getEnableCycle, IdDesign::getCycleUnit, IdDesign::getCycleDate,
+                IdDesign::getLastResetDate);
+        queryWrapper.eq(queryReqVO.getId() != null, IdDesign::getId, queryReqVO.getId());
+        queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getBusinessIdentifier()), IdDesign::getBusinessIdentifier, queryReqVO.getBusinessIdentifier());
+        queryWrapper.eq(StringUtils.isNotBlank(queryReqVO.getUniqueCodeType()), IdDesign::getUniqueCodeType, queryReqVO.getUniqueCodeType());
+        queryWrapper.orderByDesc(BaseEntity::getUpdateTime);
+        return this.list(queryWrapper);
+    }
+
+    @Override
     public String nextId(String businessId, Map<Integer, String> positionToParamMap) {
         // 查询自定义ID配置
         LambdaQueryWrapper<IdDesign> queryWrapper = new LambdaQueryWrapper<>();

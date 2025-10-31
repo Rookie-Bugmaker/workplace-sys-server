@@ -1,11 +1,12 @@
 package com.crrc.sys.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
+import com.crrc.sys.model.user.SysOnlineUserParamDTO;
+import com.crrc.sys.model.user.SysOnlineUserVO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import org.apache.ibatis.annotations.Param;
@@ -30,13 +31,15 @@ public interface SysUserService {
 
     /**
      * 根据用户id查询角色
+     *
      * @param userIdList
      * @return
      */
-    List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@Param("userIdList") List<Long> userIdList,@Param("userNameList") List<String> userNameList);
+    List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(@Param("userIdList") List<Long> userIdList, @Param("userNameList") List<String> userNameList);
 
     /**
      * 根据角色code查询用户信息
+     *
      * @param roleCodes
      * @return
      */
@@ -48,6 +51,7 @@ public interface SysUserService {
 
     /**
      * 根据用户全名查询用户信息列表
+     *
      * @param fullName
      * @param companyId
      * @return
@@ -139,6 +143,14 @@ public interface SysUserService {
      * @return 用户信息
      */
     List<SysUser> findByUserNameList(List<String> userNameList);
+    /**
+     * 根据用户名集合查询用户信息
+     *
+     * @param userNameList 用户名集合
+     * @param search       搜索条件
+     * @return 用户信息
+     */
+    List<SysOnlineUserVO> findByUserNamesAndFuzzy(List<String> userNameList, SysOnlineUserParamDTO search);
 
     /**
      * 根据用户名查询用户信息(包含角色信息)
@@ -167,6 +179,7 @@ public interface SysUserService {
 
     /**
      * 获取带角色的用户List
+     *
      * @param ids
      * @return
      */
