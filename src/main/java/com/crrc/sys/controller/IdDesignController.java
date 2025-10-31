@@ -16,6 +16,8 @@ import com.crrc.sys.entity.iddesign.IdDesign;
 import com.crrc.sys.enums.LogType;
 import com.crrc.sys.enums.OperateType;
 import com.crrc.sys.listener.CommonProcessExcelListener;
+import com.crrc.sys.listener.DictAndItemImportListener;
+import com.crrc.sys.listener.IdDesignImportListener;
 import com.crrc.sys.model.dict.DictItemExcelVO;
 import com.crrc.sys.model.dict.DictListReqVO;
 import com.crrc.sys.model.iddesign.IdDesignExcelVO;
@@ -41,6 +43,7 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -130,7 +133,7 @@ public class IdDesignController {
         return idDesignService.removeById(id);
     }
 
-    @GetMapping("/export")
+    @GetMapping("/download/export")
     @AuditLog(value = "导出自定义ID报表", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
     @Operation(summary = "导出自定义ID报表")
     public void exportIdDesign(IdDesignListReqVO exportReqVO, HttpServletResponse response) throws IOException {
@@ -138,29 +141,47 @@ public class IdDesignController {
         response.setContentType(contentType);
         response.setCharacterEncoding("utf-8");
         // 这里URLEncoder.encode可以防止中文乱码
-        String fileName = URLEncoder.encode("自定义ID报表-" + new SimpleDateFormat("yyyyMMddhhmmss")
+        String fileName = URLEncoder.encode("流水号报表-" + new SimpleDateFormat("yyyyMMddhhmmss")
                         .format(System.currentTimeMillis()), "UTF-8")
                 .replaceAll("\\+", "%20");
         response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
         exportReqVO = (exportReqVO == null) ? new IdDesignListReqVO() : exportReqVO;
-        List<IdDesign> idDesignList = idDesignService.query(exportReqVO);
+        List<IdDesign> idDesignList = idDesignService.queryExcel(exportReqVO);
         ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
         EasyExcel.write(response.getOutputStream(), IdDesignExcelVO.class)
                 .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
                 .autoCloseStream(true)
                 .excelType(typeEnum)
-                .sheet("自定义ID报表")
+                .sheet("流水号报表")
                 .doWrite(idDesignList);
+    }
+
+    @GetMapping("/download/template")
+    @AuditLog(value = "导出自定义ID报表模板", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "导出自定义ID报表模板")
+    public void exportTemplateIdDesign(HttpServletResponse response) throws IOException {
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("流水号报表模板", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), IdDesignExcelVO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("流水号报表")
+                .doWrite(new ArrayList<>());
     }
 
     @PostMapping("/import")
     @AuditLog(value = "导入自定义ID报表", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
     @Operation(summary = "导入自定义ID报表")
     public Boolean imports(MultipartFile file) throws IOException {
-        CommonProcessExcelListener<IdDesign, Boolean> readExcelListener;
-        readExcelListener = new CommonProcessExcelListener<>(idDesignService::saveBatch);
-        EasyExcel.read(file.getInputStream(), IdDesign.class, readExcelListener)
+        IdDesignImportListener listener = new IdDesignImportListener(idDesignService);
+        EasyExcel.read(file.getInputStream(), IdDesignExcelVO.class, listener)
                 .headRowNumber(1)
                 .sheet()
                 .doRead();

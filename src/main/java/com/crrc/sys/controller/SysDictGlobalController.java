@@ -56,22 +56,22 @@ public class SysDictGlobalController {
             // 1. 尝试从缓存获取
             DictVO dictVO = dictCacheService.getDictFromCache(dictCode);
             if (dictVO != null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "获取字典成功", dictVO);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "获取字典成功", dictVO);
             }
 
             // 2. 缓存不存在，从数据库加载
             Dict dict = dictService.getByCode(dictCode);
             if (dict == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "字典不存在", null);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "字典不存在", null);
             }
 
             // 3. 转换并缓存结果
             dictVO = convertToDictVO(dict);
             dictCacheService.cacheDict(dictVO);
-            return new ResponseResult<>(HttpStatus.OK.value(), "获取字典成功", dictVO);
+            return new ResponseResult<>(true, HttpStatus.OK.value(), "获取字典成功", dictVO);
         } catch (Exception e) {
             log.error("获取字典异常，dictCode: {}", dictCode, e);
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典失败", null);
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典失败", null);
         }
     }
 
@@ -83,21 +83,21 @@ public class SysDictGlobalController {
             // 1. 从缓存获取字典名称
             String dictName = dictCacheService.getDictNameFromCache(dictCode);
             if (StringUtils.isNotBlank(dictName)) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "获得字典名称成功", dictName);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典名称成功", dictName);
             }
 
             // 2. 缓存不存在，从数据库加载
             Dict dict = dictService.getByCode(dictCode);
             if (dict == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "字典不存在", null);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "字典不存在", null);
             }
 
             // 3. 缓存字典信息
             dictCacheService.cacheDict(convertToDictVO(dict));
-            return new ResponseResult<>(HttpStatus.OK.value(), "获得字典名称成功", dict.getDictName());
+            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典名称成功", dict.getDictName());
         } catch (Exception e) {
             log.error("获取字典名称异常，dictCode: {}", dictCode, e);
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典名称失败", null);
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典名称失败", null);
         }
     }
 
@@ -108,22 +108,22 @@ public class SysDictGlobalController {
             // 1. 从缓存获取字典编码列表
             List<String> codes = dictCacheService.getDictCodesFromCache(dictName);
             if (!codes.isEmpty()) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "获得字典编码成功", codes);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典编码成功", codes);
             }
 
             // 2. 缓存不存在，从数据库加载
             List<Dict> dicts = dictService.getByName(dictName);
             if (CollectionUtils.isEmpty(dicts)) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "没有匹配的字典", Collections.emptyList());
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "没有匹配的字典", Collections.emptyList());
             }
 
             // 3. 缓存字典信息
             dicts.forEach(dict -> dictCacheService.cacheDict(convertToDictVO(dict)));
-            return new ResponseResult<>(HttpStatus.OK.value(), "获得字典编码成功",
+            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典编码成功",
                     dicts.stream().map(Dict::getDictCode).collect(Collectors.toList()));
         } catch (Exception e) {
             log.error("根据名称获取字典编码异常，dictName: {}", dictName, e);
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典编码失败", Collections.emptyList());
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典编码失败", Collections.emptyList());
         }
     }
 
@@ -134,13 +134,13 @@ public class SysDictGlobalController {
             // 1. 从缓存获取所有字典
             List<DictVO> dictVOs = dictCacheService.getAllDictsFromCache();
             if (!dictVOs.isEmpty()) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "获得字典成功", dictVOs);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典成功", dictVOs);
             }
 
             // 2. 缓存不存在，从数据库加载
             List<Dict> dicts = dictService.getAll();
             if (CollectionUtils.isEmpty(dicts)) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "没有字典数据", Collections.emptyList());
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "没有字典数据", Collections.emptyList());
             }
 
             // 3. 转换并缓存结果
@@ -149,10 +149,10 @@ public class SysDictGlobalController {
                     .peek(dictCacheService::cacheDict)
                     .collect(Collectors.toList());
 
-            return new ResponseResult<>(HttpStatus.OK.value(), "获得字典成功", dictVOs);
+            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典成功", dictVOs);
         } catch (Exception e) {
             log.error("获取所有字典异常", e);
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典失败", Collections.emptyList());
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典失败", Collections.emptyList());
         }
     }
 
@@ -165,27 +165,27 @@ public class SysDictGlobalController {
             // 1. 从缓存获取字典项
             DictItemVO itemVO = dictCacheService.getDictItemFromCache(dictCode, itemCode);
             if (itemVO != null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "获得字典项成功", itemVO);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典项成功", itemVO);
             }
 
             // 2. 缓存不存在，从数据库加载
             Dict dict = dictService.getByCode(dictCode);
             if (dict == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "字典不存在", null);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "字典不存在", null);
             }
 
             DictItem item = dictItemService.getItemByItemId(dict.getId(), itemCode);
             if (item == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "字典项不存在", null);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "字典项不存在", null);
             }
 
             // 3. 转换并缓存结果
             itemVO = convertToDictItemVO(item);
             dictCacheService.cacheDictItem(dictCode, itemVO);
-            return new ResponseResult<>(HttpStatus.OK.value(), "获得字典项成功", itemVO);
+            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典项成功", itemVO);
         } catch (Exception e) {
             log.error("获取字典项异常，dictCode: {}, itemCode: {}", dictCode, itemCode, e);
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典项失败", null);
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典项失败", null);
         }
     }
 
@@ -198,26 +198,26 @@ public class SysDictGlobalController {
             // 1. 从缓存获取字典项名称
             String itemName = dictCacheService.getDictItemNameFromCache(dictCode, itemCode);
             if (StringUtils.isNotBlank(itemName)) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "获得字典项名称成功", itemName);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典项名称成功", itemName);
             }
 
             // 2. 缓存不存在，从数据库加载
             Dict dict = dictService.getByCode(dictCode);
             if (dict == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "字典不存在", null);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "字典不存在", null);
             }
 
             DictItem item = dictItemService.getItemByItemId(dict.getId(), itemCode);
             if (item == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "字典项不存在", null);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "字典项不存在", null);
             }
 
             // 3. 缓存字典项信息
             dictCacheService.cacheDictItem(dictCode, convertToDictItemVO(item));
-            return new ResponseResult<>(HttpStatus.OK.value(), "获得字典项名称成功", item.getItemName());
+            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典项名称成功", item.getItemName());
         } catch (Exception e) {
             log.error("获取字典项名称异常，dictCode: {}, itemCode: {}", dictCode, itemCode, e);
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典项名称失败", null);
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典项名称失败", null);
         }
     }
 
@@ -230,26 +230,26 @@ public class SysDictGlobalController {
             // 1. 从缓存获取字典项编码
             String itemCode = dictCacheService.getDictItemCodeFromCache(dictCode, itemName);
             if (StringUtils.isNotBlank(itemCode)) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "获得字典项编码成功", itemCode);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典项编码成功", itemCode);
             }
 
             // 2. 缓存不存在，从数据库加载
             Dict dict = dictService.getByCode(dictCode);
             if (dict == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "字典不存在", null);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "字典不存在", null);
             }
 
             DictItem item = dictItemService.getItemByItemName(dict.getId(), itemName);
             if (item == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "字典项不存在", null);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "字典项不存在", null);
             }
 
             // 3. 缓存字典项信息
             dictCacheService.cacheDictItem(dictCode, convertToDictItemVO(item));
-            return new ResponseResult<>(HttpStatus.OK.value(), "获得字典项编码成功", item.getItemCode());
+            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得字典项编码成功", item.getItemCode());
         } catch (Exception e) {
             log.error("获取字典项编码异常，dictCode: {}, itemName: {}", dictCode, itemName, e);
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典项编码失败", null);
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取字典项编码失败", null);
         }
     }
 
@@ -259,28 +259,28 @@ public class SysDictGlobalController {
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "userName", required = false) String userName) {
         if(userId == null && StringUtils.isBlank(userName)) {
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "参数不能同时为空", null);
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "参数不能同时为空", null);
         }
         try {
             // 1. 从缓存获取用户名称
             String realName = dictCacheService.getUserRealNameInDictExtendsFromCache(userId, userName);
             if (StringUtils.isNotBlank(realName)) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "获得用户名称成功", realName);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得用户名称成功", realName);
             }
 
             // 2. 缓存不存在，从数据库加载
             SysUser user = dictService.getUserRealNameInDictExtends(userId, userName);
 
             if (user == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "用户不存在", null);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "用户不存在", null);
             }
 
             // 3. 缓存字典项信息
             dictCacheService.cacheUserRealInDictExtends(user);
-            return new ResponseResult<>(HttpStatus.OK.value(), "获得用户名称成功", user.getUserDescription());
+            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得用户名称成功", user.getUserDescription());
         } catch (Exception e) {
             log.error("获取用户名称异常，userId: {}, userName: {}", userId, userName, e);
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取用户名称失败", null);
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取用户名称失败", null);
         }
     }
 
@@ -290,28 +290,28 @@ public class SysDictGlobalController {
             @RequestParam(value = "deptId", required = false) Long deptId,
             @RequestParam(value = "orgCode", required = false) String orgCode) {
         if(deptId == null && StringUtils.isBlank(orgCode)) {
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "参数不能同时为空", null);
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "参数不能同时为空", null);
         }
         try {
             // 1. 从缓存获取部门名称
             String realName = dictCacheService.getDeptNameNameInDictExtendsFromCache(deptId, orgCode);
             if (StringUtils.isNotBlank(realName)) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "获得部门名称成功", realName);
+                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得部门名称成功", realName);
             }
 
             // 2. 缓存不存在，从数据库加载
             Dept dept = dictService.getDeptNameNameInDictExtends(deptId, orgCode);
 
             if (dept == null) {
-                return new ResponseResult<>(HttpStatus.OK.value(), "部门不存在", null);
+                return new ResponseResult<>(false, HttpStatus.OK.value(), "部门不存在", null);
             }
 
             // 3. 缓存字典项信息
             dictCacheService.cacheDeptNameInDictExtends(dept);
-            return new ResponseResult<>(HttpStatus.OK.value(), "获得部门名称成功", dept.getDepartmentName());
+            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得部门名称成功", dept.getDepartmentName());
         } catch (Exception e) {
             log.error("获取部门名称异常，deptId: {}, orgCode: {}", deptId, orgCode, e);
-            return new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取部门名称失败", null);
+            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取部门名称失败", null);
         }
     }
 
