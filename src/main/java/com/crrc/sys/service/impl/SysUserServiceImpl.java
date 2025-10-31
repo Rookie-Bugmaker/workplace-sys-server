@@ -15,6 +15,8 @@ import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.mapper.*;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
+import com.crrc.sys.model.user.SysOnlineUserParamDTO;
+import com.crrc.sys.model.user.SysOnlineUserVO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.SysUserService;
@@ -341,6 +343,18 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public List<SysUser> findByUserNameList(List<String> userNameList) {
         return userMapper.findByUserNameList(userNameList);
+    }
+
+    /**
+     * 根据用户名集合查询用户信息
+     *
+     * @param userNameList 用户名集合
+     * @param search       搜索条件
+     * @return 用户信息
+     */
+    @Override
+    public List<SysOnlineUserVO> findByUserNamesAndFuzzy(List<String> userNameList, SysOnlineUserParamDTO search) {
+        return userMapper.findByUserNamesAndFuzzy(userNameList, search);
     }
 
     /**

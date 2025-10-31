@@ -16,10 +16,6 @@ public class SysOnlineUserVO {
      */
     private Long userId;
     /**
-     * 客户端类型(Browser:浏览器)
-     */
-    private String clientType;
-    /**
      * 用户名
      */
     private String userName;
@@ -27,6 +23,10 @@ public class SysOnlineUserVO {
      * 员工姓名
      */
     private String fullName;
+    /**
+     * 客户端类型(Browser:浏览器)
+     */
+    private String clientType;
     /**
      * 在线状态(Y:在线、N:离线)
      */

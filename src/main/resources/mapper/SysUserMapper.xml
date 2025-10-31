@@ -23,6 +23,12 @@
         <result column="NEXT_LOGIN_UPDATE_PASSWORD" property="nextLoginUpdatePassword" jdbcType="VARCHAR" />
     </resultMap>
 
+    <resultMap id="onlineUserMap" type="com.crrc.sys.model.user.SysOnlineUserVO">
+        <id column="USER_ID" property="userId" jdbcType="NUMERIC" />
+        <result column="USER_NAME" property="userName" jdbcType="VARCHAR" />
+        <result column="FULL_NAME" property="fullName" jdbcType="VARCHAR" />
+    </resultMap>
+
     <!--根据用户名查询用户信息-->
     <select id="findByUserName" resultMap="userMap">
         select u.user_id,u.user_name,u.password,u.password_update_date,u.user_type,u.user_relation_id,
@@ -329,5 +335,26 @@
                 and user_description like CONCAT( CONCAT('%',#{fullName} ),'%')
             </if>
         </trim>
+    </select>
+
+    <!--根据用户名批量查询并模糊查询-->
+    <select id="findByUserNamesAndFuzzy" resultMap="onlineUserMap">
+            select u.user_id,u.user_name,tl.full_name
+            from sys_user u
+            left join sys_org_person_tl tl on u.user_relation_id = tl.person_id and tl.language = 'zh-CN'
+            <trim prefix="where" prefixOverrides="and">
+                <if test="userNameList != null and userNameList.size > 0">
+                    and
+                    <foreach collection="userNameList" item="userName" open="(" separator="or" close=")">
+                        u.user_name = #{userName}
+                    </foreach>
+                </if>
+                <if test="search.userName != null and search.userName != ''">
+                    and u.user_name like CONCAT( CONCAT('%',#{search.userName} ),'%')
+                </if>
+                <if test="search.fullName != null and search.fullName != ''">
+                    and tl.full_name like CONCAT( CONCAT('%',#{search.fullName} ),'%')
+                </if>
+            </trim>
     </select>
 </mapper>

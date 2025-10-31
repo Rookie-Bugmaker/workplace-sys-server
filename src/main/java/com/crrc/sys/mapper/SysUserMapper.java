@@ -3,9 +3,10 @@ package com.crrc.sys.mapper;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
+import com.crrc.sys.model.user.SysOnlineUserParamDTO;
+import com.crrc.sys.model.user.SysOnlineUserVO;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -156,4 +157,13 @@ public interface SysUserMapper {
      * @return 结果
      */
     List<SysUser> findByUserIdsAndFuzzy(@Param("userIdList") List<Long> userIdList, @Param("userName") String userName, @Param("fullName") String fullName);
+
+    /**
+     * 根据用户名集合查询用户信息
+     *
+     * @param userNameList 用户名集合
+     * @param search       搜索条件
+     * @return 用户信息
+     */
+    List<SysOnlineUserVO> findByUserNamesAndFuzzy(@Param("userNameList") List<String> userNameList, @Param("search") SysOnlineUserParamDTO search);
 }

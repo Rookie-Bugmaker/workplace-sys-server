@@ -1,12 +1,11 @@
 package com.crrc.sys.controller;
 
 import com.crrc.sys.client.AuthClient;
+import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
-import com.crrc.sys.entity.org.person.SysOrgPerson;
-import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
 import com.crrc.sys.model.user.SysOnlineUserVO;
 import com.crrc.sys.service.SysOrgPersonService;
@@ -28,6 +27,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -45,9 +47,9 @@ public class SysOnlineUserController {
     @Resource
     private SysUserService userService;
     @Resource
-    private SysOrgPersonService personService;
-    @Resource
     private AuthClient authClient;
+    @Resource
+    private Executor executor;
 
     /**
      * 分页查询在线用户
@@ -69,46 +71,32 @@ public class SysOnlineUserController {
         String usernamePrefixKey = "uname_to_access:" + clientType + ":*";
         Set<String> scanKeys = scanKeys(usernamePrefixKey);
         PaginationGrid<SysOnlineUserVO> paginationGrid = new PaginationGrid<>(param.getPage(), param.getPageSize());
+        paginationGrid.setTotal(0L);
+        paginationGrid.setRows(new ArrayList<>());
         if (CollectionUtils.isEmpty(scanKeys)) {
-            paginationGrid.setTotal(0L);
-            paginationGrid.setRows(new ArrayList<>());
             return paginationGrid;
         }
-        //总数
-        int count = scanKeys.size();
         int page = param.getPage();
         int pageSize = param.getPageSize();
-        if (pageSize <= 0) {
-            pageSize = count;
-        }
-        //获取当前页数据
-        List<String> keyList = scanKeys.stream().skip((long) (page - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
         //用户名集合
-        List<String> userNameList = keyList.stream().map(o -> o.substring(usernamePrefixKey.lastIndexOf(":") + 1)).collect(Collectors.toList());
-        //查询用户信息
-        List<SysUser> userList = userService.findByUserNameList(userNameList);
-        //人员ID集合
-        List<Long> personIdList = userList.stream().map(SysUser::getUserRelationId).collect(Collectors.toList());
-        List<SysOrgPerson> personList = null;
-        if (!CollectionUtils.isEmpty(personIdList)) {
-            personList = personService.findByIds(personIdList);
+        List<String> userNameList = scanKeys.stream().map(o -> o.substring(usernamePrefixKey.lastIndexOf(":") + 1)).collect(Collectors.toList());
+        List<SysOnlineUserVO> allOnlineList = this.findAllByOnline(userNameList, param);
+        if (CollectionUtils.isEmpty(allOnlineList)) {
+            return paginationGrid;
         }
-        List<SysOnlineUserVO> onlineUserList = new ArrayList<>();
-        for (SysUser sysUser : userList) {
-            SysOnlineUserVO onlineUser = new SysOnlineUserVO();
-            onlineUser.setUserId(sysUser.getUserId());
-            onlineUser.setUserName(sysUser.getUserName());
+        List<SysOnlineUserVO> onlineUserList;
+        if (pageSize > 0) {
+            //pageSize<=0则只返回当前页数据
+            onlineUserList = allOnlineList.stream().skip((long) (page - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
+        } else {
+            //pageSize<=0则返回所有数据
+            onlineUserList = allOnlineList;
+        }
+        for (SysOnlineUserVO onlineUser : onlineUserList) {
             onlineUser.setClientType(param.getClientType());
             onlineUser.setOnlineStatus("Y");
-            if (!CollectionUtils.isEmpty(personList)) {
-                SysOrgPerson person = personList.stream().filter(o -> o.getPersonId().equals(sysUser.getUserRelationId())).findFirst().orElse(null);
-                if (!ObjectUtils.isEmpty(person)) {
-                    onlineUser.setFullName(person.getFullName());
-                }
-            }
-            onlineUserList.add(onlineUser);
         }
-        paginationGrid.setTotal((long) count);
+        paginationGrid.setTotal((long) allOnlineList.size());
         paginationGrid.setRows(onlineUserList);
         return paginationGrid;
     }
@@ -137,6 +125,41 @@ public class SysOnlineUserController {
             keys.add(new String(scan.next()));
         }
         return keys;
+    }
+
+    /**
+     * 分页查询所有在线用户信息
+     *
+     * @param userNameList 在线用户名
+     * @param param        查询条件
+     * @return 结果
+     */
+    private List<SysOnlineUserVO> findAllByOnline(List<String> userNameList, SysOnlineUserParamDTO param) {
+        //数据总数
+        int count = userNameList.size();
+        if (count <= 0) {
+            return null;
+        }
+        //每页查询数据条数
+        int pageSize = 500;
+        //最大页码
+        int page = (int) Math.ceil(Arith.div(count, pageSize, 2));
+        List<SysOnlineUserVO> allOnlineUserList = new CopyOnWriteArrayList<>();
+        List<CompletableFuture<Void>> futureList = new ArrayList<>(page);
+        for (int i = 1; i <= page; i++) {
+            //获取当前页用户列表
+            final List<String> keyList = userNameList.stream().skip((long) (page - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                //根据用户名集合查询用户信息
+                List<SysOnlineUserVO> userList = userService.findByUserNamesAndFuzzy(keyList, param);
+                if (!CollectionUtils.isEmpty(userList)) {
+                    allOnlineUserList.addAll(userList);
+                }
+            }, executor);
+            futureList.add(future);
+        }
+        CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+        return allOnlineUserList;
     }
 
     /**
