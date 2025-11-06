@@ -21,9 +21,6 @@ public class MybatisPlusConfig {
 
     /**
      * 注入MybatisPlusAutoFillHandler处理器
-     *
-     * @return MybatisPlusAutoFillHandler处理器
-     * @see MybatisPlusAutoFillHandler
      */
     @Bean
     public MybatisPlusAutoFillHandler mybatisPlusAutoFillHandler() {
