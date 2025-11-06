@@ -132,11 +132,7 @@ public class SysSsoConfigController {
         }
         LambdaQueryWrapper<SysSsoConfigPO> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(SysSsoConfigPO::getId, id);
-        SysSsoConfigPO one = ssoConfigService.getOne(lambdaQueryWrapper);
-        if (!ObjectUtils.isEmpty(one)) {
-            one.setClientSecret(null);
-        }
-        return one;
+        return ssoConfigService.getOne(lambdaQueryWrapper);
     }
 
     /**
