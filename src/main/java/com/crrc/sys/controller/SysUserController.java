@@ -1006,13 +1006,13 @@ public class SysUserController {
     @GetMapping("download/template")
     public void downloadTemplate(HttpServletResponse response) throws IOException {
         UserExcelEntity excelEntity = new UserExcelEntity();
-        excelEntity.setEndDate(new Date());
-        excelEntity.setStartDate(new Date());
+//        excelEntity.setEndDate(new Date());
+//        excelEntity.setStartDate(new Date());
         excelEntity.setUserName("【此行删除】输入用户名");
         excelEntity.setDisableState("请输入（启用/禁用）");
         excelEntity.setRoleAuth("输入角色编码（多个用英文逗号" + "," + "隔开）");
-        excelEntity.setTerminals("输入终端名称（多个用英文逗号" + "," + "隔开）");
-        excelEntity.setUserType("输入用户类型");
+//        excelEntity.setTerminals("输入终端名称（多个用英文逗号" + "," + "隔开）");
+        excelEntity.setUserType("输入用户类型(员工/供应商/客户)");
         excelEntity.setUserDescription("输入用户描述");
         excelEntity.setUserRelation("输入工号");
         excelEntity.setPassword("输入用户密码");
@@ -1211,6 +1211,9 @@ public class SysUserController {
                 if (existsUserNames.contains(excelEntity.getUserName())) {
                     validateMsg.append("【用户名已存在】");
                 }
+                if(containsChinese(excelEntity.getUserName())) {
+                    validateMsg.append("【用户名不能包含中文】");
+                }
             }
             // 验证密码
             if (ObjectUtils.isEmpty(excelEntity.getPassword())) {
@@ -1240,9 +1243,9 @@ public class SysUserController {
                 }
             }
             // 验证生效日期
-            if (ObjectUtils.isEmpty(excelEntity.getStartDate())) {
-                validateMsg.append("【生效日期为空】");
-            }
+//            if (ObjectUtils.isEmpty(excelEntity.getStartDate())) {
+//                validateMsg.append("【生效日期为空】");
+//            }
             // 验证状态
             if (ObjectUtils.isEmpty(excelEntity.getDisableState())) {
                 validateMsg.append("【用户状态为空】");
@@ -1682,5 +1685,18 @@ public class SysUserController {
             dtoList.add(dto);
         }
         return dtoList;
+    }
+
+    private boolean containsChinese(String str) {
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);
+            if (ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+                    || ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
+                    || ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A) {
+                return true;
+            }
+        }
+        return false;
     }
 }

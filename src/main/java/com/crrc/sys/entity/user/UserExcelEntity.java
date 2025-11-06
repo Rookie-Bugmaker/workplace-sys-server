@@ -40,21 +40,21 @@ public class UserExcelEntity extends BaseExcelEntity {
     /**
      * 登录终端
      */
-    @ExcelProperty(value = "*登录终端")
-    private String terminals;
+//    @ExcelProperty(value = "*登录终端")
+//    private String terminals;
 
     /**
      * 账户生效时间
      */
-    @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
-    @ExcelProperty(value = "*生效时间")
-    private Date startDate;
+//    @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
+//    @ExcelProperty(value = "*生效时间")
+//    private Date startDate;
     /**
      * 账户失效时间
      */
-    @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
-    @ExcelProperty(value = "失效时间")
-    private Date endDate;
+//    @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
+//    @ExcelProperty(value = "失效时间")
+//    private Date endDate;
     /**
      * 禁用状态(Y/N)
      */
@@ -111,29 +111,29 @@ public class UserExcelEntity extends BaseExcelEntity {
         this.userRelation = userRelation;
     }
 
-    public String getTerminals() {
-        return terminals;
-    }
+//    public String getTerminals() {
+//        return terminals;
+//    }
+//
+//    public void setTerminals(String terminals) {
+//        this.terminals = terminals;
+//    }
 
-    public void setTerminals(String terminals) {
-        this.terminals = terminals;
-    }
-
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
-    }
-
-    public Date getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
-    }
+//    public Date getStartDate() {
+//        return startDate;
+//    }
+//
+//    public void setStartDate(Date startDate) {
+//        this.startDate = startDate;
+//    }
+//
+//    public Date getEndDate() {
+//        return endDate;
+//    }
+//
+//    public void setEndDate(Date endDate) {
+//        this.endDate = endDate;
+//    }
 
     public String getDisableState() {
         return disableState;
@@ -184,11 +184,11 @@ public class UserExcelEntity extends BaseExcelEntity {
             return false;
         }
         UserExcelEntity that = (UserExcelEntity) o;
-        return Objects.equal(userName, that.userName) && Objects.equal(password, that.password) && Objects.equal(userType, that.userType) && Objects.equal(userRelation, that.userRelation) && Objects.equal(terminals, that.terminals) && Objects.equal(startDate, that.startDate) && Objects.equal(endDate, that.endDate) && Objects.equal(disableState, that.disableState) && Objects.equal(userDescription, that.userDescription) && Objects.equal(roleAuth, that.roleAuth);
+        return Objects.equal(userName, that.userName) && Objects.equal(password, that.password) && Objects.equal(userType, that.userType) && Objects.equal(userRelation, that.userRelation)  && Objects.equal(disableState, that.disableState) && Objects.equal(userDescription, that.userDescription) && Objects.equal(roleAuth, that.roleAuth);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(userName, password, userType, userRelation, terminals, startDate, endDate, disableState, userDescription, roleAuth);
+        return Objects.hashCode(userName, password, userType, userRelation, disableState, userDescription, roleAuth);
     }
 }
