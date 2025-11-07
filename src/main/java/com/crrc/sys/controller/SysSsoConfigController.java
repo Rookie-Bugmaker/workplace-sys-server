@@ -51,6 +51,10 @@ public class SysSsoConfigController {
         queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigCode()), SysSsoConfigPO::getConfigCode, param.getConfigCode());
         queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigType()), SysSsoConfigPO::getConfigType, param.getConfigType());
         page = ssoConfigService.page(page, queryWrapper);
+        List<SysSsoConfigPO> records = page.getRecords();
+        if (!CollectionUtils.isEmpty(records)) {
+            records.forEach(o -> o.setClientSecret(null));
+        }
         return PaginationGrid.success(page);
     }
 
@@ -112,11 +116,7 @@ public class SysSsoConfigController {
         }
         LambdaQueryWrapper<SysSsoConfigPO> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(SysSsoConfigPO::getConfigCode, configCode);
-        SysSsoConfigPO one = ssoConfigService.getOne(lambdaQueryWrapper);
-        if (!ObjectUtils.isEmpty(one)) {
-            one.setClientSecret(null);
-        }
-        return one;
+        return ssoConfigService.getOne(lambdaQueryWrapper);
     }
 
     /**
