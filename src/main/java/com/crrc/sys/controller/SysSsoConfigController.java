@@ -47,8 +47,8 @@ public class SysSsoConfigController {
         }
         Page<SysSsoConfigPO> page = new Page<>(param.getPage(), param.getPageSize());
         LambdaQueryWrapper<SysSsoConfigPO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigName()), SysSsoConfigPO::getConfigName, param.getConfigName());
-        queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigCode()), SysSsoConfigPO::getConfigCode, param.getConfigCode());
+        queryWrapper.like(!ObjectUtils.isEmpty(param.getConfigName()), SysSsoConfigPO::getConfigName, param.getConfigName());
+        queryWrapper.like(!ObjectUtils.isEmpty(param.getConfigCode()), SysSsoConfigPO::getConfigCode, param.getConfigCode());
         queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigType()), SysSsoConfigPO::getConfigType, param.getConfigType());
         page = ssoConfigService.page(page, queryWrapper);
         List<SysSsoConfigPO> records = page.getRecords();
