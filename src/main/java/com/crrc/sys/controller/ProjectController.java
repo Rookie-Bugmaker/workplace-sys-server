@@ -215,6 +215,8 @@ public class ProjectController {
         List<Long> projectIdList = roleList.stream().map(SysRole::getProjectId).distinct().collect(Collectors.toList());
         LambdaQueryWrapper<ProjectEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.in(!CollectionUtils.isEmpty(projectIdList), ProjectEntity::getId, projectIdList);
-        return projectService.listByIds(projectIdList);
+        //排除`中车平台`项目
+        lambdaQueryWrapper.notIn(ProjectEntity::getName, "crrc_platform");
+        return projectService.list(lambdaQueryWrapper);
     }
 }
