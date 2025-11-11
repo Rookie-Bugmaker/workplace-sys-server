@@ -422,9 +422,12 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     @Override
     public SysMenu findTreeByRoleId(long roleId, String language) {
+        //根据角色ID查询角色信息
+        final SysRole sysRole = roleMapper.findById(roleId, language);
+        if (ObjectUtils.isEmpty(sysRole)) {
+            throw new BizException("角色ID不存在[" + roleId + "]");
+        }
         CompletableFuture<SysMenu> completableFuture = CompletableFuture.supplyAsync(() -> {
-            //根据角色ID查询角色信息
-            SysRole sysRole = roleMapper.findById(roleId, language);
             //查找根菜单
             SysMenu rootMenu = menuMapper.findById(sysRole.getMenuId(), language);
             if (ObjectUtils.isEmpty(rootMenu)) {

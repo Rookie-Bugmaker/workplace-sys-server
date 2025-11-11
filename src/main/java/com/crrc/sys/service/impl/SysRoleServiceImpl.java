@@ -4,6 +4,7 @@ import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.controller.SysOnlineUserController;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.project.ProjectEntity;
@@ -17,6 +18,7 @@ import com.crrc.sys.service.SysRoleService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -55,6 +57,10 @@ public class SysRoleServiceImpl implements SysRoleService {
     private SysRoleCompanyDeptService roleCompanyDeptService;
     @Resource
     private SysUserRoleMapper userRoleMapper;
+    @Resource
+    private SysOnlineUserController onlineUserController;
+    @Resource
+    private ValueOperations<String, Object> valueOperations;
 
     /**
      * 角色信息分页查询
@@ -337,7 +343,21 @@ public class SysRoleServiceImpl implements SysRoleService {
         //角色(多语言)删除
         roleMapper.deleteTl(ids);
         //角色主表删除
-        return roleMapper.deleteB(ids);
+        int result = roleMapper.deleteB(ids);
+        if (result > 0) {
+            //当前角色ID=ids的缓存
+            //缓存当前角色的key前缀
+            String currentRoleIdPrefixKey = "current_role_id:*";
+            Set<String> scanKeys = onlineUserController.scanKeys(currentRoleIdPrefixKey);
+            for (String scanKey : scanKeys) {
+                Object roleIdObj = valueOperations.get(scanKey);
+                if (!ObjectUtils.isEmpty(roleIdObj) && ids.contains(Long.parseLong(roleIdObj.toString()))) {
+                    //重置当前角色ID为空字符串
+                    valueOperations.set(currentRoleIdPrefixKey, "");
+                }
+            }
+        }
+        return result;
     }
 
     /**
