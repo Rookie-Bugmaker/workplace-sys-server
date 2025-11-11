@@ -194,4 +194,27 @@ public class ProjectController {
         List<Long> projectIdList = roleList.stream().map(SysRole::getProjectId).distinct().collect(Collectors.toList());
         return projectService.listByIds(projectIdList);
     }
+
+    /**
+     * 获取当前用户拥有的项目列表
+     *
+     * @return 项目列表
+     */
+    @GetMapping("listByCurrentUser")
+    public List<ProjectEntity> listByCurrentUser() {
+        ResultData<SysUser> userResultData = authClient.currentUser();
+        if (!userResultData.getSuccess()) {
+            throw new BizException(userResultData.getCode(), userResultData.getMessage());
+        }
+        SysUser sysUser = userResultData.getResult();
+        //查询当前用户拥有的角色列表
+        List<SysRole> roleList = roleService.findByUserId(sysUser.getUserId(), LanguageEnum.ZH_CN.getValue());
+        if (CollectionUtils.isEmpty(roleList)) {
+            throw new BizException("当前用户没有分配角色");
+        }
+        List<Long> projectIdList = roleList.stream().map(SysRole::getProjectId).distinct().collect(Collectors.toList());
+        LambdaQueryWrapper<ProjectEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.in(!CollectionUtils.isEmpty(projectIdList), ProjectEntity::getId, projectIdList);
+        return projectService.listByIds(projectIdList);
+    }
 }
