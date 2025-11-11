@@ -729,4 +729,14 @@ public class SysRoleController {
         SysUser sysUser = resultData.getResult();
         return findRoleCompanyDeptInfoByRoleId(sysUser.getCurrentRoleId());
     }
+
+    /**
+     * 查询所有角色ID集合
+     *
+     * @return 角色ID集合
+     */
+    @GetMapping("findRoleIdList")
+    public List<Long> findRoleIdList() {
+        return roleService.findRoleIdList();
+    }
 }

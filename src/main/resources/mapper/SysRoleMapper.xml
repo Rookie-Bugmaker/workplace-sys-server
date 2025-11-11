@@ -148,4 +148,9 @@
 		    )
 		and rtl.language = #{language}
 	</select>
+
+    <!--查询所有角色ID集合-->
+    <select id="findRoleIdList" resultType="java.lang.Long">
+        select role_id from sys_role_b order by role_id
+    </select>
 </mapper>

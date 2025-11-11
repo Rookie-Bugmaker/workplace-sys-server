@@ -345,7 +345,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         //角色主表删除
         int result = roleMapper.deleteB(ids);
         if (result > 0) {
-            //当前角色ID=ids的缓存
+            //重置当前角色ID=ids的缓存
             //缓存当前角色的key前缀
             String currentRoleIdPrefixKey = "current_role_id:*";
             Set<String> scanKeys = onlineUserController.scanKeys(currentRoleIdPrefixKey);
@@ -356,6 +356,9 @@ public class SysRoleServiceImpl implements SysRoleService {
                     valueOperations.set(currentRoleIdPrefixKey, "");
                 }
             }
+            //更新所有角色ID集合缓存
+            List<Long> roleIdList = roleMapper.findRoleIdList();
+            valueOperations.set("role_id_list", roleIdList.stream().map(Object::toString).collect(Collectors.joining(",")));
         }
         return result;
     }
@@ -461,5 +464,15 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public List<SysRole> findByCodes(List<String> roleCodeList, String language) {
         return roleMapper.findByCodes(roleCodeList, language);
+    }
+
+    /**
+     * 查询所有角色ID集合
+     *
+     * @return 角色ID集合
+     */
+    @Override
+    public List<Long> findRoleIdList() {
+        return roleMapper.findRoleIdList();
     }
 }
