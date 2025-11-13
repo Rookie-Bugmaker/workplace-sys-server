@@ -141,3 +141,13 @@ mainData:
     userId: @mainData.mq.userId@
     # 密码
     password: @mainData.mq.password@
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+        boot:
+          autoconfigure: ERROR
+dify:
+  baseUrl: https://aistart.cccar.com.cn/v1
+  apiKey: app-s3z4HYqnBBIspT9UXciYLhSH
