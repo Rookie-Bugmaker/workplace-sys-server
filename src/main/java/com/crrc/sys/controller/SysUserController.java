@@ -581,6 +581,9 @@ public class SysUserController {
         //更新密码过期时间
         //根据配置编码查询配置文件信息
         SysProfile sysProfile = profileService.findByCode("PASSWORD_LIFESPAN_DAY");
+        if (ObjectUtils.isEmpty(sysProfile)) {
+            throw new BizException("配置文件[PASSWORD_LIFESPAN_DAY]不存在");
+        }
         //值来源类型： sql:SQL、fixed:固定值
         if (!ProfileSourceTypeEnum.FIXED.getValue().equals(sysProfile.getProfileSourceType())) {
             throw new BizException("该接口只查询[值来源类型=fixed]的配置文件!");
@@ -1211,7 +1214,7 @@ public class SysUserController {
                 if (existsUserNames.contains(excelEntity.getUserName())) {
                     validateMsg.append("【用户名已存在】");
                 }
-                if(containsChinese(excelEntity.getUserName())) {
+                if (containsChinese(excelEntity.getUserName())) {
                     validateMsg.append("【用户名不能包含中文】");
                 }
             }

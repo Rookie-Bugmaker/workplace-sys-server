@@ -8,7 +8,6 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
 import com.crrc.sys.model.user.SysOnlineUserVO;
-import com.crrc.sys.service.SysOrgPersonService;
 import com.crrc.sys.service.SysUserService;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -107,7 +106,7 @@ public class SysOnlineUserController {
      * @param pattern 模糊匹配
      * @return 结果
      */
-    private Set<String> scanKeys(String pattern) {
+    public Set<String> scanKeys(String pattern) {
         Set<String> keys = new HashSet<>();
         RedisConnectionFactory connectionFactory = redisTemplate.getConnectionFactory();
         if (ObjectUtils.isEmpty(connectionFactory)) {

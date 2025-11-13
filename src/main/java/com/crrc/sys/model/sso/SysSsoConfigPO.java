@@ -1,9 +1,6 @@
 package com.crrc.sys.model.sso;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.crrc.sys.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,7 +34,7 @@ public class SysSsoConfigPO extends BaseEntity {
     /**
      * 图标
      */
-    private Long fileId;
+    private Long fileHeaderId;
     /**
      * 应用ID
      */
@@ -67,4 +64,10 @@ public class SysSsoConfigPO extends BaseEntity {
      */
     @TableLogic
     private Integer deleted;
+    /**
+     * 文件ID
+     * 由于图标只会存在1个，所以此处旧旧没有必要使用集合了
+     */
+    @TableField(exist = false)
+    private Long fileId;
 }

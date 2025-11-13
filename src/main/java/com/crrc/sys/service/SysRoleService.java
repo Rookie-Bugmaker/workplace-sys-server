@@ -98,4 +98,10 @@ public interface SysRoleService {
      */
     List<SysRole> findByCodes(List<String> roleCodeList, String language);
 
+    /**
+     * 查询所有角色ID集合
+     *
+     * @return 角色ID集合
+     */
+    List<Long> findRoleIdList();
 }

@@ -1,32 +1,54 @@
 package com.crrc.sys.controller;
 
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.support.ExcelTypeEnum;
+import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.crrc.sys.annotation.AuditLog;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
+import com.crrc.sys.common.ReturnCode;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.convert.DeptConvert;
 import com.crrc.sys.convert.SysOrgPersonConvert;
 import com.crrc.sys.entity.company.Company;
 import com.crrc.sys.entity.dept.Dept;
+import com.crrc.sys.entity.excel.ExcelResultData;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.user.SysUser;
-import com.crrc.sys.enums.GenderEnum;
-import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.entity.user.UserExcelEntity;
+import com.crrc.sys.enums.*;
+import com.crrc.sys.listener.SysOrgPersonImportListener;
 import com.crrc.sys.model.dept.DeptInfoDTO;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.model.org.person.SysOrgPersonDTO;
+import com.crrc.sys.model.org.person.SysOrgPersonDeliveryExcelVO;
+import com.crrc.sys.model.org.person.SysOrgPersonVerifyExcelDTO;
 import com.crrc.sys.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +75,10 @@ public class SysOrgPersonController {
     private DeptService deptService;
     @Resource
     private CompanyService companyService;
+    @Resource
+    private ValueOperations<String, Object> valueOperations;
+
+    private static final String REDIS_PREFIX = "import_person_data";
 
     /**
      * 人员分页查询(Copy)
@@ -286,7 +312,7 @@ public class SysOrgPersonController {
             //最后修改人登录日志
             person.setLastUpdateLogin(currentUser.getLastLoginInfoId());
             int result = orgPersonService.update(person);
-            if(result <= 0) {
+            if (result <= 0) {
                 return false;
             }
         }
@@ -455,5 +481,339 @@ public class SysOrgPersonController {
             }
         });
         return personDtoList;
+    }
+
+    @GetMapping("/export")
+    @AuditLog(value = "导出人员信息", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "导出人员信息")
+    public void exportSysPerson(SysOrgPersonFindByPageParam exportReqVO, HttpServletResponse response) throws IOException {
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("人员信息-" + new SimpleDateFormat("yyyyMMddhhmmss")
+                        .format(System.currentTimeMillis()), "UTF-8")
+                .replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+
+        exportReqVO = (exportReqVO == null) ? new SysOrgPersonFindByPageParam() : exportReqVO;
+        List<SysOrgPerson> personList = orgPersonService.findList(exportReqVO);
+        List<SysOrgPersonDeliveryExcelVO> personExcelVOS = transPersonToExcelVOS(personList);
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), SysOrgPersonDeliveryExcelVO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("人员信息")
+                .doWrite(personExcelVOS);
+    }
+
+    @GetMapping("/download")
+    @AuditLog(value = "导出人员信息模板", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "导出自人员信息模板")
+    public void exportTemplateSysPerson(HttpServletResponse response) throws IOException {
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("人员信息模板", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), SysOrgPersonDeliveryExcelVO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("人员信息")
+                .doWrite(new ArrayList<>());
+    }
+
+    @PostMapping("/import")
+    @AuditLog(value = "导入人员信息报表", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
+    @Operation(summary = "导入人员信息报表")
+    public ResultData<ExcelResultData<List<SysOrgPersonVerifyExcelDTO>>> importsSysPerson(MultipartFile file) throws IOException {
+        SysOrgPersonImportListener listener = new SysOrgPersonImportListener(orgPersonService, companyService, deptService);
+        EasyExcel.read(file.getInputStream(), SysOrgPersonDeliveryExcelVO.class, listener)
+                .headRowNumber(1)
+                .sheet()
+                .doRead();
+        // 形成数据
+        List<SysOrgPersonVerifyExcelDTO> verifyExcelList = listener.getResult();
+        if (CollectionUtils.isEmpty(verifyExcelList)) {
+            throw new BizException("导入文件不能为空");
+        }
+        List<SysOrgPerson> orgPersonList = transExcelVOsToOrgPerson(verifyExcelList);
+        Map<String, Long> jobNoToPersonIdMap = orgPersonList.stream()
+                .filter(person -> person.getJobNo() != null)  // 过滤null
+                .collect(Collectors.toMap(
+                        SysOrgPerson::getJobNo,
+                        SysOrgPerson::getPersonId
+                ));
+        List<SysDeptPersonPO> deptPersonList = transExcelVOsToDeptPerson(jobNoToPersonIdMap, verifyExcelList);
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("person", orgPersonList);
+        map.put("excel", verifyExcelList);
+        map.put("deptPerson", deptPersonList);
+        //存入redis
+        String redisKey = REDIS_PREFIX + idKeyGenerator.getId();
+        String jsonStr = JSON.toJSONString(map);
+        valueOperations.set(redisKey, jsonStr, 3600, TimeUnit.SECONDS);
+        ExcelResultData<List<SysOrgPersonVerifyExcelDTO>> build = ExcelResultData.build(redisKey, verifyExcelList);
+        // 验证是否有失败的数据
+        List<String> validateStatus = verifyExcelList.stream().map(SysOrgPersonVerifyExcelDTO::getValidateStatus).filter(status -> StatusEnum.N.name().equals(status)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(validateStatus)) {
+            return ResultData.success(build);
+        }
+        return ResultData.fail(ReturnCode.EXCEL_ERROR.getCode(), ReturnCode.EXCEL_ERROR.getMessage(), build);
+    }
+
+    @GetMapping("/download/data")
+    @AuditLog(value = "下载导入验证结果", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "下载导入验证结果")
+    public void downloadVerifyResult(HttpServletResponse response, @RequestParam String redisKey) throws IOException {
+        String redisData = (String) valueOperations.get(redisKey);
+        // 反序列化
+        HashMap<String, Object> map = JSON.parseObject(redisData,
+                new TypeReference<HashMap<String, Object>>() {
+                });
+        // 获取数据
+        List<SysOrgPersonVerifyExcelDTO> list = JSON.parseObject(
+                JSON.toJSONString(map.get("excel")),
+                new TypeReference<List<SysOrgPersonVerifyExcelDTO>>() {
+                });
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("人员导入验证结果下载", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), SysOrgPersonVerifyExcelDTO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("人员导入验证结果下载")
+                .doWrite(list);
+    }
+
+    /**
+     * 验证数据入库
+     *
+     * @param redisKey redis缓存主键
+     */
+    @Transactional
+    @AutoIdempotent(seconds = 30)
+    @AuditLog(value = "下载导入验证结果", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
+    @GetMapping("/import/data")
+    public void importData(@RequestParam String redisKey) {
+        String redisData = (String) valueOperations.get(redisKey);
+        // 反序列化
+        HashMap<String, Object> map = JSON.parseObject(redisData,
+                new TypeReference<HashMap<String, Object>>() {
+                });
+        // 获取数据
+        List<SysOrgPerson> personList = JSON.parseObject(
+                JSON.toJSONString(map.get("person")),
+                new TypeReference<List<SysOrgPerson>>() {
+                });
+        List<SysDeptPersonPO> deptPersonList = JSON.parseObject(
+                JSON.toJSONString(map.get("deptPerson")),
+                new TypeReference<List<SysDeptPersonPO>>() {
+                });
+
+        if(personList != null && personList.size() > 0) {
+            boolean result = orgPersonService.addList(personList);
+            if (!result) {
+                throw new BizException("人员数据写入失败！");
+            }
+        }
+
+        if(deptPersonList != null && deptPersonList.size() > 0) {
+            boolean result = deptPersonService.saveBatch(deptPersonList);
+            if (!result) {
+                throw new BizException("人员部门关联关系写入失败！");
+            }
+        }
+    }
+
+    private List<SysDeptPersonPO> transExcelVOsToDeptPerson(Map<String, Long> jobNoToPersonIdMap, List<SysOrgPersonVerifyExcelDTO> excelVOs) {
+        List<SysDeptPersonPO> deptPersonList = new ArrayList<>();
+        excelVOs.forEach(excelVO -> {
+            // 获取当前用户
+            ResultData<SysUser> resultData = authClient.currentUser();
+            if (!resultData.getSuccess()) {
+                throw new BizException(resultData.getMessage());
+            }
+            // 只有存在公司和部门才保存关联关系
+            if (StringUtils.isNotBlank(excelVO.getCompanyCode()) && StringUtils.isNotBlank(excelVO.getDeptCode())) {
+                // 获取公司部门和直属上级
+                Company company = getCompanyByCode(excelVO.getCompanyCode());
+                Dept dept = getDeptByCompanyIdAndCode(company.getId(), excelVO.getDeptCode());
+                SysOrgPerson parentPerson = orgPersonService.findByJobNo(excelVO.getParentPersonCode());
+
+                SysDeptPersonPO deptPerson = new SysDeptPersonPO();
+                deptPerson.setId(idKeyGenerator.getId());
+                deptPerson.setCompanyId(company.getId());
+                deptPerson.setDeptId(dept.getId());
+                deptPerson.setPersonId(jobNoToPersonIdMap.get(excelVO.getJobNo()));
+                deptPerson.setPosition(excelVO.getPosition());
+                deptPerson.setParentPersonId(parentPerson.getPersonId());
+                deptPersonList.add(deptPerson);
+            }
+        });
+        return deptPersonList;
+    }
+
+    private List<SysOrgPersonDeliveryExcelVO> transPersonToExcelVOS(List<SysOrgPerson> personList) {
+
+        // 批量查询人员关联的公司和部门信息
+        List<SysDeptPersonPO> deptPersonList = deptPersonService.list();
+
+        // 一次性获取所有公司和部门的OrgCode映射
+        Map<Long, String> companyIdToCodeMap = getCompanyCodeByIds(
+                deptPersonList.stream().map(SysDeptPersonPO::getCompanyId).distinct().collect(Collectors.toList())
+        ).stream().collect(Collectors.toMap(Company::getId, Company::getOrgCode));
+
+        Map<Long, String> deptIdToCodeMap = getDeptCodeByIds(
+                deptPersonList.stream().map(SysDeptPersonPO::getDeptId).distinct().collect(Collectors.toList())
+        ).stream().collect(Collectors.toMap(Dept::getId, Dept::getOrgCode));
+
+        // 分组映射
+        Map<Long, List<SysDeptPersonPO>> personToDeptRelations = deptPersonList.stream()
+                .collect(Collectors.groupingBy(SysDeptPersonPO::getPersonId));
+        // 获取直属上级映射
+        Map<Long, String> parentPersonIdToJobNo = orgPersonService.findByIds(
+                deptPersonList.stream().map(SysDeptPersonPO::getParentPersonId).collect(Collectors.toList())
+        ).stream().collect(Collectors.toMap(SysOrgPerson::getPersonId, SysOrgPerson::getJobNo));
+
+        List<SysOrgPersonDeliveryExcelVO> excelVOList = new ArrayList<>();
+        personList.forEach(person -> {
+            PersonTypeEnum personTypeEnum = Arrays.stream(PersonTypeEnum.values())
+                    .filter(x -> x.getValue().equals(String.valueOf(person.getPersonType())))
+                    .findFirst()
+                    .orElse(null);
+            PersonStatusEnum personStatusEnum = Arrays.stream(PersonStatusEnum.values())
+                    .filter(x -> x.getValue().equals(String.valueOf(person.getStatus())))
+                    .findFirst()
+                    .orElse(null);
+            GenderEnum genderEnum = Arrays.stream(GenderEnum.values())
+                    .filter(x -> x.getValue().equals(person.getGender()))
+                    .findFirst()
+                    .orElse(null);
+            // 获取公司部门和直属上级
+            SysOrgPersonDeliveryExcelVO excelVO = new SysOrgPersonDeliveryExcelVO();
+            excelVO.setFullName(person.getFullName());
+            excelVO.setJobNo(person.getJobNo());
+            excelVO.setPersonType(personTypeEnum == null ? null : personTypeEnum.getText());
+            excelVO.setStatus(personStatusEnum.getText());
+            excelVO.setGender(genderEnum.getText());
+            excelVO.setPhone(person.getPhone());
+            excelVO.setEmail(person.getEmail());
+            excelVO.setInductionDate(person.getInductionDate());
+            excelVO.setQuitDate(person.getQuitDate());
+            // 获取该人员所有部门关联关系
+            List<SysDeptPersonPO> relations = personToDeptRelations.get(person.getPersonId());
+            if (relations != null && relations.size() > 0) {
+                // 为每个关联关系生成独立记录
+                relations.forEach(relation -> {
+                    // 设置额外信息
+                    SysOrgPersonDeliveryExcelVO repeatExcelVo = new SysOrgPersonDeliveryExcelVO();
+                    BeanUtils.copyProperties(excelVO, repeatExcelVo);
+                    repeatExcelVo.setCompanyCode(companyIdToCodeMap.get(relation.getCompanyId()));
+                    repeatExcelVo.setDeptCode(deptIdToCodeMap.get(relation.getDeptId()));
+                    repeatExcelVo.setParentPersonCode(parentPersonIdToJobNo.get(person.getPersonId()));
+                    repeatExcelVo.setPosition(relation.getPosition());
+                    excelVOList.add(repeatExcelVo);
+                });
+            }else {
+                excelVOList.add(excelVO);
+            }
+        });
+        return excelVOList;
+    }
+
+    private List<SysOrgPerson> transExcelVOsToOrgPerson(List<SysOrgPersonVerifyExcelDTO> excelVOs) {
+        List<SysOrgPerson> orgPersonList = new ArrayList<>();
+        List<String> existedJobNo = new ArrayList<>();
+        for (int i = 0; i < excelVOs.size(); i++) {
+            SysOrgPersonVerifyExcelDTO excelVO = excelVOs.get(i);
+            if(StringUtils.isNotBlank(excelVO.getJobNo())){
+                // 去除重复的人员数据
+                if(existedJobNo.contains(excelVO.getJobNo())){
+                    continue;
+                }else {
+                    existedJobNo.add(excelVO.getJobNo());
+                }
+            }
+            // 获取当前用户
+            ResultData<SysUser> resultData = authClient.currentUser();
+            if (!resultData.getSuccess()) {
+                throw new BizException(resultData.getMessage());
+            }
+            SysOrgPerson person = new SysOrgPerson();
+            person.setFullName(excelVO.getFullName());
+            person.setJobNo(excelVO.getJobNo());
+            person.setPhone(excelVO.getPhone());
+            person.setEmail(excelVO.getEmail());
+            person.setInductionDate(excelVO.getInductionDate());
+            person.setQuitDate(excelVO.getQuitDate());
+            person.setPersonId(idKeyGenerator.getId());
+            person.setLanguage(LanguageEnum.ZH_CN.getValue());
+            person.setCreateBy(resultData.getResult().getUserId());
+            person.setCreateDate(Calendar.getInstance().getTime());
+            if(StringUtils.isNotBlank(excelVO.getPersonType())) {
+                // 人员类型
+                PersonTypeEnum personTypeEnum = Arrays.stream(PersonTypeEnum.values())
+                        .filter(x -> x.getText().equals(excelVO.getPersonType()))
+                        .findFirst()
+                        .orElse(null);
+                person.setPersonType(Long.valueOf(personTypeEnum.getValue()));
+            }
+            if(StringUtils.isNotBlank(excelVO.getStatus())) {
+                // 人员状态
+                PersonStatusEnum statusEnum = Arrays.stream(PersonStatusEnum.values())
+                        .filter(x -> x.getText().equals(excelVO.getStatus()))
+                        .findFirst()
+                        .orElse(null);
+                person.setStatus(Integer.valueOf(statusEnum.getValue()));
+            }
+            if(StringUtils.isNotBlank(excelVO.getGender())) {
+                // 性别
+                GenderEnum genderEnum = Arrays.stream(GenderEnum.values())
+                        .filter(x -> x.getText().equals(excelVO.getGender()))
+                        .findFirst()
+                        .orElse(null);
+                person.setGender(genderEnum.getValue());
+            }
+            orgPersonList.add(person);
+        }
+        return orgPersonList;
+    }
+
+    private Company getCompanyByCode(String code) {
+        return companyService.getOne(
+                new LambdaQueryWrapper<Company>()
+                        .eq(Company::getOrgCode, code));
+    }
+
+    private Dept getDeptByCompanyIdAndCode(Long companyId, String deptCode) {
+        return deptService.getOne(
+                new LambdaQueryWrapper<Dept>()
+                        .eq(Dept::getCompanyId, companyId)
+                        .eq(Dept::getOrgCode, deptCode));
+    }
+
+    private List<Company> getCompanyCodeByIds(List<Long> companyIds) {
+        return companyService.list(
+                new LambdaQueryWrapper<Company>()
+                        .select(Company::getOrgCode, Company::getId)
+                        .in(Company::getId, companyIds));
+    }
+
+    private List<Dept> getDeptCodeByIds(List<Long> deptIds) {
+        return deptService.list(
+                new LambdaQueryWrapper<Dept>()
+                        .select(Dept::getOrgCode, Dept::getId)
+                        .in(Dept::getId, deptIds));
     }
 }

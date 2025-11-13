@@ -2,11 +2,14 @@ package com.crrc.sys.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crrc.sys.client.FileClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
+import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.model.file.SysFileDTO;
 import com.crrc.sys.model.sso.SysSsoConfigDTO;
 import com.crrc.sys.model.sso.SysSsoConfigPO;
 import com.crrc.sys.service.SysSsoConfigService;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 单点配置-控制器
@@ -31,6 +35,8 @@ public class SysSsoConfigController {
     private IdKeyGenerator idKeyGenerator;
     @Resource
     private SysSsoConfigService ssoConfigService;
+    @Resource
+    private FileClient fileClient;
 
     /**
      * 分页查询
@@ -47,10 +53,32 @@ public class SysSsoConfigController {
         }
         Page<SysSsoConfigPO> page = new Page<>(param.getPage(), param.getPageSize());
         LambdaQueryWrapper<SysSsoConfigPO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigName()), SysSsoConfigPO::getConfigName, param.getConfigName());
-        queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigCode()), SysSsoConfigPO::getConfigCode, param.getConfigCode());
+        queryWrapper.like(!ObjectUtils.isEmpty(param.getConfigName()), SysSsoConfigPO::getConfigName, param.getConfigName());
+        queryWrapper.like(!ObjectUtils.isEmpty(param.getConfigCode()), SysSsoConfigPO::getConfigCode, param.getConfigCode());
         queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigType()), SysSsoConfigPO::getConfigType, param.getConfigType());
         page = ssoConfigService.page(page, queryWrapper);
+        List<SysSsoConfigPO> records = page.getRecords();
+        if (!CollectionUtils.isEmpty(records)) {
+            records.forEach(o -> o.setClientSecret(null));
+            List<Long> fileHeaderIdList = records.stream().map(SysSsoConfigPO::getFileHeaderId).filter(o -> !ObjectUtils.isEmpty(o)).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(fileHeaderIdList)) {
+                return PaginationGrid.success(page);
+            }
+            ResultData<List<SysFileDTO>> resultData = fileClient.findByFileHeaderIds(fileHeaderIdList);
+            if (!resultData.getSuccess()) {
+                return PaginationGrid.success(page);
+            }
+            List<SysFileDTO> fileList = resultData.getResult();
+            if (CollectionUtils.isEmpty(fileList)) {
+                return PaginationGrid.success(page);
+            }
+            records.forEach(o -> {
+                SysFileDTO sysFileDTO = fileList.stream().filter(f -> f.getFileHeaderId().equals(o.getFileHeaderId())).findFirst().orElse(null);
+                if (!ObjectUtils.isEmpty(sysFileDTO)) {
+                    o.setFileId(sysFileDTO.getFileId());
+                }
+            });
+        }
         return PaginationGrid.success(page);
     }
 
@@ -112,11 +140,7 @@ public class SysSsoConfigController {
         }
         LambdaQueryWrapper<SysSsoConfigPO> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(SysSsoConfigPO::getConfigCode, configCode);
-        SysSsoConfigPO one = ssoConfigService.getOne(lambdaQueryWrapper);
-        if (!ObjectUtils.isEmpty(one)) {
-            one.setClientSecret(null);
-        }
-        return one;
+        return ssoConfigService.getOne(lambdaQueryWrapper);
     }
 
     /**
@@ -132,11 +156,7 @@ public class SysSsoConfigController {
         }
         LambdaQueryWrapper<SysSsoConfigPO> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(SysSsoConfigPO::getId, id);
-        SysSsoConfigPO one = ssoConfigService.getOne(lambdaQueryWrapper);
-        if (!ObjectUtils.isEmpty(one)) {
-            one.setClientSecret(null);
-        }
-        return one;
+        return ssoConfigService.getOne(lambdaQueryWrapper);
     }
 
     /**

@@ -107,4 +107,11 @@ public interface SysRoleMapper {
 	 * @return 结果
 	 */
     List<SysRole> findByCodes(@Param("roleCodeList") List<String> roleCodeList,@Param("language") String language);
+
+    /**
+     * 查询所有角色ID集合
+     *
+     * @return 角色ID集合
+     */
+    List<Long> findRoleIdList();
 }
