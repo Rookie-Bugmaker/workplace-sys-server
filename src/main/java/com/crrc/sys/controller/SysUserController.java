@@ -885,7 +885,7 @@ public class SysUserController {
         if (ObjectUtils.isEmpty(user.getNextLoginUpdatePassword())) {
             user.setNextLoginUpdatePassword("N");
         }
-        if ("Y".equals(user.getNextLoginUpdatePassword()) || "N".equals(user.getNextLoginUpdatePassword())) {
+        if (!"Y".equals(user.getNextLoginUpdatePassword()) && !"N".equals(user.getNextLoginUpdatePassword())) {
             throw new ParamValidateException("nextLoginUpdatePassword参数错误(Y/N):" + user.getNextLoginUpdatePassword());
         }
         if (OperationTypeEnum.ADD.getValue().equals(operation)) {
