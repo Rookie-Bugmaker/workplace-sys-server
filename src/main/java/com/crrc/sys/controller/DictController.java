@@ -20,8 +20,6 @@ import com.crrc.sys.entity.dict.DictItem;
 import com.crrc.sys.enums.LogType;
 import com.crrc.sys.enums.OperateType;
 import com.crrc.sys.listener.DictAndItemImportListener;
-import com.crrc.sys.model.company.CompanyGetRespVO;
-import com.crrc.sys.model.dept.DeptExportRespVO;
 import com.crrc.sys.model.dict.*;
 import com.crrc.sys.service.DictCacheService;
 import com.crrc.sys.service.impl.DictItemServiceImpl;
@@ -199,7 +197,7 @@ public class DictController {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("utf-8");
         String fileName = URLEncoder.encode("字典及字典项导入模板", "UTF-8").replaceAll("\\+", "%20");
-        response.setHeader("Content-disposition", "attachment;filename=utf-8''" + fileName + ".xlsx");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
         EasyExcel.write(response.getOutputStream(), DictAndItemExcelVO.class)
                 .sheet("字典数据")

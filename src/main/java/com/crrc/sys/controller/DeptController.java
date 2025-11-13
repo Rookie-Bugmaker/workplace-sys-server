@@ -1,32 +1,46 @@
 package com.crrc.sys.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.crrc.sys.annotation.AuditLog;
+import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.common.BeanUtils;
-import com.crrc.sys.common.CollectionUtils;
+import com.crrc.sys.common.IdKeyGenerator;
+import com.crrc.sys.common.ResultData;
+import com.crrc.sys.common.ReturnCode;
 import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.entity.company.Company;
 import com.crrc.sys.entity.dept.Dept;
+import com.crrc.sys.entity.excel.ExcelResultData;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.user.SysUser;
-import com.crrc.sys.enums.LogType;
-import com.crrc.sys.enums.OperateType;
+import com.crrc.sys.enums.*;
+import com.crrc.sys.listener.CompanyImportListener;
+import com.crrc.sys.listener.DeptImportListener;
+import com.crrc.sys.model.company.CompanyDeliveryExcelVO;
+import com.crrc.sys.model.company.CompanyPageReqVO;
+import com.crrc.sys.model.company.CompanyVerifyExcelDTO;
 import com.crrc.sys.model.dept.*;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
-import com.crrc.sys.service.DeptService;
-import com.crrc.sys.service.SysDeptPersonService;
-import com.crrc.sys.service.SysOrgPersonService;
-import com.crrc.sys.service.SysUserService;
+import com.crrc.sys.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -34,6 +48,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Tag(name = "系统管理 - 部门管理")
@@ -49,6 +64,16 @@ public class DeptController {
     private SysOrgPersonService personService;
     @Autowired
     private SysDeptPersonService deptPersonService;
+    @Autowired
+    private CompanyService companyService;
+
+    @Resource
+    private ValueOperations<String, Object> valueOperations;
+
+    @Resource
+    private IdKeyGenerator idKeyGenerator;
+
+    private static final String REDIS_PREFIX = "import_dept_data";
 
     @PostMapping("/create")
     @Operation(summary = "创建部门")
@@ -188,39 +213,6 @@ public class DeptController {
         return new ResponseResult<>(200, "OK");*/
     }
 
-    @GetMapping("/export")
-    @Operation(summary = "部门导出")
-    @AuditLog(value = "部门导出", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
-    public void exportMenu(HttpServletResponse response) throws IOException {
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setCharacterEncoding("utf-8");
-        // 这里URLEncoder.encode可以防止中文乱码
-        String fileName = URLEncoder.encode("部门列表-" + new SimpleDateFormat("yyyyMMddhhmmss").format(System.currentTimeMillis()), "UTF-8").replaceAll("\\+", "%20");
-        response.setHeader("Content-disposition", "attachment;filename*=" + fileName + ".xlsx");
-        List<Dept> deptList = deptService.list();
-        List<DeptExportRespVO> deptRespList = new ArrayList<>();
-        Map<String, Dept> deptNameMap = CollectionUtils.convertMap(deptList, Dept::getOrgCode);
-        for (Dept dept : deptList) {
-            DeptExportRespVO deptExportRespVO = BeanUtils.toBean(dept, DeptExportRespVO.class);
-            if (dept.getParentOrgCode() != null && !Objects.isNull(deptNameMap.get(dept.getParentOrgCode()))) {
-                deptExportRespVO.setParentDepartmentName(deptNameMap.get(dept.getParentOrgCode()).getDepartmentName());
-            }
-            deptRespList.add(deptExportRespVO);
-        }
-        EasyExcel.write(response.getOutputStream(), DeptExportRespVO.class)
-                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
-                .sheet("部门列表")
-                .doWrite(deptRespList);
-
-    }
-
-    @PostMapping("/import")
-    @Operation(summary = "部门导入")
-    @AuditLog(value = "部门导入", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
-    public void importMenu(MultipartFile file) throws IOException {
-        /*EasyExcel.read(file.getInputStream(), DeptExportRespVO.class, new DeptListener(deptService, deptService.list())).sheet().doRead();
-        return new ResponseResult<>(200, "OK");*/
-    }
 
     @GetMapping("/get_depts_by_user_id")
     @Operation(summary = "通过用户id查询部门 - OpenFegin接口")
@@ -278,6 +270,217 @@ public class DeptController {
     @Operation(summary = "通过用户编码查询部门 - OpenFegin接口")
     public List<Dept> getDeptAndSubDeptsByOrgCode(@RequestParam String orgCode) {
         return deptService.getDeptAndSubDeptsByOrgCode(orgCode);
+    }
+
+    @GetMapping("/export")
+    @AuditLog(value = "导出部门信息", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "导出部门信息")
+    public void exportDept(DeptqueryVo deptqueryVo, HttpServletResponse response) throws IOException {
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("部门信息-" + new SimpleDateFormat("yyyyMMddhhmmss")
+                        .format(System.currentTimeMillis()), "UTF-8")
+                .replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+
+        List<Dept> list = deptService.list(listDeptQueryWrapper(deptqueryVo));
+        // 剔除临时部门
+        list.removeIf(o -> o.getCompanyId() == 0 || o.getOrgCode().equals("-".concat(String.valueOf(o.getCompanyId()))));
+        List<DeptDeliveryExcelVO> excelDataList = transDeptToExcelVOs(list);
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), DeptDeliveryExcelVO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("部门信息")
+                .doWrite(excelDataList);
+    }
+
+    @GetMapping("/download")
+    @AuditLog(value = "导出部门信息模板", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "导出自部门信息模板")
+    public void exportTemplateDept(HttpServletResponse response) throws IOException {
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("部门信息模板", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), DeptDeliveryExcelVO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("部门信息")
+                .doWrite(new ArrayList<>());
+    }
+
+    @PostMapping("/import")
+    @AuditLog(value = "导入部门信息报表", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
+    @Operation(summary = "导入部门信息报表")
+    public ResultData<ExcelResultData<List<DeptVerifyExcelDTO>>> importsDept(MultipartFile file) throws IOException {
+        DeptImportListener listener = new DeptImportListener(deptService, companyService);
+        EasyExcel.read(file.getInputStream(), DeptDeliveryExcelVO.class, listener)
+                .headRowNumber(1)
+                .sheet()
+                .doRead();
+        // 形成数据
+        List<DeptVerifyExcelDTO> verifyExcelList = listener.getResult();
+        if (org.springframework.util.CollectionUtils.isEmpty(verifyExcelList)) {
+            throw new BizException("导入文件不能为空");
+        }
+        List<Dept> deptList = transExcelVOToDepts(verifyExcelList);
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("dept", deptList);
+        map.put("excel", verifyExcelList);
+        //存入redis
+        String redisKey = REDIS_PREFIX + idKeyGenerator.getId();
+        String jsonStr = JSON.toJSONString(map);
+        valueOperations.set(redisKey, jsonStr, 3600, TimeUnit.SECONDS);
+        ExcelResultData<List<DeptVerifyExcelDTO>> build = ExcelResultData.build(redisKey, verifyExcelList);
+        // 验证是否有失败的数据
+        List<String> validateStatus = verifyExcelList.stream().map(DeptVerifyExcelDTO::getValidateStatus).filter(status -> StatusEnum.N.name().equals(status)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(validateStatus)) {
+            return ResultData.success(build);
+        }
+        return ResultData.fail(ReturnCode.EXCEL_ERROR.getCode(), ReturnCode.EXCEL_ERROR.getMessage(), build);
+    }
+
+    @GetMapping("/download/data")
+    @AuditLog(value = "下载导入验证结果", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "下载导入验证结果")
+    public void downloadVerifyResult(HttpServletResponse response, @RequestParam String redisKey) throws IOException {
+        String redisData = (String) valueOperations.get(redisKey);
+        // 反序列化
+        HashMap<String, Object> map = JSON.parseObject(redisData,
+                new TypeReference<HashMap<String, Object>>() {
+                });
+        // 获取数据
+        List<DeptVerifyExcelDTO> list = JSON.parseObject(
+                JSON.toJSONString(map.get("excel")),
+                new TypeReference<List<DeptVerifyExcelDTO>>() {
+                });
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("人员导入验证结果下载", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), DeptVerifyExcelDTO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("人员导入验证结果下载")
+                .doWrite(list);
+    }
+
+    /**
+     * 验证数据入库
+     *
+     * @param redisKey redis缓存主键
+     */
+    @Transactional
+    @AutoIdempotent(seconds = 30)
+    @AuditLog(value = "验证数据入库", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
+    @GetMapping("/import/data")
+    public void importData(@RequestParam String redisKey) {
+        String redisData = (String) valueOperations.get(redisKey);
+        // 反序列化
+        HashMap<String, Object> map = JSON.parseObject(redisData,
+                new TypeReference<HashMap<String, Object>>() {
+                });
+        // 获取数据
+        List<Dept> deptList = JSON.parseObject(
+                JSON.toJSONString(map.get("dept")),
+                new TypeReference<List<Dept>>() {
+                });
+
+        if (deptList != null && deptList.size() > 0) {
+            boolean result = deptService.saveBatch(deptList);
+            if (!result) {
+                throw new BizException("部门数据写入失败！");
+            }
+        }
+    }
+
+    private LambdaQueryWrapper listDeptQueryWrapper(DeptqueryVo deptqueryVo){
+        LambdaQueryWrapper<Dept> queryWrapper = new LambdaQueryWrapper<>();
+        //部门名称模糊查询
+        queryWrapper.like(!ObjectUtils.isEmpty(deptqueryVo.getKeywords()), Dept::getDepartmentName, deptqueryVo.getKeywords());
+        //根据部门ID集合查询
+        queryWrapper.in(!ObjectUtils.isEmpty(deptqueryVo.getDeptIds()), Dept::getId, deptqueryVo.getDeptIds());
+        //根据公司ID集合查询
+        queryWrapper.in(!ObjectUtils.isEmpty(deptqueryVo.getCompanyIds()), Dept::getCompanyId, deptqueryVo.getCompanyIds());
+        //排序
+        queryWrapper.orderByAsc(Dept::getCompanyId, Dept::getOrgCode);
+        return queryWrapper;
+    }
+
+    private List<DeptDeliveryExcelVO> transDeptToExcelVOs(List<Dept> list) {
+        List<DeptDeliveryExcelVO> excelVOList = new ArrayList<>();
+        list.forEach(data -> {
+            DeptStatusEnum deptStatusEnum = Arrays.stream(DeptStatusEnum.values())
+                    .filter(x -> x.getValue().equals(data.getStatus()))
+                    .findFirst()
+                    .orElse(null);
+            DeptDeliveryExcelVO excelVO = new DeptDeliveryExcelVO();
+            excelVO.setDeptCode(data.getOrgCode());
+            excelVO.setDepartmentName(data.getDepartmentName());
+            excelVO.setCompanyCode(getCompanyById(data.getCompanyId()).getOrgCode());
+            excelVO.setParentDeptCode(data.getParentOrgCode());
+            excelVO.setDepartmentOrder(String.valueOf(data.getDepartmentOrder()));
+            excelVO.setRemark(data.getRemark());
+            excelVO.setStatus(deptStatusEnum == null ? null : deptStatusEnum.getText());
+            excelVOList.add(excelVO);
+        });
+        return excelVOList;
+    }
+
+    private List<Dept> transExcelVOToDepts(List<DeptVerifyExcelDTO> list) {
+        List<Dept> deptList = new ArrayList<>();
+        list.forEach(data -> {
+
+            Dept dept = new Dept();
+            dept.setOrgCode(data.getDeptCode());
+            dept.setDepartmentName(data.getDepartmentName());
+            dept.setParentOrgCode(data.getParentDeptCode());
+            dept.setRemark(data.getRemark());
+            if (StringUtils.isNotBlank(data.getCompanyCode())) {
+                Company company = getCompanyByCode(data.getCompanyCode());
+                if(company != null) {
+                    dept.setCompanyId(company.getId());
+                }
+            }
+            if (StringUtils.isNotBlank(data.getStatus())) {
+                DeptStatusEnum deptStatusEnum = Arrays.stream(DeptStatusEnum.values())
+                        .filter(x -> x.getText().equals(data.getStatus()))
+                        .findFirst()
+                        .orElse(null);
+                dept.setStatus(deptStatusEnum == null ? null : deptStatusEnum.getValue());
+            }
+            if (StringUtils.isNotBlank(data.getDepartmentOrder()) && DeptImportListener.isLongNumber(data.getDepartmentOrder())) {
+                dept.setDepartmentOrder(Integer.parseInt(data.getDepartmentOrder()));
+            }
+            deptList.add(dept);
+        });
+        return deptList;
+    }
+
+    private Company getCompanyByCode(String code) {
+        return companyService.getOne(
+                new LambdaQueryWrapper<Company>()
+                        .eq(Company::getOrgCode, code));
+    }
+
+    private Company getCompanyById(Long companyId) {
+        return companyService.getOne(
+                new LambdaQueryWrapper<Company>()
+                        .select(Company::getOrgCode, Company::getId)
+                        .eq(Company::getId, companyId));
     }
 
 }
