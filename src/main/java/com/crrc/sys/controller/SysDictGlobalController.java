@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,6 +57,7 @@ public class SysDictGlobalController {
             // 1. 尝试从缓存获取
             DictVO dictVO = dictCacheService.getDictFromCache(dictCode);
             if (dictVO != null) {
+                sortDictItems(dictVO);
                 return new ResponseResult<>(true, HttpStatus.OK.value(), "获取字典成功", dictVO);
             }
 
@@ -67,6 +69,7 @@ public class SysDictGlobalController {
 
             // 3. 转换并缓存结果
             dictVO = convertToDictVO(dict);
+            sortDictItems(dictVO);
             dictCacheService.cacheDict(dictVO);
             return new ResponseResult<>(true, HttpStatus.OK.value(), "获取字典成功", dictVO);
         } catch (Exception e) {
@@ -333,5 +336,13 @@ public class SysDictGlobalController {
         DictItemVO itemVO = new DictItemVO();
         BeanUtils.copyProperties(item, itemVO);
         return itemVO;
+    }
+
+    private void sortDictItems(DictVO dictVO) {
+        dictVO.setItems(
+                dictVO.getItems().stream()
+                        .sorted(Comparator.comparing(DictItemVO::getSorted))
+                        .collect(Collectors.toList())
+        );
     }
 }
