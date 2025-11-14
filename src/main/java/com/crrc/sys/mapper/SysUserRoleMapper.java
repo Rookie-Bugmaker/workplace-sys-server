@@ -3,6 +3,7 @@ package com.crrc.sys.mapper;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
+import com.crrc.sys.model.user.role.SysUserRolePO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -65,4 +66,12 @@ public interface SysUserRoleMapper {
      * @param roleIdList 角色集合
      */
     void deleteByRoleIds(@Param("roleIdList") List<Long> roleIdList);
+
+    /**
+     * 查询用户绑定的角色列表(批量)
+     *
+     * @param userIdList 用户ID集合
+     * @return 用户角色列表
+     */
+    List<SysUserRolePO> findByUserIds(@Param("userIdList") List<Long> userIdList);
 }

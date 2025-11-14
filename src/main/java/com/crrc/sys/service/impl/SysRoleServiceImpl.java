@@ -1,17 +1,22 @@
 package com.crrc.sys.service.impl;
 
+import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
+import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.controller.SysOnlineUserController;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.*;
+import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.*;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
+import com.crrc.sys.model.user.role.SysUserRolePO;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysRoleCompanyDeptService;
 import com.crrc.sys.service.SysRoleService;
@@ -35,6 +40,8 @@ import java.util.stream.Collectors;
 @Service
 public class SysRoleServiceImpl implements SysRoleService {
 
+    @Resource
+    private AuthClient authClient;
     @Resource
     private IdKeyGenerator idKeyGenerator;
     @Resource
@@ -474,5 +481,48 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public List<Long> findRoleIdList() {
         return roleMapper.findRoleIdList();
+    }
+
+    /**
+     * 绑定用户
+     *
+     * @param roleId     角色ID
+     * @param userIdList 用户ID集合
+     * @return true:成功、false:失败
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean bindUser(long roleId, List<Long> userIdList) {
+        //查询用户绑定的角色列表
+        List<SysUserRolePO> userRoleList = userRoleMapper.findByUserIds(userIdList);
+        if (!CollectionUtils.isEmpty(userRoleList)) {
+            //查询已绑定该角色的用户，如果存在了就不用重复绑定了
+            List<Long> isBindUserIdList = userRoleList.stream().filter(o -> o.getRoleId().equals(roleId)).map(SysUserRolePO::getUserId).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(isBindUserIdList)) {
+                userIdList.removeIf(isBindUserIdList::contains);
+            }
+        }
+        if (!CollectionUtils.isEmpty(userIdList)) {
+            ResultData<SysUser> resultData = authClient.currentUser();
+            if (!resultData.getSuccess()) {
+                throw new BizException(resultData.getCode(), resultData.getMessage());
+            }
+            SysUser user = resultData.getResult();
+            List<SysUserRole> newUserRoleList = userIdList.stream().map(o -> {
+                SysUserRole userRole = new SysUserRole();
+                userRole.setId(idKeyGenerator.getId());
+                userRole.setUserId(o);
+                userRole.setRoleId(roleId);
+                userRole.setCreateBy(user.getCreateBy());
+                userRole.setCreateDate(user.getCreateDate());
+                return userRole;
+            }).collect(Collectors.toList());
+            //绑定角色
+            int result = userRoleMapper.insert(newUserRoleList);
+            if (result <= 0) {
+                throw new BizException("保存失败，请重试...");
+            }
+        }
+        return true;
     }
 }

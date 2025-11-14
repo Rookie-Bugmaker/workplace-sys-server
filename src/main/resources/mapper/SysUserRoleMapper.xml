@@ -2,6 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.crrc.sys.mapper.SysUserRoleMapper" >
 
+    <resultMap id="userRoleMap" type="com.crrc.sys.model.user.role.SysUserRolePO">
+        <id column="ID" property="id" jdbcType="NUMERIC" />
+        <result column="USER_ID" property="userId" jdbcType="NUMERIC" />
+        <result column="ROLE_ID" property="roleId" jdbcType="NUMERIC" />
+    </resultMap>
+
     <resultMap id="roleMap" type="com.crrc.sys.entity.role.SysRole">
         <id column="ROLE_ID" property="roleId" jdbcType="NUMERIC" />
         <result column="ROLE_CODE" property="roleCode" jdbcType="VARCHAR" />
@@ -78,4 +84,11 @@
         </foreach>
     </delete>
 
+    <!--查询用户绑定的角色列表(批量)-->
+    <select id="findByUserIds" resultMap="userRoleMap">
+        select * from sys_user_role where user_id in
+        <foreach collection="userIdList" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </select>
 </mapper>
