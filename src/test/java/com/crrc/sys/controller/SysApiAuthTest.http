@@ -1,0 +1,89 @@
+### 环境变量配置
+# @no-log
+# @no-redirect
+POST {{prefix}}/test/apiAuth/findByFuzzy
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "authUri": "/sys/",
+  "authType": "A",
+  "authDesc": "列表",
+  "pageNum": 1,
+  "pageSize": 10
+}
+
+### 新增API权限
+# @no-log
+# @no-redirect
+POST {{prefix}}/test/apiAuth/add
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "authId": 8888888,
+  "authUri": "/api/example",
+  "authType": "A",
+  "authDesc": "示例白名单权限",
+  "createBy": 1001,
+  "createDate": "2024-01-03 10:00:00",
+  "lastUpdateBy": 1001,
+  "lastUpdateDate": "2024-01-03 15:30:00",
+  "lastUpdateLogin": 2001
+}
+
+### 按类型查询API权限
+# @no-log
+# @no-redirect
+GET {{prefix}}/test/apiAuth/findByAuthType?authType=B
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 更新API权限
+# @no-log
+# @no-redirect
+PUT {{prefix}}/test/apiAuth/update
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "authId": 8888888,
+  "authUri": "/api/example",
+  "authType": "A",
+  "authDesc": "示例白名单权限1",
+  "createBy": 1001,
+  "createDate": "2024-01-03 10:00:00",
+  "lastUpdateBy": 1001,
+  "lastUpdateDate": "2024-01-03 15:30:00",
+  "lastUpdateLogin": 2001
+}
+
+### 批量删除API权限
+# @no-log
+# @no-redirect
+DELETE {{prefix}}/test/apiAuth/delete
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[8888888]
+
+### 按ID查询详情
+# @no-log
+# @no-redirect
+GET {{prefix}}/test/apiAuth/findById?authId=188978419321597952
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 批量ID查询
+# @no-log
+# @no-redirect
+POST {{prefix}}/test/apiAuth/findByAuthIdList
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[188978419321597952]

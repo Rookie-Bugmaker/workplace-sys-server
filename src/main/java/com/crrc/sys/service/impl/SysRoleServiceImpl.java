@@ -15,6 +15,8 @@ import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.*;
+import com.crrc.sys.mapper.mapperImpl.SysDataAuthMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysDataAuthValueMapperImpl;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.role.SysUserRolePO;
 import com.crrc.sys.service.ProjectService;
@@ -23,6 +25,7 @@ import com.crrc.sys.service.SysRoleService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,10 +57,10 @@ public class SysRoleServiceImpl implements SysRoleService {
     private SysMenuMapper menuMapper;
     @Resource
     private SysRoleFunctionColumnMapper roleFunctionColumnMapper;
-    @Resource
-    private SysDataAuthMapper dataAuthMapper;
-    @Resource
-    private SysDataAuthValueMapper dataAuthValueMapper;
+    @Autowired
+    private SysDataAuthMapperImpl dataAuthMapper;
+    @Autowired
+    private SysDataAuthValueMapperImpl dataAuthValueMapper;
     @Resource
     private ProjectService projectService;
     @Resource

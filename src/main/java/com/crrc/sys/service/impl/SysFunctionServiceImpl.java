@@ -11,15 +11,16 @@ import com.crrc.sys.entity.function.*;
 import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.enums.FunctionTypeEnum;
 import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.mapper.SysApiMapper;
 import com.crrc.sys.mapper.SysFunctionApiMapper;
 import com.crrc.sys.mapper.SysFunctionMapper;
 import com.crrc.sys.mapper.SysFunctionTlMapper;
+import com.crrc.sys.mapper.mapperImpl.SysApiMapperImpl;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysFunctionService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -46,8 +47,8 @@ public class SysFunctionServiceImpl implements SysFunctionService {
     private SysFunctionTlMapper functionTlMapper;
     @Resource
     private SysFunctionApiMapper functionApiMapper;
-    @Resource
-    private SysApiMapper apiMapper;
+    @Autowired
+    private SysApiMapperImpl apiMapper;
     @Resource
     private ProjectService projectService;
 

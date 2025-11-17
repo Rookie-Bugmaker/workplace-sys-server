@@ -1,0 +1,115 @@
+### 1. 模糊查询API接口
+POST {{prefix}}/test/sysApi/findByFuzzy
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "apiName": "按id删除",
+  "apiUri": "/user",
+  "description": "管理",
+  "pageNum": 1,
+  "pageSize": 10
+}
+
+### 2. 新增API接口
+POST {{prefix}}/test/sysApi
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "id": 1234567,
+  "apiName": "高铁转向架数据接口",
+  "apiUri": "/api/train/bogie-data",
+  "apiMethod": "POST",
+  "apiDesc": "用于获取CR400BF型高铁转向架的实时传感器数据",
+  "createBy": 1001,
+  "createDate": "2024-03-15 09:30:00",
+  "lastUpdateBy": 1002,
+  "lastUpdateDate": "2024-03-20 14:15:00",
+  "lastUpdateLogin": 3001
+}
+
+### 3. 更新API接口
+PUT {{prefix}}/test/sysApi
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "id": 123456,
+  "apiName": "高铁转向架数据接口1",
+  "apiUri": "/api/train/bogie-data",
+  "apiMethod": "POST",
+  "apiDesc": "用于获取CR400BF型高铁转向架的实时传感器数据",
+  "createBy": 1001,
+  "createDate": "2024-03-15 09:30:00",
+  "lastUpdateBy": 1002,
+  "lastUpdateDate": "2024-03-20 14:15:00",
+  "lastUpdateLogin": 3001
+}
+
+### 4. 批量删除API接口
+DELETE {{prefix}}/test/sysApi
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[123456,1234567]
+
+### 5. 根据ID查询API接口
+GET {{prefix}}/test/sysApi/1234567
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 6. 批量ID查询API接口
+POST {{prefix}}/test/sysApi/findByIds
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1234567]
+
+### 7. 根据URI查询API接口
+GET {{prefix}}/test/sysApi/findByUri?uri=/api/train/bogie-data
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 8. 根据方法和URI查询API
+GET {{prefix}}/test/sysApi/findByMethodAndUri?apiMethod=POST&apiUri=/api/train/bogie-data
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 9. 获取全部API接口
+GET {{prefix}}/test/sysApi/all
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 10. 批量方法+URI查询
+POST {{prefix}}/test/sysApi/findByMethodAndUris
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "apiMethod": "GET",
+    "apiUri": "/auth/code/image"
+  },
+  {
+    "apiMethod": "POST",
+    "apiUri": "/api/train/bogie-data"
+  }
+]
+
+### 11. 批量URI查询
+POST {{prefix}}/test/sysApi/findByUris
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  "/auth/code/image",
+  "/api/train/bogie-data"
+]

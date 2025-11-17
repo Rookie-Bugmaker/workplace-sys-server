@@ -2,9 +2,10 @@ package com.crrc.sys.service.impl;
 
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
-import com.crrc.sys.mapper.SysDataAuthMapper;
-import com.crrc.sys.mapper.SysDataAuthValueMapper;
+import com.crrc.sys.mapper.mapperImpl.SysDataAuthMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysDataAuthValueMapperImpl;
 import com.crrc.sys.service.SysDataAuthService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -19,10 +20,10 @@ import java.util.stream.Collectors;
 @Service
 public class SysDataAuthServiceImpl implements SysDataAuthService {
 
-	@Resource
-	private SysDataAuthMapper dataAuthMapper;
-	@Resource
-	private SysDataAuthValueMapper dataAuthValueMapper;
+	@Autowired
+	private SysDataAuthMapperImpl dataAuthMapper;
+	@Autowired
+	private SysDataAuthValueMapperImpl dataAuthValueMapper;
 
 	/**
 	 * 根据对象ID删除数据权限

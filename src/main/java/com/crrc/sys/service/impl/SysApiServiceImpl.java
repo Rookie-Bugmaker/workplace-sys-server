@@ -3,11 +3,12 @@ package com.crrc.sys.service.impl;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.api.SysApiFindByPageParam;
+import com.crrc.sys.mapper.mapperImpl.SysApiMapperImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.crrc.sys.mapper.SysApiMapper;
 import com.crrc.sys.mapper.SysFunctionApiMapper;
 import com.crrc.sys.service.SysApiService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -24,8 +25,8 @@ import java.util.stream.Collectors;
 @Service
 public class SysApiServiceImpl implements SysApiService {
 
-    @Resource
-    private SysApiMapper apiMapper;
+    @Autowired
+    private SysApiMapperImpl apiMapper;
     @Resource
     private SysFunctionApiMapper functionApiMapper;
 

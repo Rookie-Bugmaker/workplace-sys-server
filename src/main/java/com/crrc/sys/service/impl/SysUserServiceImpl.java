@@ -14,6 +14,8 @@ import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.mapper.*;
+import com.crrc.sys.mapper.mapperImpl.SysDataAuthMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysDataAuthValueMapperImpl;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
 import com.crrc.sys.model.user.SysOnlineUserVO;
@@ -23,6 +25,7 @@ import com.crrc.sys.service.SysUserService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -51,10 +54,10 @@ public class SysUserServiceImpl implements SysUserService {
     private SysUserMapper userMapper;
     @Resource
     private SysUserRoleMapper userRoleMapper;
-    @Resource
-    private SysDataAuthMapper dataAuthMapper;
-    @Resource
-    private SysDataAuthValueMapper dataAuthValueMapper;
+    @Autowired
+    private SysDataAuthMapperImpl dataAuthMapper;
+    @Autowired
+    private SysDataAuthValueMapperImpl dataAuthValueMapper;
 
     @Resource
     private SysOrgPersonMapper personMapper;
