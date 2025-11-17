@@ -214,19 +214,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
-
         <!-- SkyWalking 日志工具包 -->
         <dependency>
             <groupId>org.apache.skywalking</groupId>
             <artifactId>apm-toolkit-logback-1.x</artifactId>
             <version>${skywalking.version}</version>
         </dependency>
-        <!--主数据获取依赖-->
-<!--        <dependency>
-            <groupId>com.crrc</groupId>
-            <artifactId>workplace-main-data</artifactId>
-            <version>v1.0.0</version>
-        </dependency>-->
+        <!-- webflux依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
     </dependencies>
 
     <!-- 环境部署配置 -->

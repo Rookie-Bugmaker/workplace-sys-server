@@ -104,4 +104,13 @@ public interface SysRoleService {
      * @return 角色ID集合
      */
     List<Long> findRoleIdList();
+
+    /**
+     * 绑定用户
+     *
+     * @param roleId     角色ID
+     * @param userIdList 用户ID集合
+     * @return true:成功、false:失败
+     */
+    boolean bindUser(long roleId, List<Long> userIdList);
 }

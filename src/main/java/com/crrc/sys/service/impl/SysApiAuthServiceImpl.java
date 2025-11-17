@@ -3,14 +3,14 @@ package com.crrc.sys.service.impl;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.api.SysApiAuth;
 import com.crrc.sys.entity.api.SysApiAuthPageDTO;
+import com.crrc.sys.mapper.mapperImpl.SysApiAuthMapperImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.crrc.sys.mapper.SysApiAuthMapper;
 import com.crrc.sys.service.SysApiAuthService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -20,8 +20,8 @@ import java.util.List;
 @Service
 public class SysApiAuthServiceImpl implements SysApiAuthService {
 
-    @Resource
-    private SysApiAuthMapper apiAuthMapper;
+    @Autowired
+    private SysApiAuthMapperImpl apiAuthMapper;
 
 
     /**

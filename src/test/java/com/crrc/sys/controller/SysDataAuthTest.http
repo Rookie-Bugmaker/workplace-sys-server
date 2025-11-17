@@ -1,0 +1,90 @@
+### 环境变量配置
+# @no-log
+# @no-redirect
+# @name = 环境变量
+POST {{prefix}}/auth/token
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+{}
+
+### 1. 批量插入数据权限记录
+# @name insertBatch
+POST {{prefix}}/test/dataAuth/insertBatch
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[
+  {
+    "createBy": 1001,
+    "createDate": "2023-03-22 10:00:00",
+    "lastUpdateBy": 1001,
+    "lastUpdateDate": "2023-03-22 15:30:00",
+    "lastUpdateLogin": 123456,
+    "authId": 1001,
+    "authType": "user",
+    "objectId": 2001,
+    "profileId": 3001
+  },
+  {
+    "createBy": 1002,
+    "createDate": "2023-03-23 09:15:00",
+    "lastUpdateBy": 1003,
+    "lastUpdateDate": "2023-03-23 16:45:00",
+    "lastUpdateLogin": 789012,
+    "authId": 1002,
+    "authType": "role",
+    "objectId": 4001,
+    "profileId": 3002
+  }
+]
+
+> {%
+    client.test("批量插入成功", function() {
+        client.assert(response.status === 200, "响应状态应为200");
+    });
+%}
+
+### 2. 根据对象ID查询权限
+# @name queryByObjectId
+GET {{prefix}}/test/dataAuth/query/2001
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+> {%
+    client.test("查询成功", function() {
+        client.assert(response.status === 200, "响应状态应为200");
+        client.assert(response.body.length > 0, "应返回至少一条权限记录");
+    });
+%}
+
+### 3. 根据对象ID删除权限记录
+# @name deleteByObjectId
+DELETE {{prefix}}/test/dataAuth/delete/4001
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+> {%
+    client.test("删除成功", function() {
+        client.assert(response.status === 200, "响应状态应为200");
+    });
+%}
+
+### 4. 批量删除权限记录
+# @name deleteBatch
+DELETE {{prefix}}/test/dataAuth/deleteBatch
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[2001, 4001]
+
+> {%
+    client.test("批量删除成功", function() {
+        client.assert(response.status === 200, "响应状态应为200");
+    });
+%}

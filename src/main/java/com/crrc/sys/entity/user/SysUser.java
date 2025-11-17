@@ -69,7 +69,7 @@ public class SysUser extends BaseEntityYunLing {
     /**
      * 下一次登录修改密码(Y:是、N:否)
      */
-    private String nextLoginUpdatePassword = "N";
+    private String nextLoginUpdatePassword;
     /**
      * 拥有的角色信息
      */

@@ -66,7 +66,7 @@ public class SysSsoConfigPO extends BaseEntity {
     private Integer deleted;
     /**
      * 文件ID
-     * 由于图标只会存在1个，所以此处旧旧没有必要使用集合了
+     * 由于图标只会存在1个，所以此处旧就没有必要使用集合了
      */
     @TableField(exist = false)
     private Long fileId;

@@ -21,6 +21,7 @@ import com.crrc.sys.enums.DataAuthTypeEnum;
 import com.crrc.sys.enums.EnableFlagEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.model.role.BindUserDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptInfoDTO;
 import com.crrc.sys.service.*;
@@ -738,5 +739,24 @@ public class SysRoleController {
     @GetMapping("findRoleIdList")
     public List<Long> findRoleIdList() {
         return roleService.findRoleIdList();
+    }
+
+    /**
+     * 绑定用户
+     *
+     * @param param 参数
+     */
+    @PostMapping("bindUser")
+    public void bindUser(@RequestBody BindUserDTO param) {
+        if (ObjectUtils.isEmpty(param.getRoleId())) {
+            throw new ParamValidateException("角色ID不能为空!");
+        }
+        if (CollectionUtils.isEmpty(param.getUserIdList())) {
+            throw new ParamValidateException("用户列表不能为空!");
+        }
+        boolean result = roleService.bindUser(param.getRoleId(), param.getUserIdList());
+        if (!result) {
+            throw new BizException("保存失败!");
+        }
     }
 }

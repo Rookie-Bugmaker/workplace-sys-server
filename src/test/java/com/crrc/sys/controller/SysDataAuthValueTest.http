@@ -1,0 +1,61 @@
+### 环境变量配置
+# @no-log
+# @no-redirect
+POST {{prefix}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456"
+}
+
+> {%
+    client.global.set("authToken", "bearer " + response.body.access_token);
+%}
+
+### 1. 批量插入数据权限值
+POST {{prefix}}/test/dataAuthValue/insertBatch
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[
+  {
+    "authId": 1001,
+    "authValue": "DEPART_ENGINEERING",
+    "authValueDesc": "工程技术部数据权限",
+    "createBy": 10001,
+    "createDate": "2025-03-22 09:15:00",
+    "lastUpdateBy": 10002,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 20001
+  },
+  {
+    "authId": 1002,
+    "authValue": "PROJECT_CR400BF",
+    "authValueDesc": "CR400BF项目组数据权限",
+    "createBy": 10003,
+    "createDate": "2025-03-21 14:20:00",
+    "lastUpdateBy": 10003,
+    "lastUpdateDate": "2025-03-22 10:45:00",
+    "lastUpdateLogin": 20002
+  }
+]
+
+### 2. 根据对象ID删除权限值
+DELETE {{prefix}}/test/dataAuthValue/deleteByObjectId/2001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 3. 批量删除对象权限值
+DELETE {{prefix}}/test/dataAuthValue/deleteByObjectIds
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[2001, 4001]
+
+### 4. 查询权限值列表
+GET {{prefix}}/test/dataAuthValue/findByAuthIds?authIdList=1001&authIdList=1002
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

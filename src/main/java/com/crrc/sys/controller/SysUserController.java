@@ -882,6 +882,12 @@ public class SysUserController {
         if (ObjectUtils.isEmpty(user.getUserName())) {
             throw new ParamValidateException("用户名不能为空!");
         }
+        if (ObjectUtils.isEmpty(user.getNextLoginUpdatePassword())) {
+            user.setNextLoginUpdatePassword("N");
+        }
+        if (!"Y".equals(user.getNextLoginUpdatePassword()) && !"N".equals(user.getNextLoginUpdatePassword())) {
+            throw new ParamValidateException("nextLoginUpdatePassword参数错误(Y/N):" + user.getNextLoginUpdatePassword());
+        }
         if (OperationTypeEnum.ADD.getValue().equals(operation)) {
             SysUser sysUserResultData = userService.findByUserName(user.getUserName());
             if (!ObjectUtils.isEmpty(sysUserResultData)) {
