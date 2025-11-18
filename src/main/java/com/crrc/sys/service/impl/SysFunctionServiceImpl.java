@@ -11,10 +11,10 @@ import com.crrc.sys.entity.function.*;
 import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.enums.FunctionTypeEnum;
 import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.mapper.SysFunctionApiMapper;
-import com.crrc.sys.mapper.SysFunctionMapper;
-import com.crrc.sys.mapper.SysFunctionTlMapper;
 import com.crrc.sys.mapper.mapperImpl.SysApiMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysFunctionApiMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysFunctionMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysFunctionTlMapperImpl;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysFunctionService;
 import com.github.pagehelper.PageHelper;
@@ -41,12 +41,12 @@ public class SysFunctionServiceImpl implements SysFunctionService {
 
     @Resource
     private IdKeyGenerator idKeyGenerator;
-    @Resource
-    private SysFunctionMapper functionMapper;
-    @Resource
-    private SysFunctionTlMapper functionTlMapper;
-    @Resource
-    private SysFunctionApiMapper functionApiMapper;
+    @Autowired
+    private SysFunctionMapperImpl functionMapper;
+    @Autowired
+    private SysFunctionTlMapperImpl functionTlMapper;
+    @Autowired
+    private SysFunctionApiMapperImpl functionApiMapper;
     @Autowired
     private SysApiMapperImpl apiMapper;
     @Resource

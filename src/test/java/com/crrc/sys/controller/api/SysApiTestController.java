@@ -1,4 +1,4 @@
-package com.crrc.sys.controller;
+package com.crrc.sys.controller.api;
 
 import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.api.SysApiFindByPageParam;

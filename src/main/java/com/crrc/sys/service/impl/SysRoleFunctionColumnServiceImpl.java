@@ -1,8 +1,9 @@
 package com.crrc.sys.service.impl;
 
 import com.crrc.sys.entity.function.column.SysFunctionColumn;
-import com.crrc.sys.mapper.SysFunctionColumnMapper;
+import com.crrc.sys.mapper.mapperImpl.SysFunctionColumnMapperImpl;
 import com.crrc.sys.service.SysRoleFunctionColumnService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -15,8 +16,8 @@ import java.util.List;
 @Service
 public class SysRoleFunctionColumnServiceImpl implements SysRoleFunctionColumnService {
 
-	@Resource
-	private SysFunctionColumnMapper functionColumnMapper;
+	@Autowired
+	private SysFunctionColumnMapperImpl functionColumnMapper;
 
 	/**
 	 * 根据角色ID和快编码查询未拥有的列权限

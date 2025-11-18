@@ -1,0 +1,51 @@
+### 1. 批量插入角色列权限关系
+POST {{prefix}}/test/roleFunctionColumn/insert
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[
+  {
+    "roleId": 999001,
+    "fcId": 888001,
+    "fcEditableFlag": "Y",
+    "createBy": 10086,
+    "createDate": "2025-03-22 09:15:00",
+    "lastUpdateBy": 10086,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 1008601
+  },
+  {
+    "roleId": 999002,
+    "fcId": 888002,
+    "fcEditableFlag": "N",
+    "createBy": 10087,
+    "createDate": "2025-03-21 14:20:00",
+    "lastUpdateBy": 10087,
+    "lastUpdateDate": "2025-03-22 10:45:00",
+    "lastUpdateLogin": 1008702
+  },
+  {
+    "roleId": 999003,
+    "fcId": 888003,
+    "fcEditableFlag": "Y",
+    "createBy": 10088,
+    "createDate": "2025-03-20 11:10:00",
+    "lastUpdateBy": 10088,
+    "lastUpdateDate": "2025-03-22 16:55:00",
+    "lastUpdateLogin": 1008803
+  }
+]
+
+### 2. 根据角色ID列表删除列权限关系
+DELETE {{prefix}}/test/roleFunctionColumn/deleteByRoleIds
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[999001, 999002, 999003]
+
+### 3. 根据角色ID查询列权限
+GET {{prefix}}/test/roleFunctionColumn/findByRoleId/999001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

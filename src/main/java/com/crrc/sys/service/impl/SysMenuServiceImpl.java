@@ -14,12 +14,17 @@ import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.role.SysRoleFunctionColumn;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.*;
+import com.crrc.sys.mapper.mapperImpl.SysFunctionApiMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysFunctionMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysRoleFunctionColumnMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysRoleMenuMapperImpl;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysFunctionColumnService;
 import com.crrc.sys.service.SysMenuService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -40,18 +45,18 @@ public class SysMenuServiceImpl implements SysMenuService {
 
     @Resource
     private SysMenuMapper menuMapper;
-    @Resource
-    private SysRoleMenuMapper roleMenuMapper;
-    @Resource
-    private SysFunctionMapper functionMapper;
+    @Autowired
+    private SysRoleMenuMapperImpl roleMenuMapper;
+    @Autowired
+    private SysFunctionMapperImpl functionMapper;
     @Resource
     private SysRoleMapper roleMapper;
-    @Resource
-    private SysFunctionApiMapper functionApiMapper;
+    @Autowired
+    private SysFunctionApiMapperImpl functionApiMapper;
     @Resource
     private SysFunctionColumnService functionColumnService;
-    @Resource
-    private SysRoleFunctionColumnMapper roleFunctionColumnMapper;
+    @Autowired
+    private SysRoleFunctionColumnMapperImpl roleFunctionColumnMapper;
     @Resource
     private ProjectService projectService;
 

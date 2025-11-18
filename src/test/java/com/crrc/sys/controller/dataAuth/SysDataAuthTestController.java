@@ -1,4 +1,4 @@
-package com.crrc.sys.controller;
+package com.crrc.sys.controller.dataAuth;
 
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.mapper.mapperImpl.SysDataAuthMapperImpl;

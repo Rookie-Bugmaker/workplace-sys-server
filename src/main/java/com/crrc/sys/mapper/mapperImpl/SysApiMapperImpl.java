@@ -2,6 +2,7 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.entity.api.*;
 import com.crrc.sys.mapper.SysApiAuthMapper;
@@ -21,7 +22,7 @@ import java.util.List;
  * 2025-11-13
  */
 @Repository
-public class SysApiMapperImpl implements SysApiMapper {
+public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBEntity> implements SysApiMapper {
 
     @Resource
     private SysApiMapperService sysApiMapperService;

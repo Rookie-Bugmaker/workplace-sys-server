@@ -2,11 +2,13 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.entity.api.*;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthDBEntity;
 import com.crrc.sys.mapper.SysDataAuthMapper;
+import com.crrc.sys.mapper.mapperService.SysApiMapperService;
 import com.crrc.sys.mapper.mapperService.SysDataAuthMapperService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
@@ -21,7 +23,7 @@ import java.util.List;
  * 2025-11-13
  */
 @Repository
-public class SysDataAuthMapperImpl implements SysDataAuthMapper {
+public class SysDataAuthMapperImpl extends ServiceImpl<SysDataAuthMapperService, SysDataAuthDBEntity> implements SysDataAuthMapper {
 
     @Resource
     private SysDataAuthMapperService sysDataAuthMapperService;
@@ -29,9 +31,7 @@ public class SysDataAuthMapperImpl implements SysDataAuthMapper {
     @Override
     public void insertList(List<SysDataAuth> dataAuthList) {
         List<SysDataAuthDBEntity> sysDataAuthDBEntities = convertToDB(dataAuthList);
-        sysDataAuthDBEntities.forEach(sysDataAuthDBEntity -> {
-            sysDataAuthMapperService.insert(sysDataAuthDBEntity);
-        });
+        super.saveBatch(sysDataAuthDBEntities);
     }
 
     @Override

@@ -1,0 +1,199 @@
+### 1. 模糊查询系统功能
+POST {{prefix}}/test/function/findByFuzzy
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "language": "zh-CN",
+  "path": "maintenanceo",
+  "functionName" : "管理",
+  "columnValueSetMap": {
+    "function_type": ["A"],
+    "ICON": ["BellOutlined"],
+    "project_id": [13]
+  }
+}
+
+### 2. 插入系统功能
+POST {{prefix}}/test/function/insert
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "functionId": 1001,
+  "parentId": 0,
+  "functionCode": "TEST_FUNC_001",
+  "functionName": "测试功能模块1",
+  "functionType": "A",
+  "path": "/test/module1",
+  "parameters": "{\"test\":true}",
+  "openMethod": 0,
+  "keepAlive": true,
+  "component": "TestModule1",
+  "name": "test-module1",
+  "redirect": "/test/redirect1",
+  "hideChildrenInMenu": false,
+  "hideInMenu": false,
+  "lockInTab": true,
+  "mergeTab": false,
+  "functionDescription": "这是第一条测试功能数据",
+  "icon": "test-icon1",
+  "language": "zh-CN",
+  "children": [],
+  "apiList": [],
+  "vsId": 10001,
+  "blockList": [],
+  "pageId": 101,
+  "projectId": 1,
+  "project": null,
+  "createBy": 9999,
+  "createDate": "2025-03-22 10:15:00",
+  "lastUpdateBy": 9999,
+  "lastUpdateDate": "2025-03-22 15:30:00",
+  "lastUpdateLogin": 8888
+}
+
+### 3. 根据父ID列表查询系统功能
+GET {{prefix}}/test/function/findByParentIds?parentIdList=0,39499206444314624&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 4. 更新系统功能多语言数据
+PUT {{prefix}}/test/function/updateTl
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "functionId": 1001,
+  "functionName": "TEST_功能管理1",
+  "functionDescription": "TEST_用于系统功能配置的测试数据1",
+  "language": "zh-CN",
+  "createBy": 8888,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 99991,
+  "lastUpdateDate": "2025-11-22 15:30:00",
+  "lastUpdateLogin": 10011
+}
+
+### 5. 更新系统功能
+PUT {{prefix}}/test/function/update
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "functionId": 1001,
+  "parentId": 0,
+  "functionCode": "TEST_FUNC_001",
+  "functionName": "测试功能模块166",
+  "functionType": "A",
+  "path": "/test/module1",
+  "parameters": "{\"test\":true}",
+  "openMethod": 0,
+  "keepAlive": true,
+  "component": "TestModule1",
+  "name": "test-module1",
+  "redirect": "/test/redirect1",
+  "hideChildrenInMenu": false,
+  "hideInMenu": false,
+  "lockInTab": true,
+  "mergeTab": false,
+  "functionDescription": "这是第一条测试功能数据",
+  "icon": "test-icon1",
+  "language": "zh-CN",
+  "children": [],
+  "apiList": [],
+  "vsId": 10001,
+  "blockList": [],
+  "pageId": 101,
+  "projectId": 1,
+  "project": null,
+  "createBy": 9999,
+  "createDate": "2025-03-22 10:15:00",
+  "lastUpdateBy": 9999,
+  "lastUpdateDate": "2025-11-22 15:30:00",
+  "lastUpdateLogin": 8888
+}
+
+### 6. 删除系统功能
+DELETE {{prefix}}/test/function/delete?functionIds=1001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 7. 根据ID查询系统功能
+GET {{prefix}}/test/function/findById?functionId=1001&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 8. 根据代码查询系统功能
+GET {{prefix}}/test/function/findByCode?functionCode=TEST_FUNC_001&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 9. 根据ID列表查询系统功能
+GET {{prefix}}/test/function/findByIds?functionIdList=1001,1087349913625261&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 10. 查询所有系统功能
+GET {{prefix}}/test/function/findAll?language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 11. 根据角色ID查询系统功能
+GET {{prefix}}/test/function/findByRoleId?roleId=2002&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 12. 根据页面ID查询系统功能
+GET {{prefix}}/test/function/findByPageId?pageId=101&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 13. 根据功能ID查询按钮
+GET {{prefix}}/test/function/findButtonById?functionId=0
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 14. 根据路由名称查询系统功能
+GET {{prefix}}/test/function/findByRouteName?routeName=test-module1
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 15. 查询系统功能总数
+GET {{prefix}}/test/function/findCount
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 16. 分页查询系统功能
+GET {{prefix}}/test/function/findByPage?language=zh-CN&offset=0&endset=10
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 17. 根据角色ID查询系统功能数量
+GET {{prefix}}/test/function/findCountByRoleId?roleId=2002
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 18. 根据角色ID分页查询系统功能
+GET {{prefix}}/test/function/findPageByRoleId?roleId=2002&language=zh-CN&offset=0&endset=10
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 19. 查询非父级系统功能数量
+GET {{prefix}}/test/function/findNotParent?language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 20. 分页查询非父级系统功能
+GET {{prefix}}/test/function/findPageByNotParent?language=zh-CN&offset=0&endset=10
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 21. 更新项目ID
+PUT {{prefix}}/test/function/updateProjectId?functionId=0&projectId=100
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

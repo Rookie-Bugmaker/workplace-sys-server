@@ -1,0 +1,171 @@
+### 1. 根据父ID列表查询列权限
+GET {{prefix}}/test/functionColumn/findByParentIds?blockIdList=35743235955613696,36108284507422720,3&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 2. 批量插入列权限多语言数据
+POST {{prefix}}/test/functionColumn/insertTl
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "fcId": 1001,
+    "fcCode": "COL_ACCESS",
+    "fcName": "访问权限列",
+    "fcDesc": "控制用户对数据列的访问权限",
+    "language": "zh-CN",
+    "createBy": 10001,
+    "createDate": "2025-03-22 09:15:00",
+    "lastUpdateBy": 10002,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 20001
+  },
+  {
+    "fcId": 1001,
+    "fcCode": "BLK_EDIT",
+    "fcName": "Edit Block",
+    "fcDesc": "Permission control for editing blocks",
+    "language": "en-US",
+    "createBy": 10003,
+    "createDate": "2025-03-21 14:20:00",
+    "lastUpdateBy": 10004,
+    "lastUpdateDate": "2025-03-22 10:45:00",
+    "lastUpdateLogin": 20002
+  },
+  {
+    "fcId": 1001,
+    "fcCode": "COL_AUDIT",
+    "fcName": "审计日志列",
+    "fcDesc": "记录关键操作的审计信息列",
+    "language": "zh-CN",
+    "createBy": 10005,
+    "createDate": "2025-03-20 16:10:00",
+    "lastUpdateBy": 10006,
+    "lastUpdateDate": "2025-03-22 08:30:00",
+    "lastUpdateLogin": 20003
+  }
+]
+
+### 3. 插入列权限
+POST {{prefix}}/test/functionColumn/insert
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "fcId": 1002,
+  "functionId": 101,
+  "fcCode": "COL_001",
+  "fcName": "物料编码",
+  "fcDesc": "物料唯一标识列",
+  "fcType": "varchar",
+  "fcDisplayFlag": "Y",
+  "fcEditableFlag": "N",
+  "parentId": 1003,
+  "vsId": 2001,
+  "vsCode": "MATERIAL_CODE",
+  "children": [],
+  "language": "zh-CN",
+  "hideColumn": false,
+  "editableFlag": "N",
+  "createBy": 10001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 10001,
+  "lastUpdateDate": "2025-03-22 10:30:00",
+  "lastUpdateLogin": 10001
+}
+
+### 4. 根据区块代码查询列权限
+GET {{prefix}}/test/functionColumn/findByBlockCode?blockCode=COL_001&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 5. 根据列代码查询列权限
+GET {{prefix}}/test/functionColumn/findByColumnCode?columnCode=COL_001&language=zh-CN&blockId=1001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 6. 更新列权限多语言数据
+PUT {{prefix}}/test/functionColumn/updateTl
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "fcId": 1001,
+  "functionId": 101,
+  "fcCode": "COL_001",
+  "fcName": "[测试]访问权限列",
+  "fcDesc": "[测试]控制用户对数据列的访问权限",
+  "fcType": "varchar",
+  "fcDisplayFlag": "Y",
+  "fcEditableFlag": "N",
+  "parentId": 1001,
+  "vsId": 2001,
+  "vsCode": "MATERIAL_CODE",
+  "children": [],
+  "language": "zh-CN",
+  "hideColumn": false,
+  "editableFlag": "N",
+  "createBy": 10001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 10001,
+  "lastUpdateDate": "2025-11-18 10:30:00",
+  "lastUpdateLogin": 10001
+}
+
+### 7. 更新列权限
+PUT {{prefix}}/test/functionColumn/update
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "fcId": 1001,
+  "functionId": 101,
+  "fcCode": "COL_001",
+  "fcName": "物料编码",
+  "fcDesc": "物料唯一标识列",
+  "fcType": "integer",
+  "fcDisplayFlag": "N",
+  "fcEditableFlag": "Y",
+  "parentId": 1001,
+  "vsId": 6001,
+  "vsCode": "MATERIAL_CODE",
+  "children": [],
+  "language": "zh-CN",
+  "hideColumn": false,
+  "editableFlag": "N",
+  "createBy": 10001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 40001,
+  "lastUpdateDate": "2025-11-18 10:30:00",
+  "lastUpdateLogin": 40001
+}
+
+### 8. 根据ID列表删除列权限多语言数据
+DELETE {{prefix}}/test/functionColumn/deleteTlByIds?ids=1001,1002,1003
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 9. 根据ID列表删除列权限
+DELETE {{prefix}}/test/functionColumn/deleteByIds?ids=1001,1002
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 10. 根据功能ID列表查询列权限
+GET {{prefix}}/test/functionColumn/findByFunctionIds?functionIdList=101&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 11. 获取没有列代码的列权限
+GET {{prefix}}/test/functionColumn/getHaveNoColumnCode?roleId=1002&blockCode=COL_001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 12. 根据列ID列表查询列权限
+GET {{prefix}}/test/functionColumn/findByColumnIds?columnIdList=1001,1002&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

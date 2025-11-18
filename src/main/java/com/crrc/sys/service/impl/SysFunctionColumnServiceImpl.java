@@ -4,9 +4,10 @@ import com.crrc.sys.common.Arith;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.entity.function.column.SysFunctionColumn;
 import com.crrc.sys.entity.function.column.SysFunctionColumnTl;
-import com.crrc.sys.mapper.SysFunctionColumnMapper;
+import com.crrc.sys.mapper.mapperImpl.SysFunctionColumnMapperImpl;
 import com.crrc.sys.service.SysFunctionColumnService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -23,8 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class SysFunctionColumnServiceImpl implements SysFunctionColumnService {
 
-    @Resource
-    private SysFunctionColumnMapper functionColumnMapper;
+    @Autowired
+    private SysFunctionColumnMapperImpl functionColumnMapper;
 
     /**
      * 根据功能ID查询列权限信息

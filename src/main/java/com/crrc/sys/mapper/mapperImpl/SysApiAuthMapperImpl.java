@@ -2,12 +2,15 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.entity.api.SysApiAuth;
 import com.crrc.sys.entity.api.SysApiAuthDBEntity;
 import com.crrc.sys.entity.api.SysApiAuthPageDTO;
+import com.crrc.sys.entity.function.SysFunctionApiDBEntity;
 import com.crrc.sys.mapper.SysApiAuthMapper;
 import com.crrc.sys.mapper.mapperService.SysApiAuthMapperService;
+import com.crrc.sys.mapper.mapperService.SysFunctionApiMapperService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
@@ -20,7 +23,7 @@ import java.util.List;
  * 2025-11-13
  */
 @Repository
-public class SysApiAuthMapperImpl implements SysApiAuthMapper {
+public class SysApiAuthMapperImpl extends ServiceImpl<SysApiAuthMapperService, SysApiAuthDBEntity> implements SysApiAuthMapper {
 
     @Resource
     private SysApiAuthMapperService sysApiAuthMapperService;
