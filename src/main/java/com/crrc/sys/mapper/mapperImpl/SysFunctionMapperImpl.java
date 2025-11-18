@@ -158,7 +158,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
                 .select(SysFunctionTlDBEntity::getFunctionDescription)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
                 )
@@ -186,7 +186,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
                 .select(SysFunctionTlDBEntity::getFunctionDescription)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
                 );
@@ -199,11 +199,11 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
                 .select(SysFunctionTlDBEntity::getFunctionDescription)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
                 )
-                .leftJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysFunctionBDBEntity::getFunctionId)
+                .innerJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysFunctionBDBEntity::getFunctionId)
                 .eq(SysRoleMenuDBEntity::getRoleId, roleId);
         return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
     }
@@ -214,7 +214,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
                 .select(SysFunctionTlDBEntity::getFunctionDescription)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
                 )
@@ -227,7 +227,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, "zh-CN")
                 )
@@ -248,7 +248,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
     public int findCount() {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionId)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, "zh-CN")
                 );
@@ -262,7 +262,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
                 );
@@ -274,7 +274,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
     public int findCountByRoleId(long roleId) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionId)
-                .leftJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysFunctionBDBEntity::getFunctionId)
+                .innerJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysFunctionBDBEntity::getFunctionId)
                 .eq(SysRoleMenuDBEntity::getRoleId, roleId);
         return sysFunctionBMapperService.selectJoinCount(wrapper).intValue();
     }
@@ -286,11 +286,11 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
                 )
-                .leftJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysFunctionBDBEntity::getFunctionId)
+                .innerJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysFunctionBDBEntity::getFunctionId)
                 .eq(SysRoleMenuDBEntity::getRoleId, roleId)
                 .orderByAsc(SysFunctionBDBEntity::getFunctionId);
         Page<SysFunction> sysFunctionPage = sysFunctionBMapperService.selectJoinPage(page, SysFunction.class, wrapper);
@@ -301,7 +301,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
     public int findNotParent(String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionId)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
                 )
@@ -316,7 +316,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
-                .leftJoin(SysFunctionTlDBEntity.class,
+                .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
                 )
