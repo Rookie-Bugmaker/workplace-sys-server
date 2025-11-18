@@ -72,7 +72,7 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
                                 .result(SysApiDBEntity::getApiMethod, SysApi::getApiMethod)
                                 .result(SysApiDBEntity::getApiDesc, SysApi::getApiDesc)
                 )
-                .leftJoin(SysFunctionApiDBEntity.class, SysFunctionApiDBEntity::getApiId, SysApiDBEntity::getApiId);
+                .innerJoin(SysFunctionApiDBEntity.class, SysFunctionApiDBEntity::getApiId, SysApiDBEntity::getApiId);
         if (functionIdList != null && !functionIdList.isEmpty()) {
             wrapper.in(SysFunctionApiDBEntity::getFunctionId, functionIdList);
         }
