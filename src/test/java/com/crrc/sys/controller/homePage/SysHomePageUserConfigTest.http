@@ -1,0 +1,26 @@
+### 10. 添加用户主页配置
+POST {{prefix}}/test/homePageUserConfig/add
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+{
+  "configId": 1001,
+  "userId": 2001,
+  "userConfig": "TEST_配置方案A",
+  "createBy": 3001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 3001,
+  "lastUpdateDate": "2025-03-22 10:30:00",
+  "lastUpdateLogin": 4001
+}
+
+### 11. 根据用户ID查询配置
+GET {{prefix}}/test/homePageUserConfig/findByUserId/2001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 12. 根据用户ID删除配置
+DELETE {{prefix}}/test/homePageUserConfig/deleteByUserId/2001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

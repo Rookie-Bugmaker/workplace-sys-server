@@ -5,14 +5,9 @@ Authorization: {{authToken}}
 Content-Type: application/json
 
 {
+  "blockCode": "TEST1",
   "language": "zh-CN",
-  "path": "maintenanceo",
-  "functionName" : "管理",
-  "columnValueSetMap": {
-    "function_type": ["A"],
-    "ICON": ["BellOutlined"],
-    "project_id": [13]
-  }
+  "logMenuId": 39475351109627904
 }
 
 ### 2. 插入系统功能
@@ -197,3 +192,9 @@ Authorization: {{authToken}}
 PUT {{prefix}}/test/function/updateProjectId?functionId=0&projectId=100
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
+
+### 其它
+POST {{prefix}}/function/findByPage?blockCode=TEST1&language=zh-CN&logMenuId=39475351109627904&page=1&pageSize=10
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json

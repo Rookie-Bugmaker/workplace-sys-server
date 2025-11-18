@@ -6,13 +6,14 @@ import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.entity.homepage.SysHomePageComponent;
 import com.crrc.sys.entity.homepage.SysHomePageComponentUserParam;
 import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.mapper.mapperImpl.SysHomePageComponentMapperImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.crrc.sys.entity.homepage.HomePageParam;
 import com.crrc.sys.entity.homepage.SysHomePageComponentUser;
-import com.crrc.sys.mapper.SysHomePageComponentMapper;
 import com.crrc.sys.service.SysUserService;
 import com.crrc.sys.service.homepage.SysHomePageComponentService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +36,8 @@ public class SysHomePageComponentServiceImpl  implements SysHomePageComponentSer
 	@Resource
 	private IdKeyGenerator idKeyGenerator;
 
-	@Resource
-	private SysHomePageComponentMapper sysHomePageComponentMapper;
+	@Autowired
+	private SysHomePageComponentMapperImpl sysHomePageComponentMapper;
 
 	@Resource
 	private SysUserService sysUserService;

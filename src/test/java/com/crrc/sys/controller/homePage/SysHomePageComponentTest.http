@@ -1,0 +1,120 @@
+### 1. 添加主页组件
+POST {{prefix}}/test/homePageComponent/add
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+{
+  "componentId": 1001,
+  "homePageTitle": "TEST-生产看板",
+  "functionName": "TEST-生产进度监控",
+  "functionCode": "TEST-PROD_MONITOR",
+  "refreshRate": 30,
+  "loadingType": 1,
+  "userType": "TEST-工艺工程师",
+  "remarks": "测试数据-生产看板组件",
+  "status": "Y",
+  "showStatus": "Y",
+  "functionUrl": "/test/prod-monitor",
+  "businessAreaName": "TEST-车体生产",
+  "createBy": 9001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 9001,
+  "lastUpdateDate": "2025-03-22 15:30:00",
+  "lastUpdateLogin": 123456
+}
+
+### 2. 查询主页组件列表
+GET {{prefix}}/test/homePageComponent/findList?status=Y
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 3. 删除主页组件
+DELETE {{prefix}}/test/homePageComponent/deleteById/1001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 4. 更新主页组件
+PUT {{prefix}}/test/homePageComponent/updateById
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+{
+  "componentId": 1001,
+  "homePageTitle": "TEST-生产看板1",
+  "functionName": "TEST-生产进度监控1",
+  "functionCode": "TEST-PROD_MONITOR1",
+  "refreshRate": 30,
+  "loadingType": 1,
+  "userType": "TEST-工艺工程师1",
+  "remarks": "测试数据-生产看板组件1",
+  "status": "Y",
+  "showStatus": "Y",
+  "functionUrl": "/test/prod-monitor1",
+  "businessAreaName": "TEST-车体生产1",
+  "createBy": 9001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 9001,
+  "lastUpdateDate": "2025-11-22 15:30:00",
+  "lastUpdateLogin": 123456
+}
+
+### 5. 添加组件用户关联
+POST {{prefix}}/test/homePageComponent/addUser
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[
+  {
+    "componentUserId": 10001,
+    "componentId": 1001,
+    "userId": 30001,
+    "createBy": 99991,
+    "createDate": "2025-03-22 09:15:00",
+    "lastUpdateBy": 99991,
+    "lastUpdateDate": "2025-03-22 10:30:00",
+    "lastUpdateLogin": 123456
+  },
+  {
+    "componentUserId": 10002,
+    "componentId": 1001,
+    "userId": 30002,
+    "createBy": 99992,
+    "createDate": "2025-03-22 11:45:00",
+    "lastUpdateBy": 99992,
+    "lastUpdateDate": "2025-03-22 13:20:00",
+    "lastUpdateLogin": 123457
+  },
+  {
+    "componentUserId": 10003,
+    "componentId": 1001,
+    "userId": 30003,
+    "createBy": 99993,
+    "createDate": "2025-03-22 14:10:00",
+    "lastUpdateBy": 99993,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 123458
+  }
+]
+
+### 6. 查询组件关联用户
+GET {{prefix}}/test/homePageComponent/findUserByComponentId/1001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 7. 查询用户关联组件
+GET {{prefix}}/test/homePageComponent/findComponentByUserId/30001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 8. 查询用户类型关联组件
+GET {{prefix}}/test/homePageComponent/findComponentByUserType/TEST
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 9. 删除组件用户关联
+DELETE {{prefix}}/test/homePageComponent/deleteUserByComponentId/1001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
