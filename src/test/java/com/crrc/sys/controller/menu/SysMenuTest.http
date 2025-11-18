@@ -1,0 +1,276 @@
+### 模糊查询菜单列表
+POST {{prefix}}/test/menu/findByFuzzy
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "language": "zh-CN",
+  "projectId": 19,
+  "menuCode": "REQUIR"
+}
+
+### 批量插入菜单多语言数据
+POST {{prefix}}/test/menu/insertTl
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "menuId": 1001,
+    "menuName": "TEST_主菜单",
+    "menuDescription": "TEST_主菜单描述（测试数据）",
+    "language": "zh-CN",
+    "createBy": 8888,
+    "createDate": "2025-03-22 10:15:00",
+    "lastUpdateBy": 8888,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 9999
+  },
+  {
+    "menuId": 1001,
+    "menuName": "TEST_Sub Menu",
+    "menuDescription": "TEST_Sub menu description (test data)",
+    "language": "en-US",
+    "createBy": 8888,
+    "createDate": "2025-03-21 09:00:00",
+    "lastUpdateBy": 7777,
+    "lastUpdateDate": "2025-03-22 14:20:00",
+    "lastUpdateLogin": 9999
+  }
+]
+
+### 插入单个菜单
+POST {{prefix}}/test/menu/insert
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "menuId": 1001,
+  "menuCode": "TEST_MENU_001",
+  "menuSort": 1,
+  "functionId": 888001,
+  "menuIcon": "test_icon_1.png",
+  "parentId": 0,
+  "childId": 999002,
+  "projectId": 777001,
+  "createBy": 10001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 10001,
+  "lastUpdateDate": "2025-03-22 10:30:00",
+  "lastUpdateLogin": 20001
+}
+
+### 批量插入菜单
+POST {{prefix}}/test/menu/insertList
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "menuId": 1001,
+    "menuCode": "TEST_MENU_001",
+    "menuSort": 1,
+    "functionId": 888001,
+    "menuIcon": "test_icon_1.png",
+    "parentId": 0,
+    "childId": 999002,
+    "projectId": 777001,
+    "createBy": 10001,
+    "createDate": "2025-03-22 09:15:00",
+    "lastUpdateBy": 10001,
+    "lastUpdateDate": "2025-03-22 10:30:00",
+    "lastUpdateLogin": 20001
+  },
+  {
+    "menuId": 1002,
+    "menuCode": "TEST_MENU_002",
+    "menuSort": 2,
+    "functionId": 888002,
+    "menuIcon": "test_icon_2.png",
+    "parentId": 1001,
+    "childId": 999003,
+    "projectId": 777002,
+    "createBy": 10002,
+    "createDate": "2025-03-22 11:45:00",
+    "lastUpdateBy": 10002,
+    "lastUpdateDate": "2025-03-22 13:20:00",
+    "lastUpdateLogin": 20002
+  },
+  {
+    "menuId": 1003,
+    "menuCode": "TEST_MENU_003",
+    "menuSort": 3,
+    "functionId": 888003,
+    "menuIcon": "test_icon_3.png",
+    "parentId": 1002,
+    "childId": null,
+    "projectId": 777003,
+    "createBy": 10003,
+    "createDate": "2025-03-22 14:10:00",
+    "lastUpdateBy": 10003,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 20003
+  }
+]
+
+### 查询所有子菜单
+GET {{prefix}}/test/menu/findBySubmenu?language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 更新菜单多语言信息
+PUT {{prefix}}/test/menu/updateTl
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "menuId": 1001,
+  "menuName": "[TEST]主菜单-中文版",
+  "menuDescription": "测试用主菜单描述信息",
+  "language": "zh-CN",
+  "createBy": 10086,
+  "createDate": "2025-03-22 09:00:00",
+  "lastUpdateBy": 10086,
+  "lastUpdateDate": "2025-03-22 10:30:00",
+  "lastUpdateLogin": 2025032215
+}
+
+### 更新菜单信息
+PUT {{prefix}}/test/menu/update
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "menuId": 1001,
+  "menuCode": "TEST_MENU_001",
+  "menuSort": 2,
+  "functionId": 888001,
+  "menuIcon": "test_icon_22.png",
+  "parentId": 0,
+  "childId": 999002,
+  "projectId": 777001,
+  "createBy": 10001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 10001,
+  "lastUpdateDate": "2025-03-22 10:30:00",
+  "lastUpdateLogin": 20001
+}
+
+### 根据ID列表查询菜单
+POST {{prefix}}/test/menu/findByIds?language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1001,1002]
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.length > 0, "Response body is empty");
+    });
+%}
+
+### 根据ID查询单个菜单
+GET {{prefix}}/test/menu/findById?menuId=1001&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 批量删除菜单多语言数据
+DELETE {{prefix}}/test/menu/deleteTl
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1001, 1002]
+
+### 批量删除菜单
+DELETE {{prefix}}/test/menu/delete
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1001, 1002, 1003]
+
+### 根据父菜单ID查询子菜单
+GET {{prefix}}/test/menu/findByParentId?parentId=0&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 查询所有菜单
+GET {{prefix}}/test/menu/findAll?language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 根据编码列表查询菜单
+POST {{prefix}}/test/menu/findByCodes?language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+["TEST_MENU_001", "TEST_MENU_002", "TEST_MENU_003"]
+
+### 根据角色ID查询菜单
+GET {{prefix}}/test/menu/findByRoleId?roleId=999001&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 查询菜单绑定的功能ID列表
+POST {{prefix}}/test/menu/findBindFunctionId
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1001, 1002, 1003]
+
+### 查询菜单绑定的子菜单ID列表
+POST {{prefix}}/test/menu/findBindChildId
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1001, 1002, 1003]
+
+### 根据父菜单ID列表查询子菜单ID
+POST {{prefix}}/test/menu/findByParentIds
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[0,1001,1002]
+
+### 查询菜单总数
+GET {{prefix}}/test/menu/findCount
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 分页查询菜单
+GET {{prefix}}/test/menu/findByPage?language=zh-CN&offset=20&endset=10
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 查询角色关联的菜单数量
+GET {{prefix}}/test/menu/findCountByRoleId?roleId=999001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 分页查询角色关联的菜单
+GET {{prefix}}/test/menu/findPageByRoleId?roleId=999001&language=zh-CN&offset=0&endset=10
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 查询根菜单
+GET {{prefix}}/test/menu/findRootMenu?language=zh-CN&projectId=777001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 更新菜单项目ID
+PUT {{prefix}}/test/menu/updateProjectId?menuId=1001&projectId=77702
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

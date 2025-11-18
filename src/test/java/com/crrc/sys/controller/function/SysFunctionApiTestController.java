@@ -40,7 +40,7 @@ public class SysFunctionApiTestController {
 
     @GetMapping("/byFunctionIds")
     @Operation(summary = "查询功能关联的API列表", description = "根据功能ID列表查询关联的API信息")
-    public List<SysFunctionApiBO> findByFunctionIds(@RequestParam List<Long> functionIdList) {
+    public List<SysFunctionApiBO> findByFunctionIds(@RequestParam(required = false) List<Long> functionIdList) {
         return sysFunctionApiMapper.findByFunctionIds(functionIdList);
     }
 

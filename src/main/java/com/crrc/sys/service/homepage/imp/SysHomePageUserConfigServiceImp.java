@@ -2,8 +2,9 @@ package com.crrc.sys.service.homepage.imp;
 
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.entity.homepage.SysHomePageUserConfig;
-import com.crrc.sys.mapper.SysHomePageUserConfigMapper;
+import com.crrc.sys.mapper.mapperImpl.SysHomePageUserConfigMapperImpl;
 import com.crrc.sys.service.homepage.SysHomePageUserConfigService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,8 +17,8 @@ import javax.annotation.Resource;
  */
 @Service
 public class SysHomePageUserConfigServiceImp implements SysHomePageUserConfigService {
-	@Resource
-	private SysHomePageUserConfigMapper sysHomePageUserConfigMapper;
+	@Autowired
+	private SysHomePageUserConfigMapperImpl sysHomePageUserConfigMapper;
 	@Resource
 	private IdKeyGenerator idKeyGenerator;
 

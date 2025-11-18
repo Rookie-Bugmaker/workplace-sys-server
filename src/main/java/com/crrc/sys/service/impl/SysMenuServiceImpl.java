@@ -14,10 +14,7 @@ import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.role.SysRoleFunctionColumn;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.*;
-import com.crrc.sys.mapper.mapperImpl.SysFunctionApiMapperImpl;
-import com.crrc.sys.mapper.mapperImpl.SysFunctionMapperImpl;
-import com.crrc.sys.mapper.mapperImpl.SysRoleFunctionColumnMapperImpl;
-import com.crrc.sys.mapper.mapperImpl.SysRoleMenuMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.*;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysFunctionColumnService;
 import com.crrc.sys.service.SysMenuService;
@@ -43,8 +40,8 @@ import java.util.stream.Collectors;
 @Service
 public class SysMenuServiceImpl implements SysMenuService {
 
-    @Resource
-    private SysMenuMapper menuMapper;
+    @Autowired
+    private SysMenuMapperImpl menuMapper;
     @Autowired
     private SysRoleMenuMapperImpl roleMenuMapper;
     @Autowired
