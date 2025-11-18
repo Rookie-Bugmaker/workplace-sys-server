@@ -2,6 +2,7 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthDBEntity;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  * 2025-11-13
  */
 @Repository
-public class SysDataAuthValueMapperImpl implements SysDataAuthValueMapper {
+public class SysDataAuthValueMapperImpl extends ServiceImpl<SysDataAuthValueMapperService, SysDataAuthValueDBEntity> implements SysDataAuthValueMapper {
 
     @Resource
     private SysDataAuthValueMapperService sysDataAuthValueMapperService;
@@ -34,9 +35,7 @@ public class SysDataAuthValueMapperImpl implements SysDataAuthValueMapper {
     @Override
     public void insertList(List<SysDataAuthValue> dataAuthValueList) {
         List<SysDataAuthValueDBEntity> sysDataAuthValueDBEntities = convertToDB(dataAuthValueList);
-        sysDataAuthValueDBEntities.forEach(sysDataAuthDBEntity -> {
-            sysDataAuthValueMapperService.insert(sysDataAuthDBEntity);
-        });
+        super.saveBatch(sysDataAuthValueDBEntities);
     }
 
     @Override
@@ -48,9 +47,11 @@ public class SysDataAuthValueMapperImpl implements SysDataAuthValueMapper {
                 .selectList(wrapper1)
                 .stream().map(SysDataAuthDBEntity::getAuthId)
                 .collect(Collectors.toList());
-        LambdaUpdateWrapper<SysDataAuthValueDBEntity> wrapper2 = new LambdaUpdateWrapper<>();
-        wrapper2.in(SysDataAuthValueDBEntity::getAuthId, authIds);
-        sysDataAuthValueMapperService.delete(wrapper2);
+        if(authIds != null && authIds.size() > 0) {
+            LambdaUpdateWrapper<SysDataAuthValueDBEntity> wrapper2 = new LambdaUpdateWrapper<>();
+            wrapper2.in(SysDataAuthValueDBEntity::getAuthId, authIds);
+            sysDataAuthValueMapperService.delete(wrapper2);
+        }
     }
 
     @Override
@@ -62,9 +63,11 @@ public class SysDataAuthValueMapperImpl implements SysDataAuthValueMapper {
                 .selectList(wrapper1)
                 .stream().map(SysDataAuthDBEntity::getAuthId)
                 .collect(Collectors.toList());
-        LambdaUpdateWrapper<SysDataAuthValueDBEntity> wrapper2 = new LambdaUpdateWrapper<>();
-        wrapper2.in(SysDataAuthValueDBEntity::getAuthId, authIds);
-        sysDataAuthValueMapperService.delete(wrapper2);
+        if(authIds != null && authIds.size() > 0) {
+            LambdaUpdateWrapper<SysDataAuthValueDBEntity> wrapper2 = new LambdaUpdateWrapper<>();
+            wrapper2.in(SysDataAuthValueDBEntity::getAuthId, authIds);
+            sysDataAuthValueMapperService.delete(wrapper2);
+        }
     }
 
     @Override
