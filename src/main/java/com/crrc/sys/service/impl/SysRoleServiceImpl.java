@@ -17,6 +17,8 @@ import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.*;
 import com.crrc.sys.mapper.mapperImpl.SysDataAuthMapperImpl;
 import com.crrc.sys.mapper.mapperImpl.SysDataAuthValueMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysRoleFunctionColumnMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysRoleMenuMapperImpl;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.role.SysUserRolePO;
 import com.crrc.sys.service.ProjectService;
@@ -49,14 +51,14 @@ public class SysRoleServiceImpl implements SysRoleService {
     private IdKeyGenerator idKeyGenerator;
     @Resource
     private SysRoleMapper roleMapper;
-    @Resource
-    private SysRoleMenuMapper roleMenuMapper;
+    @Autowired
+    private SysRoleMenuMapperImpl roleMenuMapper;
     @Resource
     private SysRoleColumnValueSetMapper roleColumnValueSetMapper;
     @Resource
     private SysMenuMapper menuMapper;
-    @Resource
-    private SysRoleFunctionColumnMapper roleFunctionColumnMapper;
+    @Autowired
+    private SysRoleFunctionColumnMapperImpl roleFunctionColumnMapper;
     @Autowired
     private SysDataAuthMapperImpl dataAuthMapper;
     @Autowired

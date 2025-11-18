@@ -1,0 +1,88 @@
+### 环境变量配置
+# @no-log
+# @no-redirect
+POST {{prefix}}/auth/oauth/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&username=admin&password=123456&scope=all
+
+> {%
+    client.global.set("authToken", "Bearer " + response.body.access_token);
+%}
+
+### 1. 根据功能ID删除关联关系
+DELETE {{prefix}}/test/functionApi/byFunctionId/1001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 2. 批量删除功能关联关系
+DELETE {{prefix}}/test/functionApi/byFunctionIds
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1002, 1003]
+
+### 3. 批量新增功能API关联
+POST {{prefix}}/test/functionApi
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "functionId": 1001,
+    "apiId": 2001,
+    "createBy": 1,
+    "createDate": "2025-03-22 09:15:00",
+    "lastUpdateBy": 1,
+    "lastUpdateDate": "2025-03-22 10:20:00",
+    "lastUpdateLogin": 101
+  },
+  {
+    "functionId": 1002,
+    "apiId": 2002,
+    "createBy": 2,
+    "createDate": "2025-03-22 11:30:00",
+    "lastUpdateBy": 2,
+    "lastUpdateDate": "2025-03-22 14:45:00",
+    "lastUpdateLogin": 102
+  },
+  {
+    "functionId": 1003,
+    "apiId": 2003,
+    "createBy": 3,
+    "createDate": "2025-03-22 15:30:00",
+    "lastUpdateBy": 3,
+    "lastUpdateDate": "2025-03-22 16:50:00",
+    "lastUpdateLogin": 103
+  }
+]
+
+### 4. 查询功能关联的API列表
+GET {{prefix}}/test/functionApi/byFunctionIds?functionIdList=1001&functionIdList=1002&functionIdList=1003
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 5. 查询单个功能关联的API
+GET {{prefix}}/test/functionApi/byFunctionId/1001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 6. 统计所有功能API关联数量
+GET {{prefix}}/test/functionApi/count
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 7. 分页查询功能API关联
+GET {{prefix}}/test/functionApi/page?offset=20&endset=10
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 8. 根据API ID列表删除关联
+DELETE {{prefix}}/test/functionApi/byApiIds
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[2001, 2002, 2003]

@@ -1,0 +1,67 @@
+### 4. 根据菜单ID列表删除角色菜单关系
+DELETE {{prefix}}/test/roleMenu/deleteByMenuIds
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[888001, 888002, 888003]
+
+### 5. 批量插入角色菜单关系
+POST {{prefix}}/test/roleMenu/insert
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[
+  {
+    "roleId": 999001,
+    "menuId": 888001,
+    "halfChecked": true,
+    "childFlag": false,
+    "createBy": 10086,
+    "createDate": "2025-03-22 15:30:00",
+    "lastUpdateBy": 10087,
+    "lastUpdateDate": "2025-03-23 09:15:00",
+    "lastUpdateLogin": 10088
+  },
+  {
+    "roleId": 999002,
+    "menuId": 888002,
+    "halfChecked": false,
+    "childFlag": true,
+    "createBy": 20086,
+    "createDate": "2025-03-22 16:45:00",
+    "lastUpdateBy": 20087,
+    "lastUpdateDate": "2025-03-23 10:30:00",
+    "lastUpdateLogin": 20088
+  },
+  {
+    "roleId": 999003,
+    "menuId": 888003,
+    "halfChecked": true,
+    "childFlag": true,
+    "createBy": 30086,
+    "createDate": "2025-03-22 17:20:00",
+    "lastUpdateBy": 30087,
+    "lastUpdateDate": "2025-03-23 11:45:00",
+    "lastUpdateLogin": 30088
+  }
+]
+
+### 6. 根据角色ID删除菜单关系
+DELETE {{prefix}}/test/roleMenu/deleteByRoleId/999001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 7. 根据角色ID列表批量删除菜单关系
+DELETE {{prefix}}/test/roleMenu/deleteByRoleIds
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[999002, 999003]
+
+### 8. 根据角色ID查询菜单
+GET {{prefix}}/test/roleMenu/findByRoleId/999001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

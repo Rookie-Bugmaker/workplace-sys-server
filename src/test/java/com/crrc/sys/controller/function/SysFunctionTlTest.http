@@ -1,0 +1,51 @@
+### 1. 批量插入系统功能多语言数据
+POST {{prefix}}/test/functionTl/insertTl
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "functionId": 1001,
+    "functionName": "TEST_功能管理",
+    "functionDescription": "TEST_用于系统功能配置的测试数据",
+    "language": "zh-CN",
+    "createBy": 8888,
+    "createDate": "2025-03-22 09:15:00",
+    "lastUpdateBy": 9999,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 10001
+  },
+  {
+    "functionId": 1002,
+    "functionName": "TEST_Role Management",
+    "functionDescription": "TEST_Test data for role configuration",
+    "language": "en-US",
+    "createBy": 7777,
+    "createDate": "2025-03-21 14:20:00",
+    "lastUpdateBy": 8888,
+    "lastUpdateDate": "2025-03-22 10:45:00",
+    "lastUpdateLogin": 10002
+  },
+  {
+    "functionId": 1003,
+    "functionName": "TEST_数据看板",
+    "functionDescription": "TEST_演示用数据可视化功能",
+    "language": "zh-CN",
+    "createBy": 6666,
+    "createDate": "2025-03-20 16:10:00",
+    "lastUpdateBy": 7777,
+    "lastUpdateDate": "2025-03-22 13:25:00",
+    "lastUpdateLogin": 10003
+  }
+]
+
+### 2. 根据功能ID列表删除多语言数据
+DELETE {{prefix}}/test/functionTl/deleteTl?functionIds=1001,1002,1003
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 3. 根据功能ID列表查询多语言数据
+GET {{prefix}}/test/functionTl/findByFunctionIds?functionIdList=1001,1002,1003
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

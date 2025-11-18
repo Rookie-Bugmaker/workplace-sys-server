@@ -4,9 +4,9 @@ import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.api.SysApiFindByPageParam;
 import com.crrc.sys.mapper.mapperImpl.SysApiMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysFunctionApiMapperImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.crrc.sys.mapper.SysFunctionApiMapper;
 import com.crrc.sys.service.SysApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,8 +27,8 @@ public class SysApiServiceImpl implements SysApiService {
 
     @Autowired
     private SysApiMapperImpl apiMapper;
-    @Resource
-    private SysFunctionApiMapper functionApiMapper;
+    @Autowired
+    private SysFunctionApiMapperImpl functionApiMapper;
 
     /**
      * API分页查询

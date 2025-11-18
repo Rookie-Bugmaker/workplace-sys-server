@@ -19,8 +19,8 @@ Authorization: {{authToken}}
 Content-Type: application/json
 
 {
-  "id": 1234567,
-  "apiName": "高铁转向架数据接口",
+  "id": 2003,
+  "apiName": "高铁转向架数据接口3",
   "apiUri": "/api/train/bogie-data",
   "apiMethod": "POST",
   "apiDesc": "用于获取CR400BF型高铁转向架的实时传感器数据",
