@@ -91,7 +91,7 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
                                 .result(SysApiDBEntity::getApiMethod, SysApi::getApiMethod)
                                 .result(SysApiDBEntity::getApiDesc, SysApi::getApiDesc)
                 )
-                .leftJoin(SysFunctionApiDBEntity.class, SysFunctionApiDBEntity::getApiId, SysApiDBEntity::getApiId)
+                .innerJoin(SysFunctionApiDBEntity.class, SysFunctionApiDBEntity::getApiId, SysApiDBEntity::getApiId)
                 .eq(SysFunctionApiDBEntity::getFunctionId, functionId);
         return sysApiMapperService.selectJoinOne(SysFunctionApiBO.class, wrapper);
     }
@@ -115,7 +115,7 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
                 .select(SysApiDBEntity::getApiUri)
                 .select(SysApiDBEntity::getApiMethod)
                 .select(SysApiDBEntity::getApiDesc)
-                .leftJoin(SysFunctionApiDBEntity.class, SysFunctionApiDBEntity::getApiId, SysApiDBEntity::getApiId)
+                .innerJoin(SysFunctionApiDBEntity.class, SysFunctionApiDBEntity::getApiId, SysApiDBEntity::getApiId)
                 .orderByAsc(SysApiDBEntity::getApiId);
         Page<SysFunctionApi> sysFunctionApiPage = sysApiMapperService.selectJoinPage(page, SysFunctionApi.class, wrapper);
         return sysFunctionApiPage.getRecords();
