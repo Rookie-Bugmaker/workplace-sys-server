@@ -63,7 +63,7 @@ public class DifyController {
                 .post()
                 .uri(agent.getBaseUrl() + "/chat-messages")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .header("Authorization", "Bearer " + agent.getApiKey())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + agent.getApiKey())
                 .bodyValue(paramMap)
                 .retrieve()
                 .bodyToFlux(Object.class)
@@ -88,8 +88,10 @@ public class DifyController {
             "/conversations/{conversation_id}/name",
             "/conversations/{conversation_id}/variables",
             "/conversations/{conversation_id}/variables/{variable_id}",
-            "info",
-            "parameters",
+            "/audio-to-text",
+            "/text-to-audio",
+            "/info",
+            "/parameters",
             "/meta",
             "/site",
             "/apps/annotations",

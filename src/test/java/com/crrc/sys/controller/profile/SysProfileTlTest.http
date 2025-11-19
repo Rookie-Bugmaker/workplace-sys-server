@@ -1,0 +1,52 @@
+### 10. 批量新增国际化
+POST {{prefix}}/test/profileTl/insertList
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "profileId": 1001,
+    "language": "zh-CN",
+    "profileName": "测试配置_中文版",
+    "createBy": 10086,
+    "createDate": "2025-03-22 09:15:00",
+    "lastUpdateBy": 10086,
+    "lastUpdateDate": "2025-03-22 10:30:00",
+    "lastUpdateLogin": 1008601
+  },
+  {
+    "profileId": 1001,
+    "language": "en-US",
+    "profileName": "TEST_PROFILE_EN",
+    "createBy": 10087,
+    "createDate": "2025-03-22 11:20:00",
+    "lastUpdateBy": 10088,
+    "lastUpdateDate": "2025-03-22 14:45:00",
+    "lastUpdateLogin": 1008701
+  }
+]
+
+
+### 11. 更新国际化
+PUT {{prefix}}/test/profileTl/update
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "profileId": 1003,
+  "language": "zh-CN",
+  "profileName": "Updated Config",
+  "lastUpdateBy": 10088,
+  "lastUpdateDate": "2025-11-22 14:45:00",
+  "lastUpdateLogin": 1008701
+}
+
+### 12. 批量删除国际化
+DELETE {{prefix}}/test/profileTl/delete
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1001, 1002, 1003]

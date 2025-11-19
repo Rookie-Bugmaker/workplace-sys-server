@@ -1,0 +1,149 @@
+### 1. 模糊查询人员列表
+POST {{prefix}}/test/org/person/findByFuzzy
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "language": "zh-CN",
+  "status": 1,
+  "personTypeList": ["1", "2"],
+  "fullName": "李江",
+  "montage" : "or",
+  "jobNo": "01320003"
+}
+
+### 2. 新增人员
+POST {{prefix}}/test/org/person/insert
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "personId": 10001,
+  "fullName": "测试员工_张三",
+  "gender": "M",
+  "jobNo": "TEST001",
+  "personType": 1,
+  "phone": "13800138001",
+  "email": "test1@demo.com",
+  "status": 1,
+  "inductionDate": "2025-03-22 09:00:00",
+  "quitDate": "2029-03-22 10:00:00",
+  "language": "zh-CN",
+  "createBy": 9999,
+  "createDate": "2025-03-22 10:00:00",
+  "lastUpdateBy": 9999,
+  "lastUpdateDate": "2025-03-22 15:30:00",
+  "lastUpdateLogin": 8888
+}
+
+### 3. 更新人员信息
+PUT {{prefix}}/test/org/person/update
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "personId": 10001,
+  "fullName": "测试员工_张三",
+  "gender": "F",
+  "jobNo": "TEST002",
+  "personType": 1,
+  "phone": "13800138002",
+  "email": "test1@demo.com",
+  "status": 0,
+  "inductionDate": "2025-03-22 09:00:00",
+  "quitDate": "2029-03-22 10:00:00",
+  "language": "zh-CN",
+  "createBy": 9999,
+  "createDate": "2025-03-22 10:00:00",
+  "lastUpdateBy": 9999,
+  "lastUpdateDate": "2025-11-22 15:30:00",
+  "lastUpdateLogin": 8888
+}
+
+### 4. 根据ID查询人员详情
+GET {{prefix}}/test/org/person/findById?personId=10001&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 5. 批量删除人员
+DELETE {{prefix}}/test/org/person/delete?personIdList=10001,10002,10003
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 6. 根据工号查询人员
+GET {{prefix}}/test/org/person/findByJobNo?jobNo=TEST002
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 7. 根据工号列表查询人员
+GET {{prefix}}/test/org/person/findByJobNos?jobNos=013200030931,TEST002
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 8. 根据人员ID列表查询人员
+GET {{prefix}}/test/org/person/findByPersonIds?personIdList=10001&personIdList=409416441960484864&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 9. 批量新增人员
+POST {{prefix}}/test/org/person/insertBatch
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "personId": 10002,
+    "fullName": "测试供应商_李四",
+    "gender": "F",
+    "jobNo": "TEST002",
+    "personType": 2,
+    "phone": "13800138002",
+    "email": "test2@demo.com",
+    "status": 1,
+    "inductionDate": "2024-01-15 09:00:00",
+    "quitDate": null,
+    "language": "en-US",
+    "createBy": 9999,
+    "createDate": "2025-03-22 10:05:00",
+    "lastUpdateBy": 9999,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 8888
+  },
+  {
+    "personId": 10003,
+    "fullName": "测试客户_王五",
+    "gender": "M",
+    "jobNo": "TEST003",
+    "personType": 3,
+    "phone": "13800138003",
+    "email": "test3@demo.com",
+    "status": 2,
+    "inductionDate": "2023-06-01 09:00:00",
+    "quitDate": "2025-02-28 18:00:00",
+    "language": "zh-CN",
+    "createBy": 9999,
+    "createDate": "2025-03-22 10:10:00",
+    "lastUpdateBy": 9999,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 8888
+  }
+]
+
+### 10. 查询离职人员
+GET {{prefix}}/test/org/person/findByQuitDate?nowDate=2029-10-27
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 11. 批量更新人员状态
+PUT {{prefix}}/test/org/person/updateStatus?personIdList=10002&personIdList=10003&status=0
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 12. 根据手机号列表查询人员
+GET {{prefix}}/test/org/person/findByPhoneList?phoneList=13800138002,13800138003
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

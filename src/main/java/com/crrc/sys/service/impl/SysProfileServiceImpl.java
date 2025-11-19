@@ -3,13 +3,14 @@ package com.crrc.sys.service.impl;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.profile.*;
 import com.crrc.sys.enums.LanguageEnum;
+import com.crrc.sys.mapper.mapperImpl.SysProfileMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysProfileTlMapperImpl;
 import com.crrc.sys.service.SysProfileService;
 import com.crrc.sys.entity.profile.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.crrc.sys.mapper.SysProfileMapper;
-import com.crrc.sys.mapper.SysProfileTlMapper;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +25,10 @@ import java.util.List;
 @Service
 public class SysProfileServiceImpl implements SysProfileService {
 
-	@Resource
-	private SysProfileMapper profileMapper;
-	@Resource
-	private SysProfileTlMapper profileTlMapper;
+	@Autowired
+	private SysProfileMapperImpl profileMapper;
+	@Autowired
+	private SysProfileTlMapperImpl profileTlMapper;
 
 	/**
 	 * 配置文件分页查询

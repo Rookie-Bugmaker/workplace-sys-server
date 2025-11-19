@@ -22,6 +22,10 @@ spec:
           imagePullPolicy: Always
       imagePullSecrets:
         - name: harbor-login-registry
+      hostAliases:
+        - ip: 10.216.244.161
+          hostnames:
+            - "aistart.cccar.com.cn"
 ---
 apiVersion: v1
 kind: Service
