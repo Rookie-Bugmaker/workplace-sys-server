@@ -1,0 +1,124 @@
+### 1. 模糊查询配置文件
+POST {{prefix}}/test/profile/findByFuzzy
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "language": "zh-CN",
+  "profileCode": "srm_",
+  "profileName": "SRM紧急配送到货通知单",
+  "profileType": "APPROVER_LIST"
+}
+
+### 2. 新增配置文件
+POST {{prefix}}/test/profile/insert
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "profileId": 1001,
+  "profileName": "[测试]系统参数配置",
+  "profileCode": "TEST_SYS_CONFIG_001",
+  "profileSourceType": "fixed",
+  "profileSource": "测试固定值来源",
+  "profileValueColumn": "test_value",
+  "profileCodeColumn": "test_code",
+  "profileDescColumn": "test_desc",
+  "profileParentColumn": "test_parent",
+  "profileComponentType": "select",
+  "profileType": "SYS_CONFIG",
+  "language": "zh-CN",
+  "fieldAlias": "test_alias1,test_alias2",
+  "createBy": 10001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 10001,
+  "lastUpdateDate": "2025-03-22 10:30:00",
+  "lastUpdateLogin": 20001
+}
+
+### 3. 更新配置文件
+PUT {{prefix}}/test/profile/update
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "profileId": 1001,
+  "profileName": "[测试]系统参数配置1",
+  "profileCode": "TEST_SYS_CONFIG_0011",
+  "profileSourceType": "fixed1",
+  "profileSource": "测试固定值来源1",
+  "profileValueColumn": "test_value1",
+  "profileCodeColumn": "test_code1",
+  "profileDescColumn": "test_desc1",
+  "profileParentColumn": "test_parent1",
+  "profileComponentType": "select1",
+  "profileType": "SYS_CONFIG1",
+  "language": "zh-CN",
+  "fieldAlias": "test_alias1,test_alias21",
+  "createBy": 10001,
+  "createDate": "2025-03-22 09:15:00",
+  "lastUpdateBy": 10001,
+  "lastUpdateDate": "2025-11-22 10:30:00",
+  "lastUpdateLogin": 20001
+}
+
+### 4. 根据ID查询
+GET {{prefix}}/test/profile/findById?profileId=1001&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 5. 批量删除
+DELETE {{prefix}}/test/profile/delete
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1001]
+
+### 6. 根据编码查询
+GET {{prefix}}/test/profile/findByCode?profileCode=TEST_SYS_CONFIG_0011
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 7. 执行动态SQL
+POST {{prefix}}/test/profile/executeSql
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "fuzzyQuery": "系统",
+  "profileValueColumn": "menu_id",
+  "profileCodeColumn": "menu_code",
+  "profileDescColumn": "menu_name",
+  "profileParentColumn": "parent_id",
+  "sql": "select mb.menu_id,mb.menu_code,mb.parent_id,mtl.menu_name,mtl.menu_description from sys_menu_b mb join sys_menu_tl mtl on mtl.menu_id = mb.menu_id and mtl.language = 'ZH-CN' join sys_role_menu rm on rm.menu_id = mb.menu_id"
+}
+
+### 8. 根据类型查询
+GET {{prefix}}/test/profile/findByType?profileType=SYS_CONFIG1&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 9. 批量ID查询
+POST {{prefix}}/test/profile/findByIds?language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[1001, 414053539439624192]
+
+### 其它：根据配置文件编码查询值集(分页查询)
+POST {{prefix}}/profile/getValuePageBySql
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "page": 1,
+  "pageSize" : 10,
+  "profileCode": "TEST_LJT"
+}

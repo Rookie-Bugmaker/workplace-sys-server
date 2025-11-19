@@ -217,7 +217,7 @@ Content-Type: application/json
 ["TEST_MENU_001", "TEST_MENU_002", "TEST_MENU_003"]
 
 ### 根据角色ID查询菜单
-GET {{prefix}}/test/menu/findByRoleId?roleId=999001&language=zh-CN
+GET {{prefix}}/test/menu/findByRoleId?roleId=412273266393583616&language=zh-CN
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
 
@@ -266,7 +266,7 @@ X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
 
 ### 查询根菜单
-GET {{prefix}}/test/menu/findRootMenu?language=zh-CN&projectId=777001
+GET {{prefix}}/test/menu/findRootMenu?language=zh-CN&projectId=13
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
 
@@ -277,5 +277,10 @@ Authorization: {{authToken}}
 
 ### 其它
 POST {{prefix}}/menu/findTreeByCurrentUser?language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 其它
+POST {{prefix}}/menu/findByPage?language=zh-CN&page=1&pageSize=10&projectId=13
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}

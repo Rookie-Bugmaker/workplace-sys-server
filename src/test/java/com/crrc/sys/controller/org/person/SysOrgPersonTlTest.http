@@ -1,0 +1,74 @@
+### 13. 批量新增人员国际化信息
+POST {{prefix}}/test/org/personTl/insertList
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "personId": 10001,
+    "fullName": "测试员工_张三",
+    "gender": "M",
+    "jobNo": "TEST001",
+    "personType": 1,
+    "phone": "13800138001",
+    "email": "test1@demo.com",
+    "status": 1,
+    "inductionDate": "2025-03-22 09:00:00",
+    "quitDate": "2029-03-22 10:00:00",
+    "language": "zh-CN",
+    "createBy": 9999,
+    "createDate": "2025-03-22 10:00:00",
+    "lastUpdateBy": 9999,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 8888
+  },
+  {
+    "personId": 10001,
+    "fullName": "TEST_ZHANGSAN",
+    "gender": "M",
+    "jobNo": "TEST001",
+    "personType": 1,
+    "phone": "13800138001",
+    "email": "test1@demo.com",
+    "status": 1,
+    "inductionDate": "2025-03-22 09:00:00",
+    "quitDate": "2029-03-22 10:00:00",
+    "language": "en-US",
+    "createBy": 9999,
+    "createDate": "2025-03-22 10:00:00",
+    "lastUpdateBy": 9999,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 8888
+  }
+]
+
+### 14. 更新人员国际化信息
+PUT {{prefix}}/test/org/personTl/update
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "personId": 10001,
+  "fullName": "测试_张三",
+  "gender": "M",
+  "jobNo": "TEST001",
+  "personType": 1,
+  "phone": "13800138001",
+  "email": "test1@demo.com",
+  "status": 1,
+  "inductionDate": "2025-03-22 09:00:00",
+  "quitDate": "2029-03-22 10:00:00",
+  "language": "zh-CN",
+  "createBy": 9999,
+  "createDate": "2025-03-22 10:00:00",
+  "lastUpdateBy": 9999,
+  "lastUpdateDate": "2025-11-22 15:30:00",
+  "lastUpdateLogin": 8888
+}
+
+### 15. 批量删除人员国际化信息
+DELETE {{prefix}}/test/org/personTl/delete?personIdList=10001,10002
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

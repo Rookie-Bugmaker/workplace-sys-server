@@ -16,6 +16,7 @@ import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.mapper.*;
 import com.crrc.sys.mapper.mapperImpl.SysDataAuthMapperImpl;
 import com.crrc.sys.mapper.mapperImpl.SysDataAuthValueMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysOrgPersonMapperImpl;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
 import com.crrc.sys.model.user.SysOnlineUserVO;
@@ -59,8 +60,8 @@ public class SysUserServiceImpl implements SysUserService {
     @Autowired
     private SysDataAuthValueMapperImpl dataAuthValueMapper;
 
-    @Resource
-    private SysOrgPersonMapper personMapper;
+    @Autowired
+    private SysOrgPersonMapperImpl personMapper;
 
     @Resource
     private AuthClient authClient;
