@@ -256,7 +256,7 @@ X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
 
 ### 查询角色关联的菜单数量
-GET {{prefix}}/test/menu/findCountByRoleId?roleId=999001
+GET {{prefix}}/test/menu/findCountByRoleId?roleId=412273266393583616
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
 
@@ -272,5 +272,10 @@ Authorization: {{authToken}}
 
 ### 更新菜单项目ID
 PUT {{prefix}}/test/menu/updateProjectId?menuId=1001&projectId=77702
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 其它
+POST {{prefix}}/menu/findTreeByCurrentUser?language=zh-CN
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}

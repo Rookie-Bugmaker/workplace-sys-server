@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.MyBatisUtil;
 import com.crrc.sys.entity.function.*;
 import com.crrc.sys.entity.function.column.SysFunctionColumn;
 import com.crrc.sys.entity.function.column.SysFunctionColumnBDBEntity;
@@ -257,7 +258,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
 
     @Override
     public List<SysFunction> findByPage(String language, int offset, int endset) {
-        Page<SysFunction> page = convertToPage(offset, endset);
+        Page<SysFunction> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -281,7 +282,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
 
     @Override
     public List<SysFunction> findPageByRoleId(long roleId, String language, int offset, int endset) {
-        Page<SysFunction> page = convertToPage(offset, endset);
+        Page<SysFunction> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -311,7 +312,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
 
     @Override
     public List<SysFunction> findPageByNotParent(String language, Integer offset, Integer endset) {
-        Page<SysFunction> page = convertToPage(offset, endset);
+        Page<SysFunction> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -351,23 +352,5 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
     private SysFunction convertFromDB(SysFunctionBDBEntity entity) {
         SysFunction data = BeanUtils.toBean(entity, SysFunction.class);
         return data;
-    }
-
-    /**
-     * 将 LIMIT offset, size 参数转换为 MyBatis-Plus 的 Page 对象
-     * @param offset 偏移量（从0开始）
-     * @param size 每页记录数
-     * @return MyBatis-Plus 的 Page 对象
-     */
-    private <T> Page<T> convertToPage(long offset, long size) {
-        // 计算当前页码（注意避免除零）
-        if (size <= 0) {
-            throw new IllegalArgumentException("每页记录数必须大于0");
-        }
-
-        long current = (offset / size) + 1;
-
-        // 创建并返回 Page 对象
-        return new Page<>(current, size);
     }
 }
