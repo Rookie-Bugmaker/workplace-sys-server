@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.MyBatisUtil;
 import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.api.SysApiDBEntity;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
@@ -106,7 +107,7 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
 
     @Override
     public List<SysFunctionApi> findPageFunctionApi(Integer offset, Integer endset) {
-        Page<SysFunctionApi> page = convertToPage(offset, endset);
+        Page<SysFunctionApi> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
         MPJLambdaWrapper<SysApiDBEntity> wrapper = JoinWrappers.lambda(SysApiDBEntity.class)
                 .selectAs(SysFunctionApiDBEntity::getFunctionId, SysFunctionApiBO::getFunctionId)
@@ -131,23 +132,5 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
     private List<SysFunctionApiDBEntity> convertToDB(List<SysFunctionApiPO> dataList) {
         List<SysFunctionApiDBEntity> entityList = BeanUtils.toBean(dataList, SysFunctionApiDBEntity.class);
         return entityList;
-    }
-
-    /**
-     * 将 LIMIT offset, size 参数转换为 MyBatis-Plus 的 Page 对象
-     * @param offset 偏移量（从0开始）
-     * @param size 每页记录数
-     * @return MyBatis-Plus 的 Page 对象
-     */
-    private <T> Page<T> convertToPage(long offset, long size) {
-        // 计算当前页码（注意避免除零）
-        if (size <= 0) {
-            throw new IllegalArgumentException("每页记录数必须大于0");
-        }
-
-        long current = (offset / size) + 1;
-
-        // 创建并返回 Page 对象
-        return new Page<>(current, size);
     }
 }
