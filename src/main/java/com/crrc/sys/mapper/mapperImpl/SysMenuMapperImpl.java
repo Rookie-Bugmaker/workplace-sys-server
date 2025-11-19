@@ -42,6 +42,8 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
     public List<SysMenu> findByFuzzy(SysMenuFindByPageParam param) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
+                .select(SysMenuTlDBEntity::getMenuName)
+                .select(SysMenuTlDBEntity::getMenuDescription)
                 .innerJoin(SysMenuTlDBEntity.class,
                         fn -> fn.eq(SysMenuTlDBEntity::getMenuId, SysMenuBDBEntity::getMenuId)
                                 .eq(SysMenuTlDBEntity::getLanguage, param.getLanguage())
