@@ -27,3 +27,7 @@ spec:
       terminationGracePeriodSeconds: 120
       imagePullSecrets:
         - name: harbor-login-registry
+      hostAliases:
+        - ip: 10.216.244.161
+          hostnames:
+            - "aistart.cccar.com.cn"
