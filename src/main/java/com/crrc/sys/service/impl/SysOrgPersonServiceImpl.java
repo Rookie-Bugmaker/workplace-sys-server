@@ -2,15 +2,16 @@ package com.crrc.sys.service.impl;
 
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.enums.LanguageEnum;
+import com.crrc.sys.mapper.mapperImpl.SysOrgPersonMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.SysOrgPersonTlMapperImpl;
 import com.crrc.sys.service.SysOrgPersonService;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.org.person.SysOrgPersonTl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.crrc.sys.mapper.SysOrgPersonMapper;
-import com.crrc.sys.mapper.SysOrgPersonTlMapper;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -29,10 +30,10 @@ import java.util.stream.Collectors;
 @Service
 public class SysOrgPersonServiceImpl implements SysOrgPersonService {
 
-    @Resource
-    private SysOrgPersonMapper personMapper;
-    @Resource
-    private SysOrgPersonTlMapper personTlMapper;
+    @Autowired
+    private SysOrgPersonMapperImpl personMapper;
+    @Autowired
+    private SysOrgPersonTlMapperImpl personTlMapper;
 
     /**
      * 人员分页查询
