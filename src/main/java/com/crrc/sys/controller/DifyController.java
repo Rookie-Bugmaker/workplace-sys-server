@@ -88,7 +88,6 @@ public class DifyController {
             "/conversations/{conversation_id}/name",
             "/conversations/{conversation_id}/variables",
             "/conversations/{conversation_id}/variables/{variable_id}",
-            "/audio-to-text",
             "/text-to-audio",
             "/info",
             "/parameters",
@@ -161,8 +160,11 @@ public class DifyController {
      * @param user             用户标识，用于定义终端用户的身份，必须和发送消息接口传入 user 保持一致。
      * @param multipartRequest 附件
      */
-    @PostMapping("/files/upload")
-    public Mono<Object> update2(String user, MultipartHttpServletRequest multipartRequest) throws Exception {
+    @PostMapping({
+            "/files/upload",
+            "/audio-to-text"
+    })
+    public Mono<Object> update(HttpServletRequest request, String user, MultipartHttpServletRequest multipartRequest) throws Exception {
         HttpHeaders headers = multipartRequest.getRequestHeaders();
         String agentId = headers.getFirst(AGENT_ID_HEADER);
         if (ObjectUtils.isEmpty(agentId)) {
@@ -172,22 +174,7 @@ public class DifyController {
             throw new ParamValidateException("user不能为空");
         }
         //构建文件上传参数
-        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
-        Iterator<String> iterator = multipartRequest.getFileNames();
-        while (iterator.hasNext()) {
-            //循环取出每一个文件
-            MultipartFile multifile = multipartRequest.getFile(iterator.next());
-            if (ObjectUtils.isEmpty(multifile)) {
-                continue;
-            }
-            final byte[] byteArray = FileCopyUtils.copyToByteArray(multifile.getInputStream());
-            final String originalFilename = multifile.getOriginalFilename();
-            MediaType mediaType = ObjectUtils.isEmpty(multifile.getContentType()) ? MediaType.APPLICATION_OCTET_STREAM : MediaType.parseMediaType(multifile.getContentType());
-            // 添加文件部分
-            bodyBuilder.part("file", byteArray)
-                    .filename(ObjectUtils.isEmpty(originalFilename) ? multifile.getName() : originalFilename)
-                    .contentType(mediaType);
-        }
+        MultipartBodyBuilder bodyBuilder = getMultipartBodyBuilder(multipartRequest);
         final MultiValueMap<String, HttpEntity<?>> entityMultiValueMap = bodyBuilder.build();
         if (CollectionUtils.isEmpty(entityMultiValueMap)) {
             throw new ParamValidateException("文件必填");
@@ -200,8 +187,12 @@ public class DifyController {
         bodyBuilder.part("user", user);
         final MultiValueMap<String, HttpEntity<?>> paramMap = bodyBuilder.build();
         SysAgentPO agent = agentService.getById(agentId);
+        //请求地址
+        final String oldUri = request.getRequestURI();
+        //移除请求前缀
+        String newUri = oldUri.replace("/dify", "");
         return webClient.post()
-                .uri(agent.getBaseUrl() + "/files/upload")
+                .uri(agent.getBaseUrl() + newUri)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + agent.getApiKey())
                 .header("User-Agent", "FileUploadClient/1.0")
@@ -214,5 +205,26 @@ public class DifyController {
                 .bodyToMono(Object.class)
                 .doOnSuccess(resp -> System.out.println("文件上传成功: " + resp))
                 .doOnError(e -> System.err.println("文件上传失败: " + e.getMessage()));
+    }
+
+    private MultipartBodyBuilder getMultipartBodyBuilder(MultipartHttpServletRequest multipartRequest) throws Exception {
+        //构建文件上传参数
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+        Iterator<String> iterator = multipartRequest.getFileNames();
+        while (iterator.hasNext()) {
+            //循环取出每一个文件
+            MultipartFile file = multipartRequest.getFile(iterator.next());
+            if (ObjectUtils.isEmpty(file)) {
+                continue;
+            }
+            final byte[] byteArray = FileCopyUtils.copyToByteArray(file.getInputStream());
+            final String originalFilename = file.getOriginalFilename();
+            MediaType mediaType = ObjectUtils.isEmpty(file.getContentType()) ? MediaType.APPLICATION_OCTET_STREAM : MediaType.parseMediaType(file.getContentType());
+            // 添加文件部分
+            bodyBuilder.part("file", byteArray)
+                    .filename(ObjectUtils.isEmpty(originalFilename) ? file.getName() : originalFilename)
+                    .contentType(mediaType);
+        }
+        return bodyBuilder;
     }
 }

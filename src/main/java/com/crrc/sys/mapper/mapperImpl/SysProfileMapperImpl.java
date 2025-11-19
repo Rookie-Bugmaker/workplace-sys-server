@@ -39,7 +39,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
                 .selectAll(SysProfileBDBEntity.class)
                 .select(SysProfileTlDBEntity::getProfileName)
-                .leftJoin(SysProfileTlDBEntity.class,
+                .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
                                 .eq(SysProfileTlDBEntity::getLanguage, param.getLanguage())
                 );
@@ -93,7 +93,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
                 .selectAll(SysProfileBDBEntity.class)
                 .select(SysProfileTlDBEntity::getProfileName)
-                .leftJoin(SysProfileTlDBEntity.class,
+                .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
                                 .eq(SysProfileTlDBEntity::getLanguage, language)
                 )
@@ -171,7 +171,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
                 .selectAll(SysProfileBDBEntity.class)
                 .select(SysProfileTlDBEntity::getProfileName)
-                .leftJoin(SysProfileTlDBEntity.class,
+                .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
                                 .eq(SysProfileTlDBEntity::getLanguage, language)
                 )
@@ -185,7 +185,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
                 .selectAll(SysProfileBDBEntity.class)
                 .select(SysProfileTlDBEntity::getProfileName)
-                .leftJoin(SysProfileTlDBEntity.class,
+                .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
                                 .eq(SysProfileTlDBEntity::getLanguage, language)
                 )

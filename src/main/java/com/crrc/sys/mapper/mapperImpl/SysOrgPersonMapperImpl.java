@@ -37,7 +37,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class)
                 .selectAll(SysOrgPersonBDBEntity.class)
                 .select(SysOrgPersonTlDBEntity::getFullName)
-                .leftJoin(SysOrgPersonTlDBEntity.class,
+                .innerJoin(SysOrgPersonTlDBEntity.class,
                         fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
                                 .eq(SysOrgPersonTlDBEntity::getLanguage, param.getLanguage())
                 );
@@ -102,7 +102,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class)
                 .selectAll(SysOrgPersonBDBEntity.class)
                 .select(SysOrgPersonTlDBEntity::getFullName)
-                .leftJoin(SysOrgPersonTlDBEntity.class,
+                .innerJoin(SysOrgPersonTlDBEntity.class,
                         fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
                                 .eq(SysOrgPersonTlDBEntity::getLanguage, language)
                 )
@@ -140,7 +140,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class)
                 .selectAll(SysOrgPersonBDBEntity.class)
                 .select(SysOrgPersonTlDBEntity::getFullName)
-                .leftJoin(SysOrgPersonTlDBEntity.class,
+                .innerJoin(SysOrgPersonTlDBEntity.class,
                         fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
                                 .eq(SysOrgPersonTlDBEntity::getLanguage, language)
                 )
@@ -153,7 +153,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class)
                 .selectAll(SysOrgPersonBDBEntity.class)
                 .select(SysOrgPersonTlDBEntity::getFullName)
-                .leftJoin(SysOrgPersonTlDBEntity.class,
+                .innerJoin(SysOrgPersonTlDBEntity.class,
                         fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
                                 .eq(SysOrgPersonTlDBEntity::getLanguage, language)
                 )
