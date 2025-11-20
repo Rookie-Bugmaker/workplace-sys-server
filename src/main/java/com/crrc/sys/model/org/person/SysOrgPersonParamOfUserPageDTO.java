@@ -2,6 +2,9 @@ package com.crrc.sys.model.org.person;
 
 import lombok.Data;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 人员信息-查询用户用
  *
@@ -19,6 +22,10 @@ public class SysOrgPersonParamOfUserPageDTO {
      * 工号
      */
     private String jobNo;
+    /**
+     * 人员类型List
+     */
+    private List<Long> personTypeList = Arrays.asList(1L);
 
     private Integer pageNo = 1;
 
@@ -54,5 +61,13 @@ public class SysOrgPersonParamOfUserPageDTO {
 
     public void setPageSize(Integer pageSize) {
         this.pageSize = pageSize;
+    }
+
+    public List<Long> getPersonTypeList() {
+        return personTypeList;
+    }
+
+    public void setPersonTypeList(List<Long> personTypeList) {
+        this.personTypeList = personTypeList;
     }
 }
