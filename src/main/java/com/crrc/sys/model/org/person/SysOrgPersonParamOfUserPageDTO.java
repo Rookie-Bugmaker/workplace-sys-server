@@ -28,9 +28,9 @@ public class SysOrgPersonParamOfUserPageDTO {
      */
     private List<Long> personTypeList = new ArrayList<>();
 
-    private Integer pageNo = 1;
+    private Integer pageNo;
 
-    private Integer pageSize = 10;
+    private Integer pageSize;
 
     public String getFullName() {
         return fullName;
