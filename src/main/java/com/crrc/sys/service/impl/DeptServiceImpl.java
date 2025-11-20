@@ -177,7 +177,7 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
     @Override
     public List<Dept> findByDeptIds(List<Long> deptIdList) {
         if (CollectionUtils.isEmpty(deptIdList)) {
-            return null;
+            return new ArrayList<>();
         }
         LambdaQueryWrapper<Dept> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Dept::getDeleted, 0);
