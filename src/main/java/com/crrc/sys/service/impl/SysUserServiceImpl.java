@@ -482,6 +482,7 @@ public class SysUserServiceImpl implements SysUserService {
         if (!Objects.isNull(param.getPageNo()) && !Objects.isNull(param.getPageSize())) {
             personParam.setPage(param.getPageNo());
             personParam.setPageSize(param.getPageSize());
+            PageHelper.startPage(personParam.getPage(), personParam.getPageSize());
         }
         if (!Objects.isNull(param.getPersonTypeList()) && !param.getPersonTypeList().isEmpty()) {
             personParam.setPersonTypeList(param.getPersonTypeList());
