@@ -2,6 +2,7 @@ package com.crrc.sys.model.org.person;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class SysOrgPersonParamOfUserPageDTO {
     /**
      * 人员类型List
      */
-    private List<Long> personTypeList = Arrays.asList(1L);
+    private List<Long> personTypeList = new ArrayList<>();
 
     private Integer pageNo = 1;
 

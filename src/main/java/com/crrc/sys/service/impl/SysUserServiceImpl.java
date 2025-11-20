@@ -34,6 +34,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -474,6 +475,9 @@ public class SysUserServiceImpl implements SysUserService {
         // 查询人员
         SysOrgPersonFindByPageParam personParam = new SysOrgPersonFindByPageParam();
         personParam.setLanguage("zh-CN");
+        if (!Objects.isNull(param.getPersonTypeList()) && !param.getPersonTypeList().isEmpty()) {
+            personParam.setPersonTypeList(param.getPersonTypeList());
+        }
         if (StringUtils.isNotBlank(param.getJobNo())) {
             personParam.setJobNo(param.getJobNo());
         }
