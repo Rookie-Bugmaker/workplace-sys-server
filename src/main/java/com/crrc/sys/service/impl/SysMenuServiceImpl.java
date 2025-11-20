@@ -46,8 +46,8 @@ public class SysMenuServiceImpl implements SysMenuService {
     private SysRoleMenuMapperImpl roleMenuMapper;
     @Autowired
     private SysFunctionMapperImpl functionMapper;
-    @Resource
-    private SysRoleMapper roleMapper;
+    @Autowired
+    private SysRoleMapperImpl roleMapper;
     @Autowired
     private SysFunctionApiMapperImpl functionApiMapper;
     @Resource

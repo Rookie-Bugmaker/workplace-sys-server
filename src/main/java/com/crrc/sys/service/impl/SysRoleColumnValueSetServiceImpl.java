@@ -1,8 +1,9 @@
 package com.crrc.sys.service.impl;
 
 import com.crrc.sys.entity.role.SysRoleColumnValueSet;
-import com.crrc.sys.mapper.SysRoleColumnValueSetMapper;
+import com.crrc.sys.mapper.mapperImpl.SysRoleColumnValueSetMapperImpl;
 import com.crrc.sys.service.SysRoleColumnValueSetService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -15,8 +16,8 @@ import java.util.List;
 @Service
 public class SysRoleColumnValueSetServiceImpl implements SysRoleColumnValueSetService {
 
-	@Resource
-	private SysRoleColumnValueSetMapper roleColumnValueSetMapper;
+	@Autowired
+	private SysRoleColumnValueSetMapperImpl roleColumnValueSetMapper;
 
 	/**
 	 * 根据角色ID和块编码查询值集信息

@@ -1,0 +1,245 @@
+### 系统角色测试接口
+
+### 4. 模糊查询角色列表
+POST {{prefix}}/test/sysRole/findByFuzzy
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+{
+  "language": "zh-CN",
+  "menuId": "1087349913625261"
+}
+
+### 5. 批量添加角色多语言数据
+POST {{prefix}}/test/sysRole/addTl
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[
+  {
+    "createBy": 1001,
+    "createDate": "2025-03-22 10:15:00",
+    "lastUpdateBy": 1001,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 1001,
+    "roleId": 9001,
+    "roleName": "[测试]管理员角色",
+    "roleDescription": "[测试数据]系统管理员权限角色",
+    "language": "zh-CN"
+  },
+  {
+    "createBy": 1002,
+    "createDate": "2025-03-21 09:00:00",
+    "lastUpdateBy": 1002,
+    "lastUpdateDate": "2025-03-22 14:20:00",
+    "lastUpdateLogin": 1002,
+    "roleId": 9002,
+    "roleName": "[TEST]Operator Role",
+    "roleDescription": "[Test Data]Operation staff role",
+    "language": "en-US"
+  },
+  {
+    "createBy": 1003,
+    "createDate": "2025-03-20 13:45:00",
+    "lastUpdateBy": 1003,
+    "lastUpdateDate": "2025-03-22 16:10:00",
+    "lastUpdateLogin": 1003,
+    "roleId": 9003,
+    "roleName": "[测试]质检角色",
+    "roleDescription": "[测试数据]质量检查专用角色",
+    "language": "zh-CN"
+  }
+]
+
+### 6. 添加角色基础数据
+POST {{prefix}}/test/sysRole/addB
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+{
+  "roleId": 9001,
+  "roleCode": "TEST_ROLE_001",
+  "enableFlag": "Y",
+  "roleName": "测试角色-质量管理",
+  "roleDescription": "用于质量模块测试的临时角色",
+  "menuId": 5001,
+  "language": "zh-CN",
+  "roleMenuList": [
+    {
+      "menuId": 5001,
+      "menuName": "测试菜单1"
+    },
+    {
+      "menuId": 5002,
+      "menuName": "测试菜单2"
+    }
+  ],
+  "checkedMenuIds": [5001, 5002],
+  "halfCheckedMenuIds": [5003],
+  "roleColumnValueSets": [
+    {
+      "columnId": "TEST_COL_001",
+      "valueSet": ["测试值1", "测试值2"]
+    }
+  ],
+  "checkedFunctionColumns": [
+    {
+      "columnId": "TEST_FUNC_001",
+      "columnName": "测试功能列"
+    }
+  ],
+  "dataAuthList": [
+    {
+      "authType": "TEST_AUTH",
+      "authScope": "测试数据范围"
+    }
+  ],
+  "projectId": 2001,
+  "projectCode": "TEST_PROJ_001",
+  "projectName": "测试项目-转向架研发",
+  "roleCompanyDeptList": [
+    {
+      "companyId": 3001,
+      "companyName": "测试公司A",
+      "deptId": 4001,
+      "deptName": "测试部门-工艺科"
+    }
+  ],
+  "createBy": 9001,
+  "createDate": "2025-03-22 10:15:00",
+  "lastUpdateBy": 9001,
+  "lastUpdateDate": "2025-03-22 15:30:00",
+  "lastUpdateLogin": 123456
+}
+
+### 7. 更新角色多语言数据
+PUT {{prefix}}/test/sysRole/updateTl
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+{
+  "createBy": 1001,
+  "createDate": "2025-03-22 10:15:00",
+  "lastUpdateBy": 1001,
+  "lastUpdateDate": "2025-11-22 15:30:00",
+  "lastUpdateLogin": 1001,
+  "roleId": 9001,
+  "roleName": "[测试]管理员角色1",
+  "roleDescription": "[测试数据]系统管理员权限角色1",
+  "language": "zh-CN"
+}
+
+### 8. 更新角色基础数据
+PUT {{prefix}}/test/sysRole/updateB
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+{
+  "roleId": 9001,
+  "roleCode": "TEST_ROLE_002",
+  "enableFlag": "N",
+  "roleName": "测试角色-质量管理",
+  "roleDescription": "用于质量模块测试的临时角色",
+  "menuId": 5002,
+  "language": "zh-CN",
+  "roleMenuList": [
+    {
+      "menuId": 5001,
+      "menuName": "测试菜单1"
+    },
+    {
+      "menuId": 5002,
+      "menuName": "测试菜单2"
+    }
+  ],
+  "checkedMenuIds": [5001, 5002],
+  "halfCheckedMenuIds": [5003],
+  "roleColumnValueSets": [
+    {
+      "columnId": "TEST_COL_001",
+      "valueSet": ["测试值1", "测试值2"]
+    }
+  ],
+  "checkedFunctionColumns": [
+    {
+      "columnId": "TEST_FUNC_001",
+      "columnName": "测试功能列"
+    }
+  ],
+  "dataAuthList": [
+    {
+      "authType": "TEST_AUTH",
+      "authScope": "测试数据范围"
+    }
+  ],
+  "projectId": 2002,
+  "projectCode": "TEST_PROJ_001",
+  "projectName": "测试项目-转向架研发",
+  "roleCompanyDeptList": [
+    {
+      "companyId": 3001,
+      "companyName": "测试公司A",
+      "deptId": 4001,
+      "deptName": "测试部门-工艺科"
+    }
+  ],
+  "createBy": 9001,
+  "createDate": "2025-03-22 10:15:00",
+  "lastUpdateBy": 9001,
+  "lastUpdateDate": "2025-11-22 15:30:00",
+  "lastUpdateLogin": 123456
+}
+
+### 9. 批量删除角色多语言数据
+DELETE {{prefix}}/test/sysRole/deleteTl
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[9001, 9002, 9003]
+
+### 10. 批量删除角色基础数据
+DELETE {{prefix}}/test/sysRole/deleteB
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[9001, 9002, 9003]
+
+### 11. 根据ID和语言查询角色详情
+GET {{prefix}}/test/sysRole/findById?roleId=14362174457851904&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 12. 根据角色编码和语言查询角色
+GET {{prefix}}/test/sysRole/findByCode?roleCode=Administrators&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 13. 根据用户ID和语言查询角色列表
+GET {{prefix}}/test/sysRole/findByUserId?userId=409380955388772352&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 14. 根据角色名称和语言查询角色
+GET {{prefix}}/test/sysRole/findByName?roleName=系统管理员&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 15. 根据角色编码列表和语言批量查询角色
+POST {{prefix}}/test/sysRole/findByCodes?language=zh-CN
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+["Administrators", "SYS_DEVELOPER"]
+
+### 16. 查询所有角色ID列表
+GET {{prefix}}/test/sysRole/findRoleIdList
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

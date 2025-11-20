@@ -2,6 +2,10 @@ package com.crrc.sys.model.org.person;
 
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 人员信息-查询用户用
  *
@@ -19,10 +23,14 @@ public class SysOrgPersonParamOfUserPageDTO {
      * 工号
      */
     private String jobNo;
+    /**
+     * 人员类型List
+     */
+    private List<Long> personTypeList = new ArrayList<>();
 
-    private Integer pageNo = 1;
+    private Integer pageNo;
 
-    private Integer pageSize = 10;
+    private Integer pageSize;
 
     public String getFullName() {
         return fullName;
@@ -54,5 +62,13 @@ public class SysOrgPersonParamOfUserPageDTO {
 
     public void setPageSize(Integer pageSize) {
         this.pageSize = pageSize;
+    }
+
+    public List<Long> getPersonTypeList() {
+        return personTypeList;
+    }
+
+    public void setPersonTypeList(List<Long> personTypeList) {
+        this.personTypeList = personTypeList;
     }
 }

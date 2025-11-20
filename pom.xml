@@ -57,7 +57,7 @@
         <tomcat.version>9.0.93</tomcat.version>
         <!--Mybatis-plus-->
         <mybatisplus.version>3.5.5</mybatisplus.version>
-        <mybatis-plus-join.version>1.4.6</mybatis-plus-join.version>
+        <mybatis-plus-join.version>1.5.4</mybatis-plus-join.version>
         <mybatis-typehandlers.version>1.0.2</mybatis-typehandlers.version>
         <!-- 与Agent版本一致 -->
         <skywalking.version>8.9.0</skywalking.version>
