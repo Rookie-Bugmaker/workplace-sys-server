@@ -46,12 +46,12 @@ public class SysRoleServiceImpl implements SysRoleService {
     private AuthClient authClient;
     @Resource
     private IdKeyGenerator idKeyGenerator;
-    @Resource
-    private SysRoleMapper roleMapper;
+    @Autowired
+    private SysRoleMapperImpl roleMapper;
     @Autowired
     private SysRoleMenuMapperImpl roleMenuMapper;
-    @Resource
-    private SysRoleColumnValueSetMapper roleColumnValueSetMapper;
+    @Autowired
+    private SysRoleColumnValueSetMapperImpl roleColumnValueSetMapper;
     @Autowired
     private SysMenuMapperImpl menuMapper;
     @Autowired
@@ -64,8 +64,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     private ProjectService projectService;
     @Resource
     private SysRoleCompanyDeptService roleCompanyDeptService;
-    @Resource
-    private SysUserRoleMapper userRoleMapper;
+    @Autowired
+    private SysUserRoleMapperImpl userRoleMapper;
     @Resource
     private SysOnlineUserController onlineUserController;
     @Resource

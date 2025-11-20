@@ -1,0 +1,291 @@
+### 1. 根据用户名查询用户
+GET {{prefix}}/test/user/findByUserName?userName=013200030931
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 2. 模糊查询用户列表
+POST {{prefix}}/test/user/findByFuzzy
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "roleId": "14362174457851904",
+  "disableState": "N",
+  "userName": "309",
+  "userDescription": "李",
+  "montage": "and"
+}
+
+### 3. 新增用户
+POST {{prefix}}/test/user/insert
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "userId": 10001,
+  "userName": "TEST_张三",
+  "userDescription": "测试用户-质量部",
+  "password": "TEST_123@abc",
+  "passwordUpdateDate": "2025-03-20 09:15:00",
+  "passwordExpireDate": "2025-06-20 09:15:00",
+  "userType": "EMPLOYEE",
+  "userRelationId": 5001,
+  "loginErrorCount": 0,
+  "lastLoginInfoId": 8001,
+  "disableDeadlineDate": null,
+  "disableState": "N",
+  "nextLoginUpdatePassword": "N",
+  "roleList": [],
+  "roleIdList": [1, 3],
+  "dataAuthList": [],
+  "userRoleList": [],
+  "currentRoleId": 1,
+  "roleIds": [1, 3],
+  "currentCompanyId": 10,
+  "currentDeptId": 101,
+  "createBy": 9999,
+  "createDate": "2025-03-10 10:00:00",
+  "lastUpdateBy": 9999,
+  "lastUpdateDate": "2025-03-22 14:30:00",
+  "lastUpdateLogin": 8001
+}
+
+### 4. 更新用户信息
+PUT {{prefix}}/test/user/update
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "userId": 10001,
+  "userName": "TEST_张三1",
+  "userDescription": "测试用户-质量部1",
+  "password": "TEST_123@abc1",
+  "passwordUpdateDate": "2025-11-20 09:15:00",
+  "passwordExpireDate": "2025-11-20 09:15:00",
+  "userType": "EMPLOYEE1",
+  "userRelationId": 50011,
+  "loginErrorCount": 1,
+  "lastLoginInfoId": 8001,
+  "disableDeadlineDate": null,
+  "disableState": "Y",
+  "nextLoginUpdatePassword": "Y",
+  "roleList": [],
+  "roleIdList": [1, 3],
+  "dataAuthList": [],
+  "userRoleList": [],
+  "currentRoleId": 1,
+  "roleIds": [1, 3],
+  "currentCompanyId": 10,
+  "currentDeptId": 101,
+  "createBy": 9999,
+  "createDate": "2025-11-10 10:00:00",
+  "lastUpdateBy": 9999,
+  "lastUpdateDate": "2025-11-22 14:30:00",
+  "lastUpdateLogin": 8001
+}
+
+### 5. 批量删除用户
+DELETE {{prefix}}/test/user/delete
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[10001, 10002, 10003]
+
+### 6. 根据用户ID查询用户
+GET {{prefix}}/test/user/findById?userId=409380955388772352
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 7. 更新最后登录信息ID
+PUT {{prefix}}/test/user/updateLastLoginInfoId?loginId=100&userId=10001
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 8. 更新登录错误信息
+PUT {{prefix}}/test/user/updateLoginError
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "userId": 10001,
+  "loginErrorCount": 1,
+  "disableDeadlineDate": "2099-11-10 10:00:00",
+  "disableState": 3
+}
+
+### 9. 根据用户ID列表查询用户
+POST {{prefix}}/test/user/findByUserIds
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[175612503001595904, 338624234922426682]
+
+### 10. 根据用户ID列表查询用户(带全名)
+POST {{prefix}}/test/user/findByUserIdListWithFullName
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[175612503001595904, 338624234922426682]
+
+### 11. 更新用户密码
+PUT {{prefix}}/test/user/updatePassword
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "userId": 10001,
+  "password": "newPassword123",
+  "passwordUpdateDate": "2025-11-20 09:15:00",
+  "passwordExpireDate": "2025-11-20 09:15:00",
+  "nextLoginUpdatePassword": "Y"
+}
+
+### 12. 根据关联ID列表查询用户
+POST {{prefix}}/test/user/findByRelationIds
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[411974273865023585, 411974273852444406]
+
+### 13. 根据用户名列表查询用户
+POST {{prefix}}/test/user/findByUserNameList
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+["013200030931", "013200030804"]
+
+### 14. 根据角色编码查询用户
+POST {{prefix}}/test/user/findUsersByRoleCode
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+["Administrators", "SYS_DEVELOPER"]
+
+### 15. 根据组织编码查询用户
+GET {{prefix}}/test/user/findUsersByOrgCode?orgCode=01320103&companyId=438
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 16. 根据角色编码和公司ID查询用户
+GET {{prefix}}/test/user/findUserByRoleCodeAndCompanyId?roleCode=Administrators&companyId=438
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 17. 根据角色编码、公司ID和部门ID查询用户
+GET {{prefix}}/test/user/findUserByRoleCode?roleCode=Administrators&companyId=438&deptId=2328
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 18. 根据全名查询用户
+GET {{prefix}}/test/user/findUsersByfullName?fullName=李江涛&companyId=438
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 19. 批量插入用户
+POST {{prefix}}/test/user/insertAll
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "userId": 10002,
+    "userName": "TEST_李四",
+    "userDescription": "测试用户-供应商",
+    "password": "TEST_456@def",
+    "passwordUpdateDate": "2025-03-15 13:45:00",
+    "passwordExpireDate": "2025-09-15 13:45:00",
+    "userType": "SUPPLIER",
+    "userRelationId": 6002,
+    "loginErrorCount": 2,
+    "lastLoginInfoId": 8002,
+    "disableDeadlineDate": null,
+    "disableState": "N",
+    "nextLoginUpdatePassword": "Y",
+    "roleList": [],
+    "roleIdList": [5],
+    "dataAuthList": [],
+    "userRoleList": [],
+    "currentRoleId": 5,
+    "roleIds": [5],
+    "currentCompanyId": 20,
+    "currentDeptId": 205,
+    "createBy": 9999,
+    "createDate": "2025-03-12 11:20:00",
+    "lastUpdateBy": 9999,
+    "lastUpdateDate": "2025-03-21 16:45:00",
+    "lastUpdateLogin": 8002
+  },
+  {
+    "userId": 10003,
+    "userName": "TEST_王五",
+    "userDescription": "测试用户-客户代表",
+    "password": "TEST_789@ghi",
+    "passwordUpdateDate": "2025-03-18 16:30:00",
+    "passwordExpireDate": "2025-12-18 16:30:00",
+    "userType": "CUSTOMER",
+    "userRelationId": 7003,
+    "loginErrorCount": 1,
+    "lastLoginInfoId": 8003,
+    "disableDeadlineDate": "2025-04-18 16:30:00",
+    "disableState": "Y",
+    "nextLoginUpdatePassword": "N",
+    "roleList": [],
+    "roleIdList": [7, 8],
+    "dataAuthList": [],
+    "userRoleList": [],
+    "currentRoleId": 7,
+    "roleIds": [7, 8],
+    "currentCompanyId": 30,
+    "currentDeptId": 302,
+    "createBy": 9999,
+    "createDate": "2025-03-15 14:10:00",
+    "lastUpdateBy": 9999,
+    "lastUpdateDate": "2025-03-22 09:15:00",
+    "lastUpdateLogin": 8003
+  }
+]
+
+### 20. 根据用户ID列表和模糊条件查询用户
+POST {{prefix}}/test/user/findByUserIdsAndFuzzy?userName=0132&fullName=李
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[]
+
+### 21. 根据用户名列表和模糊条件查询在线用户
+POST {{prefix}}/test/user/findByUserNamesAndFuzzy
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "userNameList": ["013200030931", "013200030804","013200031286"],
+  "search": {
+    "userName": "013200030",
+    "fullName": "李"
+  }
+}
+
+### 其它
+POST {{prefix}}/user/get_user_page_with_person_inform
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "pageNo": 2,
+  "pageSize": 20
+}

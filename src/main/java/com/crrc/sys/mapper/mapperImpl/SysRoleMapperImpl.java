@@ -1,0 +1,220 @@
+package com.crrc.sys.mapper.mapperImpl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.entity.role.*;
+import com.crrc.sys.entity.user.SysUserRoleDBEntity;
+import com.crrc.sys.mapper.SysRoleMapper;
+import com.crrc.sys.mapper.mapperService.SysRoleBMapperService;
+import com.crrc.sys.mapper.mapperService.SysRoleTlMapperService;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import org.springframework.stereotype.Repository;
+
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 系统角色多语言表-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ *
+ * @author 李江涛
+ * @date 2025-11-20
+ */
+@Repository
+public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRoleTlDBEntity> implements SysRoleMapper {
+
+    @Resource
+    private SysRoleTlMapperService sysRoleTlMapperService;
+
+    @Resource
+    private SysRoleBMapperService sysRoleBMapperService;
+
+    @Override
+    public List<SysRole> findByFuzzy(SysRoleFindByPageParam param) {
+        MPJLambdaWrapper<SysRoleBDBEntity> wrapper = JoinWrappers.lambda(SysRoleBDBEntity.class)
+                .selectAll(SysRoleBDBEntity.class)
+                .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
+                .innerJoin(SysRoleTlDBEntity.class, SysRoleTlDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                .eq(SysRoleTlDBEntity::getLanguage, param.getLanguage());
+
+        if (param.getMenuId() != null) {
+            wrapper.innerJoin(
+                    SysRoleMenuDBEntity.class,
+                    fn -> {
+                        fn.setAlias("rm")
+                                .select(SysRoleMenuDBEntity::getRoleId)
+                                .eq(SysRoleMenuDBEntity::getMenuId, param.getMenuId())
+                                .groupBy(SysRoleMenuDBEntity::getMenuId);
+                    },
+                    SysRoleMenuDBEntity::getRoleId, SysRoleBDBEntity::getRoleId
+            );
+        }
+
+        if (param.getEnableFlag() != null && !param.getEnableFlag().isEmpty()) {
+            wrapper.eq(SysRoleBDBEntity::getEnableFlag, param.getEnableFlag());
+        }
+
+        if (param.getRoleCode() != null && !param.getRoleCode().isEmpty()) {
+            wrapper.like(SysRoleBDBEntity::getRoleCode, param.getRoleCode());
+        }
+
+        if (param.getRoleName() != null && !param.getRoleName().isEmpty()) {
+            wrapper.like(SysRoleTlDBEntity::getRoleName, param.getRoleName());
+        }
+
+        if (param.getRoleDescription() != null && !param.getRoleDescription().isEmpty()) {
+            wrapper.like(SysRoleTlDBEntity::getRoleDescription, param.getRoleDescription());
+        }
+
+        if (param.getProjectId() != null) {
+            wrapper.eq(SysRoleBDBEntity::getProjectId, param.getProjectId());
+        }
+
+        wrapper.orderByAsc(SysRoleTlDBEntity::getRoleName);
+
+        return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
+    }
+
+    @Override
+    public int addTl(List<SysRoleTl> roleTlList) {
+        List<SysRoleTlDBEntity> entities = convertToDB(roleTlList);
+        return super.saveBatch(entities) ? entities.size() : 0;
+    }
+
+    @Override
+    public int addB(SysRole role) {
+        SysRoleBDBEntity entity = convertToDB(role);
+        return sysRoleBMapperService.insert(entity);
+    }
+
+    @Override
+    public int updateTl(SysRole role) {
+        LambdaUpdateWrapper<SysRoleTlDBEntity> wrapper = new LambdaUpdateWrapper<SysRoleTlDBEntity>()
+                .eq(SysRoleTlDBEntity::getRoleId, role.getRoleId())
+                .eq(SysRoleTlDBEntity::getLanguage, role.getLanguage())
+                .set(SysRoleTlDBEntity::getRoleName, role.getRoleName())
+                .set(SysRoleTlDBEntity::getRoleDescription, role.getRoleDescription())
+                .set(SysRoleTlDBEntity::getLastUpdateBy, role.getLastUpdateBy())
+                .set(SysRoleTlDBEntity::getLastUpdateDate, role.getLastUpdateDate())
+                .set(SysRoleTlDBEntity::getLastUpdateLogin, role.getLastUpdateLogin());
+
+        return sysRoleTlMapperService.update(wrapper);
+    }
+
+    @Override
+    public int updateB(SysRole role) {
+        LambdaUpdateWrapper<SysRoleBDBEntity> wrapper = new LambdaUpdateWrapper<SysRoleBDBEntity>()
+                .eq(SysRoleBDBEntity::getRoleId, role.getRoleId())
+                .set(SysRoleBDBEntity::getRoleCode, role.getRoleCode())
+                .set(SysRoleBDBEntity::getMenuId, role.getMenuId())
+                .set(SysRoleBDBEntity::getEnableFlag, role.getEnableFlag())
+                .set(SysRoleBDBEntity::getProjectId, role.getProjectId())
+                .set(SysRoleBDBEntity::getLastUpdateBy, role.getLastUpdateBy())
+                .set(SysRoleBDBEntity::getLastUpdateDate, role.getLastUpdateDate())
+                .set(SysRoleBDBEntity::getLastUpdateLogin, role.getLastUpdateLogin());
+
+        return sysRoleBMapperService.update(wrapper);
+    }
+
+    @Override
+    public int deleteTl(List<Long> ids) {
+        LambdaQueryWrapper<SysRoleTlDBEntity> wrapper = new LambdaQueryWrapper<SysRoleTlDBEntity>()
+                .in(SysRoleTlDBEntity::getRoleId, ids);
+
+        return sysRoleTlMapperService.delete(wrapper);
+    }
+
+    @Override
+    public int deleteB(List<Long> ids) {
+        LambdaQueryWrapper<SysRoleBDBEntity> wrapper = new LambdaQueryWrapper<SysRoleBDBEntity>()
+                .in(SysRoleBDBEntity::getRoleId, ids);
+
+        return sysRoleBMapperService.delete(wrapper);
+    }
+
+    @Override
+    public SysRole findById(long roleId, String language) {
+        MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
+                .selectAll(SysRoleBDBEntity.class)
+                .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
+                .innerJoin(SysRoleTlDBEntity.class, SysRoleTlDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                .eq(SysRoleBDBEntity::getRoleId, roleId)
+                .eq(SysRoleTlDBEntity::getLanguage, language);
+
+        return sysRoleBMapperService.selectJoinOne(SysRole.class, wrapper);
+    }
+
+    @Override
+    public SysRole findByCode(String roleCode, String language) {
+        MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
+                .selectAll(SysRoleBDBEntity.class)
+                .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
+                .innerJoin(SysRoleTlDBEntity.class, SysRoleTlDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                .eq(SysRoleBDBEntity::getRoleCode, roleCode)
+                .eq(SysRoleTlDBEntity::getLanguage, language);
+
+        return sysRoleBMapperService.selectJoinOne(SysRole.class, wrapper);
+    }
+
+    @Override
+    public List<SysRole> findByUserId(long userId, String language) {
+        MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
+                .selectAll(SysRoleBDBEntity.class)
+                .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
+                .innerJoin(SysRoleTlDBEntity.class,
+                        fn -> fn.eq(SysRoleTlDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                                .eq(SysRoleTlDBEntity::getLanguage, language)
+                )
+                .innerJoin(SysUserRoleDBEntity.class, SysUserRoleDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                .eq(SysUserRoleDBEntity::getUserId, userId);
+
+        return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
+    }
+
+    @Override
+    public SysRole findByName(String roleName, String language) {
+        MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
+                .selectAll(SysRoleBDBEntity.class)
+                .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
+                .innerJoin(SysRoleTlDBEntity.class, SysRoleTlDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                .eq(SysRoleTlDBEntity::getRoleName, roleName)
+                .eq(SysRoleTlDBEntity::getLanguage, language);
+
+        return sysRoleBMapperService.selectJoinOne(SysRole.class, wrapper);
+    }
+
+    @Override
+    public List<SysRole> findByCodes(List<String> roleCodeList, String language) {
+        MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
+                .selectAll(SysRoleBDBEntity.class)
+                .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
+                .innerJoin(SysRoleTlDBEntity.class, SysRoleTlDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                .in(SysRoleBDBEntity::getRoleCode, roleCodeList)
+                .eq(SysRoleTlDBEntity::getLanguage, language);
+
+        return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
+    }
+
+    @Override
+    public List<Long> findRoleIdList() {
+        LambdaQueryWrapper<SysRoleBDBEntity> wrapper = new LambdaQueryWrapper<SysRoleBDBEntity>()
+                .select(SysRoleBDBEntity::getRoleId)
+                .orderByAsc(SysRoleBDBEntity::getRoleId);
+
+        return sysRoleBMapperService.selectList(wrapper)
+                .stream()
+                .map(SysRoleBDBEntity::getRoleId)
+                .collect(Collectors.toList());
+    }
+
+    private List<SysRoleTlDBEntity> convertToDB(List<SysRoleTl> dataList) {
+        return BeanUtils.toBean(dataList, SysRoleTlDBEntity.class);
+    }
+
+    private SysRoleBDBEntity convertToDB(SysRole data) {
+        return BeanUtils.toBean(data, SysRoleBDBEntity.class);
+    }
+}

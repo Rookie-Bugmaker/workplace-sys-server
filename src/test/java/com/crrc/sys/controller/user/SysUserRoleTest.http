@@ -1,0 +1,95 @@
+### 用户角色关联测试接口
+### 环境变量说明：
+# prefix = http://localhost:11500/sys
+# projectCode = crrc_platform
+# authToken = bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+### ----------------------------
+### 1. 根据用户ID和语言查询角色列表
+GET {{prefix}}/test/userRole/findByUserId?userId=416956742544556032&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 2. 批量插入用户角色关联
+POST {{prefix}}/test/userRole/insert
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[
+  {
+    "id": 999001,
+    "userId": 888001,
+    "roleId": 777001,
+    "createBy": 10001,
+    "createDate": "2025-03-22 09:15:00",
+    "lastUpdateBy": 10001,
+    "lastUpdateDate": "2025-03-22 15:30:00",
+    "lastUpdateLogin": 10001,
+    "remark": "测试数据-用户角色关联1"
+  },
+  {
+    "id": 999002,
+    "userId": 888002,
+    "roleId": 777002,
+    "createBy": 10002,
+    "createDate": "2025-03-21 14:20:00",
+    "lastUpdateBy": 10002,
+    "lastUpdateDate": "2025-03-22 10:45:00",
+    "lastUpdateLogin": 10002,
+    "remark": "测试数据-用户角色关联2"
+  },
+  {
+    "id": 999003,
+    "userId": 888003,
+    "roleId": 777003,
+    "createBy": 10003,
+    "createDate": "2025-03-20 11:10:00",
+    "lastUpdateBy": 10003,
+    "lastUpdateDate": "2025-03-22 16:00:00",
+    "lastUpdateLogin": 10003,
+    "remark": "测试数据-用户角色关联3"
+  }
+]
+
+### 3. 根据用户ID删除关联
+DELETE {{prefix}}/test/userRole/deleteByUserId?userId=888003
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 4. 根据用户ID查询角色ID列表
+GET {{prefix}}/test/userRole/findRoleIdByUserId?userId=416956742544556032
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 5. 根据角色ID查询用户ID列表
+GET {{prefix}}/test/userRole/findUserIdByRoleId?roleId=416956360053391360
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+### 6. 根据用户ID或用户名查询用户角色关联
+POST {{prefix}}/test/userRole/findUserRoleByUserIdOrUserName
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "userIds": [409380955388772352, 417276496215973888],
+  "userNames": ["013200030931", "user2"]
+}
+
+### 7. 根据角色ID列表删除关联
+DELETE {{prefix}}/test/userRole/deleteByRoleIds
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[777001, 777002, 777003]
+
+### 8. 根据用户ID列表查询用户角色关联
+POST {{prefix}}/test/userRole/findByUserIds
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+[409380955388772352, 417276496215973888]

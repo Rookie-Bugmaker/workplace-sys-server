@@ -1,0 +1,62 @@
+### 角色列权限值集测试接口
+
+### 1. 批量插入角色列权限值集
+POST {{prefix}}/test/roleColumnValueSet/insert
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[
+  {
+    "roleId": 999001,
+    "blockId": 888001,
+    "fcId": 777001,
+    "vsId": 666001,
+    "fcCode": "TEST_FC_001",
+    "vsCode": "TEST_VS_001",
+    "createBy": 10001,
+    "createDate": "2025-03-22 15:30:00",
+    "lastUpdateBy": 10001,
+    "lastUpdateDate": "2025-03-23 09:15:22",
+    "lastUpdateLogin": 123456
+  },
+  {
+    "roleId": 999002,
+    "blockId": 888002,
+    "fcId": 777002,
+    "vsId": 666002,
+    "fcCode": "TEST_FC_002",
+    "vsCode": "TEST_VS_002",
+    "createBy": 10002,
+    "createDate": "2025-03-21 14:20:10",
+    "lastUpdateBy": 10002,
+    "lastUpdateDate": "2025-03-23 10:05:33",
+    "lastUpdateLogin": 654321
+  },
+  {
+    "roleId": 999003,
+    "blockId": 888003,
+    "fcId": 777003,
+    "vsId": 666003,
+    "fcCode": "TEST_FC_003",
+    "vsCode": "TEST_VS_003",
+    "createBy": 10003,
+    "createDate": "2025-03-20 11:45:05",
+    "lastUpdateBy": 10003,
+    "lastUpdateDate": "2025-03-23 11:30:18",
+    "lastUpdateLogin": 987654
+  }
+]
+
+### 2. 根据角色ID批量删除
+DELETE {{prefix}}/test/roleColumnValueSet/deleteByRoleIds
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+
+[999001, 999002, 999003]
+
+### 3. 查询角色列权限值集
+GET {{prefix}}/test/roleColumnValueSet/findByRoleId/35776441455116288
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

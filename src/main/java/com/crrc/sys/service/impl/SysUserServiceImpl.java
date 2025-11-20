@@ -7,16 +7,18 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
+import com.crrc.sys.entity.org.person.SysOrgPersonBDBEntity;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
+import com.crrc.sys.entity.org.person.SysOrgPersonTlDBEntity;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.entity.user.SysUserDBEntity;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.mapper.*;
-import com.crrc.sys.mapper.mapperImpl.SysDataAuthMapperImpl;
-import com.crrc.sys.mapper.mapperImpl.SysDataAuthValueMapperImpl;
-import com.crrc.sys.mapper.mapperImpl.SysOrgPersonMapperImpl;
+import com.crrc.sys.mapper.mapperImpl.*;
+import com.crrc.sys.mapper.mapperService.SysUserMapperService;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
 import com.crrc.sys.model.user.SysOnlineUserVO;
@@ -25,6 +27,8 @@ import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.SysUserService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,10 +56,10 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Resource
     private IdKeyGenerator idKeyGenerator;
-    @Resource
-    private SysUserMapper userMapper;
-    @Resource
-    private SysUserRoleMapper userRoleMapper;
+    @Autowired
+    private SysUserMapperImpl userMapper;
+    @Autowired
+    private SysUserRoleMapperImpl userRoleMapper;
     @Autowired
     private SysDataAuthMapperImpl dataAuthMapper;
     @Autowired
@@ -495,12 +499,9 @@ public class SysUserServiceImpl implements SysUserService {
         if (!ObjectUtils.isEmpty(personParam.getJobNo()) && !ObjectUtils.isEmpty(personParam.getFullName()) && ObjectUtils.isEmpty(personParam.getMontage())) {
             personParam.setMontage("and");
         }
-        List<Long> personIdList = personMapper.findByFuzzy(personParam).stream().map(SysOrgPerson::getPersonId).collect(Collectors.toList());
         // 通过人员id关联查询用户
-        List<SysUser> rows = new ArrayList<>();
-        if (personIdList != null && personIdList.size() > 0) {
-            rows = userMapper.findByRelationIds(personIdList);
-        }
+        PageHelper.startPage(param.getPageNo(), param.getPageSize());
+        List<SysUser> rows = userMapper.findByPersonParam(personParam);
         PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
         return PaginationGrid.success(pageInfo);
     }
