@@ -5,6 +5,7 @@ import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
+import com.crrc.sys.mapper.SysUserMapper;
 import com.crrc.sys.mapper.mapperImpl.SysUserMapperImpl;
 import com.crrc.sys.mapper.mapperImpl.SysUserRoleMapperImpl;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
@@ -17,6 +18,7 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @RestController
@@ -26,6 +28,7 @@ public class SysUserTestController {
 
     @Autowired
     private SysUserMapperImpl sysUserMapper;
+
 
     @Operation(summary = "根据用户名查询用户")
     @GetMapping("/findByUserName")
@@ -37,6 +40,12 @@ public class SysUserTestController {
     @PostMapping("/findByFuzzy")
     public List<SysUser> findByFuzzy(@RequestBody SysUserFindByPageParam param) {
         return sysUserMapper.findByFuzzy(param);
+    }
+
+    @Operation(summary = "模糊查询用户列表（带部门）")
+    @PostMapping("/findByFuzzyAndDept")
+    public List<SysUser> findByFuzzy(@RequestBody RequestParamForUserFuzzy param) {
+        return sysUserMapper.findByFuzzyAndDept(param.getParam(), param.getDeptIdList());
     }
 
     @Operation(summary = "新增用户")
@@ -159,5 +168,11 @@ public class SysUserTestController {
     static class RequestParamForUser {
         private List<String> userNameList;
         private SysOnlineUserParamDTO search;
+    }
+
+    @Data
+    static class RequestParamForUserFuzzy {
+        private SysUserFindByPageParam param;
+        private List<Long> deptIdList;
     }
 }

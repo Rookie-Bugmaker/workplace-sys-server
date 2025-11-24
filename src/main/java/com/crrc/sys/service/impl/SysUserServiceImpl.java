@@ -155,6 +155,17 @@ public class SysUserServiceImpl implements SysUserService {
         return PaginationGrid.success(pageInfo);
     }
 
+    @Override
+    public PaginationGrid<SysUser> findPageByUserAndDept(SysUserFindByPageParam param, List<Long> deptIdList) {
+        if (!ObjectUtils.isEmpty(param.getUserName()) && !ObjectUtils.isEmpty(param.getUserDescription()) && ObjectUtils.isEmpty(param.getMontage())) {
+            param.setMontage("and");
+        }
+        PageHelper.startPage(param.getPage(), param.getPageSize());
+        List<SysUser> rows = userMapper.findByFuzzyAndDept(param, deptIdList);
+        PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
+        return PaginationGrid.success(pageInfo);
+    }
+
     /**
      * 用户添加
      *

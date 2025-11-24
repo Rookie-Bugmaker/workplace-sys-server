@@ -70,6 +70,14 @@ public interface SysUserService {
     PaginationGrid<SysUser> findByPage(SysUserFindByPageParam param);
 
     /**
+     * 用户信息分页查询
+     *
+     * @param param 查询条件
+     * @return 分页数据
+     */
+    PaginationGrid<SysUser> findPageByUserAndDept(SysUserFindByPageParam param, List<Long> deptIdList);
+
+    /**
      * 用户添加
      *
      * @param user 用户信息

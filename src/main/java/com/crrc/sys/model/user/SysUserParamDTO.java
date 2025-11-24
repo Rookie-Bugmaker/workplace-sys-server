@@ -2,6 +2,8 @@ package com.crrc.sys.model.user;
 
 import com.crrc.sys.model.org.person.SysOrgPersonBO;
 
+import java.util.List;
+
 /**
  * 用户值对象
  *
@@ -17,7 +19,10 @@ public class SysUserParamDTO {
      * 用户描述或姓名
      */
     private String nickName;
-
+    /**
+     * 部门id
+     */
+    private List<Long> deptIdList;
     private Integer pageNo = 1;
 
     private Integer pageSize = 10;
@@ -52,5 +57,13 @@ public class SysUserParamDTO {
 
     public void setPageSize(Integer pageSize) {
         this.pageSize = pageSize;
+    }
+
+    public List<Long> getDeptIdList() {
+        return deptIdList;
+    }
+
+    public void setDeptIdList(List<Long> deptIdList) {
+        this.deptIdList = deptIdList;
     }
 }
