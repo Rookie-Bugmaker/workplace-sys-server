@@ -196,13 +196,17 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
 
     private SysProfileBDBEntity convertToDB(SysProfile data) {
         SysProfileBDBEntity entity = BeanUtils.toBean(data, SysProfileBDBEntity.class);
-        entity.setProfileFieldAlias(data.getFieldAlias());
+        if(data != null) {
+            entity.setProfileFieldAlias(data.getFieldAlias());
+        }
         return entity;
     }
 
     private SysProfile convertFromDB(SysProfileBDBEntity entity) {
         SysProfile data = BeanUtils.toBean(entity, SysProfile.class);
-        data.setFieldAlias(entity.getProfileFieldAlias());
+        if(entity != null) {
+            data.setFieldAlias(entity.getProfileFieldAlias());
+        }
         return data;
     }
 
@@ -210,7 +214,9 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         List<SysProfileBDBEntity> entityList = new ArrayList<>();
         dataList.forEach(data -> {
             SysProfileBDBEntity entity = BeanUtils.toBean(data, SysProfileBDBEntity.class);
-            entity.setProfileFieldAlias(data.getFieldAlias());
+            if(data != null) {
+                entity.setProfileFieldAlias(data.getFieldAlias());
+            }
             entityList.add(entity);
         });
         return entityList;
@@ -220,7 +226,9 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         List<SysProfile> dataList = new ArrayList<>();
         entityList.forEach(entity -> {
             SysProfile data = BeanUtils.toBean(entity, SysProfile.class);
-            data.setFieldAlias(entity.getProfileFieldAlias());
+            if(entity != null) {
+                data.setFieldAlias(entity.getProfileFieldAlias());
+            }
             dataList.add(data);
         });
         return dataList;
