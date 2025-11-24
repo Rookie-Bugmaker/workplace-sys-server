@@ -471,7 +471,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
 
     private SysUser convertFromJoinDB(SysUserInfoDBJoinDTO entity) {
         SysUser data = BeanUtils.toBean(entity, SysUser.class);
-        if(StringUtils.isNotBlank(entity.getFullName())) {
+        if(data != null && StringUtils.isNotBlank(entity.getFullName())) {
             data.setUserDescription(entity.getFullName());
         }
         return data;
@@ -481,7 +481,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         List<SysUser> dataList = new ArrayList<>();
         entityList.forEach(entity -> {
             SysUser data = BeanUtils.toBean(entity, SysUser.class);
-            if(StringUtils.isNotBlank(entity.getFullName())) {
+            if(data != null && StringUtils.isNotBlank(entity.getFullName())) {
                 data.setUserDescription(entity.getFullName());
             }
             dataList.add(data);
