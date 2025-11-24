@@ -125,7 +125,9 @@ public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBE
 
     private SysApi convertFromDB(SysApiDBEntity sysApiDBEntity) {
         SysApi sysApi = BeanUtils.toBean(sysApiDBEntity, SysApi.class);
-        sysApi.setId(sysApiDBEntity.getApiId());
+        if(sysApiDBEntity != null) {
+            sysApi.setId(sysApiDBEntity.getApiId());
+        }
         return sysApi;
     }
 
@@ -133,7 +135,9 @@ public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBE
         List<SysApiDBEntity> sysApiDBEntityList = new ArrayList<>();
         sysApiList.forEach(sysApi -> {
             SysApiDBEntity sysApiDBEntity = BeanUtils.toBean(sysApi, SysApiDBEntity.class);
-            sysApiDBEntity.setApiId(sysApi.getId());
+            if(sysApi != null) {
+                sysApiDBEntity.setApiId(sysApi.getId());
+            }
             sysApiDBEntityList.add(sysApiDBEntity);
         });
         return sysApiDBEntityList;
@@ -141,7 +145,9 @@ public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBE
 
     private SysApiDBEntity convertToDB(SysApi sysApi) {
         SysApiDBEntity sysApiDBEntity = BeanUtils.toBean(sysApi, SysApiDBEntity.class);
-        sysApiDBEntity.setApiId(sysApi.getId());
+        if(sysApi != null) {
+            sysApiDBEntity.setApiId(sysApi.getId());
+        }
         return sysApiDBEntity;
     }
 
@@ -149,7 +155,9 @@ public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBE
         List<SysApi> sysApiList = new ArrayList<>();
         sysApiDBEntityList.forEach(sysApiDBEntity -> {
             SysApi sysApi = BeanUtils.toBean(sysApiDBEntity, SysApi.class);
-            sysApi.setId(sysApiDBEntity.getApiId());
+            if(sysApiDBEntity != null) {
+                sysApi.setId(sysApiDBEntity.getApiId());
+            }
             sysApiList.add(sysApi);
         });
         return sysApiList;
