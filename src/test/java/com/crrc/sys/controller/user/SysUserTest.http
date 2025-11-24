@@ -3,7 +3,7 @@ GET {{prefix}}/test/user/findByUserName?userName=013200030931
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
 
-### 2. 模糊查询用户列表
+### 2.1 模糊查询用户列表
 POST {{prefix}}/test/user/findByFuzzy
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
@@ -15,6 +15,20 @@ Content-Type: application/json
   "userName": "309",
   "userDescription": "李",
   "montage": "and"
+}
+
+### 2.2 模糊查询用户列表
+POST {{prefix}}/test/user/findByFuzzyAndDept
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "param" : {
+    "userName": "3",
+    "montage": "and"
+  },
+  "deptIdList" : [2328]
 }
 
 ### 3. 新增用户

@@ -32,6 +32,14 @@ public interface SysUserMapper {
     List<SysUser> findByFuzzy(SysUserFindByPageParam param);
 
     /**
+     * 用户信息模糊查询(带部门id)
+     *
+     * @param param 查询条件
+     * @return 分页数据
+     */
+    List<SysUser> findByFuzzyAndDept(@Param("param")SysUserFindByPageParam param, @Param("deptIdList") List<Long> deptIdList);
+
+    /**
      * 用户添加
      *
      * @param user 用户信息

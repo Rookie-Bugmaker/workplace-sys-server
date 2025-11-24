@@ -1554,7 +1554,7 @@ public class SysUserController {
         if (StringUtils.hasText(param.getNickName())) {
             findByPageParam.setUserDescription(param.getNickName());
         }
-        PaginationGrid<SysUser> paginationGrid = userService.findByPage(findByPageParam);
+        PaginationGrid<SysUser> paginationGrid = userService.findPageByUserAndDept(findByPageParam, param.getDeptIdList());
         List<SysUser> rows = paginationGrid.getRows();
         Page<UserGetRespVO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
         if (CollectionUtils.isEmpty(rows)) {
