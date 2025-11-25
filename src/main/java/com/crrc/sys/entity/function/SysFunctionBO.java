@@ -97,6 +97,10 @@ public class SysFunctionBO extends BaseEntityYunLing {
      * 多语言数据
      */
     private List<SysFunctionTl> functionTlList;
+    /**
+     * 项目ID
+     */
+    private Long projectId;
 
     public Long getFunctionId() {
         return functionId;
@@ -264,5 +268,13 @@ public class SysFunctionBO extends BaseEntityYunLing {
 
     public void setFunctionTlList(List<SysFunctionTl> functionTlList) {
         this.functionTlList = functionTlList;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }
