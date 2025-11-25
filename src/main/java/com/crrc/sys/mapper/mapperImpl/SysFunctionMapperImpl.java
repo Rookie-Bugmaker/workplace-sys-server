@@ -304,7 +304,6 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
     public int findNotParent(String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionId)
-                .select(SysFunctionTlDBEntity::getFunctionDescription)
                 .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
