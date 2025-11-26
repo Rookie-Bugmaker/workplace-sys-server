@@ -5,17 +5,16 @@ import com.alibaba.fastjson.TypeReference;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
-import com.crrc.sys.entity.user.SysUser;
-import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.profile.SysProfile;
+import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.service.SysDataAuthService;
 import com.crrc.sys.service.SysProfileService;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -59,7 +58,7 @@ public class SysDataAuthController {
      *
      * @return 结果: {"数据权限编码": ["数据权限值","数据权限值"]}。
      */
-    @PostMapping("getDataAuth")
+    @GetMapping("getDataAuth")
     public Map<String, List<String>> getDataAuth() {
         ResultData<SysUser> userResultData = authClient.currentUser();
         if (!userResultData.getSuccess()) {
