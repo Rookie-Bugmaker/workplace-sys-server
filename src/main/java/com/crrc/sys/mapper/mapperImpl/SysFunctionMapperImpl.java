@@ -263,6 +263,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
+                .select(SysFunctionTlDBEntity::getFunctionDescription)
                 .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
@@ -287,6 +288,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
+                .select(SysFunctionTlDBEntity::getFunctionDescription)
                 .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
@@ -317,6 +319,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
+                .select(SysFunctionTlDBEntity::getFunctionDescription)
                 .innerJoin(SysFunctionTlDBEntity.class,
                         fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
