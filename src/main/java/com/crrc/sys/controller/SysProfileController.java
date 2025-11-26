@@ -252,6 +252,12 @@ public class SysProfileController {
                         throw new BizException(ObjectUtils.isEmpty(responseResult.getMsg()) ? "请求失败:" + url : responseResult.getMsg());
                     }
                     String dataStr = responseResult.getData();
+                    if (ObjectUtils.isEmpty(dataStr)) {
+                        //兼容ResponseResult与ResultData两种响应
+                        ResultData<String> resultData = JSON.parseObject(responseResultStr, new TypeReference<ResultData<String>>() {
+                        });
+                        dataStr = resultData.getResult();
+                    }
                     if (dataStr.contains("total")) {
                         //说明是分页返回，需要使用分页解析
                         paginationGrid = bodyHandlerPage(search, responseResult.getData());
