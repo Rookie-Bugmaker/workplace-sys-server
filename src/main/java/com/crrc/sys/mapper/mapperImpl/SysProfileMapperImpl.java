@@ -37,13 +37,13 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
     @Override
     public List<SysProfile> findByFuzzy(SysProfileFindByPageParam param) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
-                .selectAll(SysProfileBDBEntity.class)
+                .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
+                .selectAs(SysProfileBDBEntity::getProfileFieldAlias, SysProfile::getFieldAlias)
                 .select(SysProfileTlDBEntity::getProfileName)
                 .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
                                 .eq(SysProfileTlDBEntity::getLanguage, param.getLanguage())
                 );
-
         if (param.getProfileCode() != null && !param.getProfileCode().isEmpty()) {
             wrapper.like(SysProfileBDBEntity::getProfileCode, param.getProfileCode());
         }
@@ -53,11 +53,8 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         if (param.getProfileType() != null && !param.getProfileType().isEmpty()) {
             wrapper.eq(SysProfileBDBEntity::getProfileType, param.getProfileType());
         }
-
         wrapper.orderByAsc(SysProfileBDBEntity::getProfileId);
-
-        List<SysProfile> result = sysProfileBMapperService.selectJoinList(SysProfile.class, wrapper);
-        return result;
+        return sysProfileBMapperService.selectJoinList(SysProfile.class, wrapper);
     }
 
     @Override
@@ -91,7 +88,8 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
     @Override
     public SysProfile findById(long profileId, String language) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
-                .selectAll(SysProfileBDBEntity.class)
+                .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
+                .selectAs(SysProfileBDBEntity::getProfileFieldAlias, SysProfile::getFieldAlias)
                 .select(SysProfileTlDBEntity::getProfileName)
                 .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
@@ -152,24 +150,25 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         }
         AtomicReference<String> sqlSegment = new AtomicReference<>(removeOuterParentheses(queryWrapper.getSqlSegment()));
         queryWrapper.getParamNameValuePairs().entrySet().forEach(kv -> {
-            String indexString = "#{ew.paramNameValuePairs."+kv.getKey()+"}";
-            sqlSegment.set(StringUtils.replace(sqlSegment.get(), indexString, "'"+kv.getValue().toString()+"'"));
+            String indexString = "#{ew.paramNameValuePairs." + kv.getKey() + "}";
+            sqlSegment.set(StringUtils.replace(sqlSegment.get(), indexString, "'" + kv.getValue().toString() + "'"));
         });
         // 设置查询
         StringBuilder selectSql = new StringBuilder();
         selectSql.append("SELECT ").append(selectColumns).append(" FROM (").append(search.getSql()).append(") tb");
-        if(StringUtils.isNotBlank(sqlSegment.get())) {
+        if (StringUtils.isNotBlank(sqlSegment.get())) {
             selectSql.append(" WHERE ").append(sqlSegment.get());
         }
         // 执行查询（使用动态数据源）
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(selectSql.toString());
-         return convertValueSetFromDB(maps);
+        return convertValueSetFromDB(maps);
     }
 
     @Override
     public List<SysProfile> findByType(String profileType, String language) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
-                .selectAll(SysProfileBDBEntity.class)
+                .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
+                .selectAs(SysProfileBDBEntity::getProfileFieldAlias, SysProfile::getFieldAlias)
                 .select(SysProfileTlDBEntity::getProfileName)
                 .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
@@ -183,7 +182,8 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
     @Override
     public List<SysProfile> findByIds(List<Long> profileIdList, String language) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
-                .selectAll(SysProfileBDBEntity.class)
+                .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
+                .selectAs(SysProfileBDBEntity::getProfileFieldAlias, SysProfile::getFieldAlias)
                 .select(SysProfileTlDBEntity::getProfileName)
                 .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
@@ -196,7 +196,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
 
     private SysProfileBDBEntity convertToDB(SysProfile data) {
         SysProfileBDBEntity entity = BeanUtils.toBean(data, SysProfileBDBEntity.class);
-        if(data != null) {
+        if (data != null) {
             entity.setProfileFieldAlias(data.getFieldAlias());
         }
         return entity;
@@ -204,7 +204,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
 
     private SysProfile convertFromDB(SysProfileBDBEntity entity) {
         SysProfile data = BeanUtils.toBean(entity, SysProfile.class);
-        if(entity != null) {
+        if (entity != null) {
             data.setFieldAlias(entity.getProfileFieldAlias());
         }
         return data;
@@ -214,7 +214,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         List<SysProfileBDBEntity> entityList = new ArrayList<>();
         dataList.forEach(data -> {
             SysProfileBDBEntity entity = BeanUtils.toBean(data, SysProfileBDBEntity.class);
-            if(data != null) {
+            if (data != null) {
                 entity.setProfileFieldAlias(data.getFieldAlias());
             }
             entityList.add(entity);
@@ -226,7 +226,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         List<SysProfile> dataList = new ArrayList<>();
         entityList.forEach(entity -> {
             SysProfile data = BeanUtils.toBean(entity, SysProfile.class);
-            if(entity != null) {
+            if (entity != null) {
                 data.setFieldAlias(entity.getProfileFieldAlias());
             }
             dataList.add(data);
