@@ -1,5 +1,11 @@
 package com.crrc.sys.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.crrc.sys.client.AuthClient;
+import com.crrc.sys.common.ResultData;
+import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
@@ -8,6 +14,7 @@ import com.crrc.sys.service.SysDataAuthService;
 import com.crrc.sys.service.SysProfileService;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,24 +36,40 @@ import java.util.stream.Collectors;
 @RequestMapping("/data/auth/")
 public class SysDataAuthController {
 
+
+    @Resource
+    private AuthClient authClient;
     @Resource
     private SysDataAuthService dataAuthService;
     @Resource
     private SysProfileService profileService;
 
     /**
-     * 获取数据权限集合
+     * 获取产线列表
+     */
+    @GetMapping("getProductionLineList")
+    public List<Map<String, Object>> getProductionLineList() {
+        String str = "[{\"id\":101,\"code\":\"DT_01\",\"name\":\"焊接生产1线\"},{\"id\":102,\"code\":\"DT_02\",\"name\":\"焊接生产2线\"},{\"id\":103,\"code\":\"DT_03\",\"name\":\"焊接生产3线\"},{\"id\":104,\"code\":\"DT_04\",\"name\":\"焊接生产4线\"}]";
+        return JSON.parseObject(str, new TypeReference<List<Map<String, Object>>>() {
+        });
+    }
+
+    /**
+     * 获取当前用户数据权限集合
      *
-     * @param userId 用户ID
-     * @param roleId 角色ID
      * @return 结果: {"数据权限编码": ["数据权限值","数据权限值"]}。
      */
     @PostMapping("getDataAuth")
-    public Map<String, List<String>> getDataAuth(long userId, long roleId) {
+    public Map<String, List<String>> getDataAuth() {
+        ResultData<SysUser> userResultData = authClient.currentUser();
+        if (!userResultData.getSuccess()) {
+            throw new BizException(userResultData.getCode(), userResultData.getMessage());
+        }
+        SysUser sysUser = userResultData.getResult();
         //用户数据权限
-        List<SysDataAuth> userDataAuthList = dataAuthService.findByObjectId(userId);
+        List<SysDataAuth> userDataAuthList = dataAuthService.findByObjectId(sysUser.getUserId());
         //角色数据权限
-        List<SysDataAuth> roleDataAuthList = dataAuthService.findByObjectId(roleId);
+        List<SysDataAuth> roleDataAuthList = dataAuthService.findByObjectId(sysUser.getCurrentRoleId());
         //最终数据权限，
         //1.如果用户权限不存在，则取角色权限.
         //2.如果角色权限不存在，则取用户权限.
