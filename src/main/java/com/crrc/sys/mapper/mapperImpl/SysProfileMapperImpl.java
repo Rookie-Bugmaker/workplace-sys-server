@@ -37,7 +37,8 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
     @Override
     public List<SysProfile> findByFuzzy(SysProfileFindByPageParam param) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
-                .selectAll(SysProfileBDBEntity.class)
+                .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
+                .selectAs(SysProfileBDBEntity::getProfileFieldAlias, SysProfile::getFieldAlias)
                 .select(SysProfileTlDBEntity::getProfileName)
                 .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
@@ -87,7 +88,8 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
     @Override
     public SysProfile findById(long profileId, String language) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
-                .selectAll(SysProfileBDBEntity.class)
+                .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
+                .selectAs(SysProfileBDBEntity::getProfileFieldAlias, SysProfile::getFieldAlias)
                 .select(SysProfileTlDBEntity::getProfileName)
                 .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
@@ -165,7 +167,8 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
     @Override
     public List<SysProfile> findByType(String profileType, String language) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
-                .selectAll(SysProfileBDBEntity.class)
+                .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
+                .selectAs(SysProfileBDBEntity::getProfileFieldAlias, SysProfile::getFieldAlias)
                 .select(SysProfileTlDBEntity::getProfileName)
                 .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
@@ -179,7 +182,8 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
     @Override
     public List<SysProfile> findByIds(List<Long> profileIdList, String language) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
-                .selectAll(SysProfileBDBEntity.class)
+                .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
+                .selectAs(SysProfileBDBEntity::getProfileFieldAlias, SysProfile::getFieldAlias)
                 .select(SysProfileTlDBEntity::getProfileName)
                 .innerJoin(SysProfileTlDBEntity.class,
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)

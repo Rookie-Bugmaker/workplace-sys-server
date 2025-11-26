@@ -5,10 +5,7 @@ Authorization: {{authToken}}
 Content-Type: application/json
 
 {
-  "language": "zh-CN",
-  "profileCode": "srm_",
-  "profileName": "SRM紧急配送到货通知单",
-  "profileType": "APPROVER_LIST"
+  "language": "zh-CN"
 }
 
 ### 2. 新增配置文件
@@ -66,7 +63,7 @@ Content-Type: application/json
 }
 
 ### 4. 根据ID查询
-GET {{prefix}}/test/profile/findById?profileId=1001&language=zh-CN
+GET {{prefix}}/test/profile/findById?profileId=439736949640585216&language=zh-CN
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
 
@@ -99,7 +96,7 @@ Content-Type: application/json
 }
 
 ### 8. 根据类型查询
-GET {{prefix}}/test/profile/findByType?profileType=SYS_CONFIG1&language=zh-CN
+GET {{prefix}}/test/profile/findByType?profileType=SYS_DATA_PERMISSION&language=zh-CN
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
 
@@ -109,7 +106,7 @@ X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
 Content-Type: application/json
 
-[1001, 414053539439624192]
+[1001, 439736949640585216]
 
 ### 其它：根据配置文件编码查询值集(分页查询)
 POST {{prefix}}/profile/getValuePageBySql
