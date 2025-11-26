@@ -19,7 +19,7 @@ import lombok.experimental.Accessors;
 public class SysProfileBDBEntity extends BaseEntityYunLing {
     @TableId(type = IdType.INPUT)
     private Long profileId;
-    
+
     private String profileCode;
     private String profileSourceType;
     private String profileSource;

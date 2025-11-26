@@ -12,7 +12,6 @@ import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -54,17 +53,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
             wrapper.eq(SysProfileBDBEntity::getProfileType, param.getProfileType());
         }
         wrapper.orderByAsc(SysProfileBDBEntity::getProfileId);
-        List<SysProfileBDBEntity> rows = sysProfileBMapperService.selectJoinList(SysProfileBDBEntity.class, wrapper);
-        if (!CollectionUtils.isEmpty(rows)) {
-            List<SysProfile> profileList = new ArrayList<>();
-            for (SysProfileBDBEntity row : rows) {
-                SysProfile sysProfile = BeanUtils.toBean(row, SysProfile.class);
-                sysProfile.setFieldAlias(row.getProfileFieldAlias());
-                profileList.add(sysProfile);
-            }
-            return profileList;
-        }
-        return null;
+        return sysProfileBMapperService.selectJoinList(SysProfile.class, wrapper);
     }
 
     @Override
