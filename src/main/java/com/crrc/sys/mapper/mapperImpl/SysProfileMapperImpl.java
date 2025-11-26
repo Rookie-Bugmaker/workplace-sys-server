@@ -12,6 +12,7 @@ import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -43,7 +44,6 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
                         fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
                                 .eq(SysProfileTlDBEntity::getLanguage, param.getLanguage())
                 );
-
         if (param.getProfileCode() != null && !param.getProfileCode().isEmpty()) {
             wrapper.like(SysProfileBDBEntity::getProfileCode, param.getProfileCode());
         }
@@ -53,11 +53,18 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         if (param.getProfileType() != null && !param.getProfileType().isEmpty()) {
             wrapper.eq(SysProfileBDBEntity::getProfileType, param.getProfileType());
         }
-
         wrapper.orderByAsc(SysProfileBDBEntity::getProfileId);
-
-        List<SysProfile> result = sysProfileBMapperService.selectJoinList(SysProfile.class, wrapper);
-        return result;
+        List<SysProfileBDBEntity> rows = sysProfileBMapperService.selectJoinList(SysProfileBDBEntity.class, wrapper);
+        if (!CollectionUtils.isEmpty(rows)) {
+            List<SysProfile> profileList = new ArrayList<>();
+            for (SysProfileBDBEntity row : rows) {
+                SysProfile sysProfile = BeanUtils.toBean(row, SysProfile.class);
+                sysProfile.setFieldAlias(row.getProfileFieldAlias());
+                profileList.add(sysProfile);
+            }
+            return profileList;
+        }
+        return null;
     }
 
     @Override
@@ -152,18 +159,18 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         }
         AtomicReference<String> sqlSegment = new AtomicReference<>(removeOuterParentheses(queryWrapper.getSqlSegment()));
         queryWrapper.getParamNameValuePairs().entrySet().forEach(kv -> {
-            String indexString = "#{ew.paramNameValuePairs."+kv.getKey()+"}";
-            sqlSegment.set(StringUtils.replace(sqlSegment.get(), indexString, "'"+kv.getValue().toString()+"'"));
+            String indexString = "#{ew.paramNameValuePairs." + kv.getKey() + "}";
+            sqlSegment.set(StringUtils.replace(sqlSegment.get(), indexString, "'" + kv.getValue().toString() + "'"));
         });
         // 设置查询
         StringBuilder selectSql = new StringBuilder();
         selectSql.append("SELECT ").append(selectColumns).append(" FROM (").append(search.getSql()).append(") tb");
-        if(StringUtils.isNotBlank(sqlSegment.get())) {
+        if (StringUtils.isNotBlank(sqlSegment.get())) {
             selectSql.append(" WHERE ").append(sqlSegment.get());
         }
         // 执行查询（使用动态数据源）
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(selectSql.toString());
-         return convertValueSetFromDB(maps);
+        return convertValueSetFromDB(maps);
     }
 
     @Override
@@ -196,7 +203,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
 
     private SysProfileBDBEntity convertToDB(SysProfile data) {
         SysProfileBDBEntity entity = BeanUtils.toBean(data, SysProfileBDBEntity.class);
-        if(data != null) {
+        if (data != null) {
             entity.setProfileFieldAlias(data.getFieldAlias());
         }
         return entity;
@@ -204,7 +211,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
 
     private SysProfile convertFromDB(SysProfileBDBEntity entity) {
         SysProfile data = BeanUtils.toBean(entity, SysProfile.class);
-        if(entity != null) {
+        if (entity != null) {
             data.setFieldAlias(entity.getProfileFieldAlias());
         }
         return data;
@@ -214,7 +221,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         List<SysProfileBDBEntity> entityList = new ArrayList<>();
         dataList.forEach(data -> {
             SysProfileBDBEntity entity = BeanUtils.toBean(data, SysProfileBDBEntity.class);
-            if(data != null) {
+            if (data != null) {
                 entity.setProfileFieldAlias(data.getFieldAlias());
             }
             entityList.add(entity);
@@ -226,7 +233,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         List<SysProfile> dataList = new ArrayList<>();
         entityList.forEach(entity -> {
             SysProfile data = BeanUtils.toBean(entity, SysProfile.class);
-            if(entity != null) {
+            if (entity != null) {
                 data.setFieldAlias(entity.getProfileFieldAlias());
             }
             dataList.add(data);
