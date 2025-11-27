@@ -2,6 +2,7 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
@@ -23,12 +24,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 菜单多语言-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 菜单多语言-mapper实现类，通过MyBatisPlus方案重写SQL
  * @author 李江涛
  * @date 2025-11-18
  */
 @Repository
-public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMenuTlDBEntity> implements SysMenuMapper {
+public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMenuTlDBEntity> {
 
     @Resource
     private SysMenuBMapperService sysMenuBMapperService;
@@ -39,7 +40,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
     @Autowired
     private SysMenuBMapperImpl sysMenuBMapper;
 
-    @Override
+
     public List<SysMenu> findByFuzzy(SysMenuFindByPageParam param) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
@@ -58,25 +59,45 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinList(SysMenu.class, wrapper);
     }
 
-    @Override
+    public IPage<SysMenu> findByFuzzyPage(SysMenuFindByPageParam param) {
+        MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
+                .selectAll(SysMenuBDBEntity.class)
+                .select(SysMenuTlDBEntity::getMenuName)
+                .select(SysMenuTlDBEntity::getMenuDescription)
+                .innerJoin(SysMenuTlDBEntity.class,
+                        fn -> fn.eq(SysMenuTlDBEntity::getMenuId, SysMenuBDBEntity::getMenuId)
+                                .eq(SysMenuTlDBEntity::getLanguage, param.getLanguage())
+                )
+                .isNull(SysMenuBDBEntity::getParentId)
+                .eq(param.getProjectId() != null, SysMenuBDBEntity::getProjectId, param.getProjectId())
+                .like(StringUtils.isNotBlank(param.getMenuCode()), SysMenuBDBEntity::getMenuCode, param.getMenuCode())
+                .like(StringUtils.isNotBlank(param.getMenuName()), SysMenuTlDBEntity::getMenuName, param.getMenuName())
+                .like(StringUtils.isNotBlank(param.getMenuDescription()), SysMenuTlDBEntity::getMenuDescription, param.getMenuDescription())
+                .orderByAsc(SysMenuTlDBEntity::getMenuName);
+        Page<SysMenu> page = sysMenuBMapperService.selectJoinPage(
+                new Page<>(param.getPage(), param.getPageSize()), SysMenu.class, wrapper);
+        return page;
+    }
+
+
     public int insertTl(List<SysMenuTl> menuTlList) {
         List<SysMenuTlDBEntity> entities = convertToDBTl(menuTlList);
         return super.saveBatch(entities) ? entities.size() : 0;
     }
 
-    @Override
+
     public int insert(SysMenuPO menu) {
         SysMenuBDBEntity entity = convertToDB(menu);
         return sysMenuBMapperService.insert(entity);
     }
 
-    @Override
+
     public int insertList(List<SysMenu> menuList) {
         List<SysMenuBDBEntity> entities = convertToDB(menuList);
         return sysMenuBMapper.saveBatch(entities) ? entities.size() : 0;
     }
 
-    @Override
+
     public List<SysMenu> findBySubmenu(String language) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
@@ -91,7 +112,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinList(SysMenu.class, wrapper);
     }
 
-    @Override
+
     public int updateTl(SysMenuTl menu) {
         LambdaUpdateWrapper<SysMenuTlDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(SysMenuTlDBEntity::getMenuId, menu.getMenuId())
@@ -104,7 +125,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuTlMapperService.update(wrapper);
     }
 
-    @Override
+
     public int update(SysMenuPO menu) {
         LambdaUpdateWrapper<SysMenuBDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.set(SysMenuBDBEntity::getMenuSort, menu.getMenuSort())
@@ -120,7 +141,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.update(wrapper);
     }
 
-    @Override
+
     public List<SysMenu> findByIds(List<Long> menuIds, String language) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
@@ -134,7 +155,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinList(SysMenu.class, wrapper);
     }
 
-    @Override
+
     public SysMenu findById(long menuId, String language) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
@@ -148,21 +169,21 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinOne(SysMenu.class, wrapper);
     }
 
-    @Override
+
     public void deleteTl(List<Long> menuIdList) {
         LambdaQueryWrapper<SysMenuTlDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(SysMenuTlDBEntity::getMenuId, menuIdList);
         sysMenuTlMapperService.delete(wrapper);
     }
 
-    @Override
+
     public int delete(List<Long> menuIdList) {
         LambdaQueryWrapper<SysMenuBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(SysMenuBDBEntity::getMenuId, menuIdList);
         return sysMenuBMapperService.delete(wrapper);
     }
 
-    @Override
+
     public List<SysMenu> findByParentId(Long parentId, String language) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
@@ -178,7 +199,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinList(SysMenu.class, wrapper);
     }
 
-    @Override
+
     public List<SysMenu> findAll(String language) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
@@ -192,7 +213,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinList(SysMenu.class, wrapper);
     }
 
-    @Override
+
     public List<SysMenu> findByCodes(List<String> codeList, String language) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
@@ -206,7 +227,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinList(SysMenu.class, wrapper);
     }
 
-    @Override
+
     public List<SysMenu> findByRoleId(long roleId, String language) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .select(SysMenuBDBEntity::getMenuId)
@@ -229,7 +250,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinList(SysMenu.class, wrapper);
     }
 
-    @Override
+
     public List<Long> findBindFunctionId(List<Long> menuIds) {
         LambdaQueryWrapper<SysMenuBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.select(SysMenuBDBEntity::getFunctionId)
@@ -240,7 +261,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
                 .collect(Collectors.toList());
     }
 
-    @Override
+
     public List<Long> findBindChildId(List<Long> menuIds) {
         LambdaQueryWrapper<SysMenuBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.select(SysMenuBDBEntity::getChildId)
@@ -251,7 +272,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
                 .collect(Collectors.toList());
     }
 
-    @Override
+
     public List<Long> findByParentIds(List<Long> parentIdList) {
         LambdaQueryWrapper<SysMenuBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.select(SysMenuBDBEntity::getMenuId)
@@ -261,14 +282,14 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
                 .collect(Collectors.toList());
     }
 
-    @Override
+
     public int findCount() {
         LambdaQueryWrapper<SysMenuBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.select(SysMenuBDBEntity::getMenuId);
         return sysMenuBMapperService.selectCount(wrapper).intValue();
     }
 
-    @Override
+
     public List<SysMenu> findByPage(String language, int offset, int endset) {
         Page<SysMenu> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
@@ -285,7 +306,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysFunctionPage.getRecords();
     }
 
-    @Override
+
     public int findCountByRoleId(long roleId) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .select(SysMenuBDBEntity::getMenuId)
@@ -294,7 +315,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinCount(wrapper).intValue();
     }
 
-    @Override
+
     public List<SysMenu> findPageByRoleId(long roleId, String language, int offset, int endset) {
         Page<SysMenu> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
@@ -320,7 +341,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysFunctionPage.getRecords();
     }
 
-    @Override
+
     public List<SysMenu> findRootMenu(Long projectId, String language) {
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
@@ -336,7 +357,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
         return sysMenuBMapperService.selectJoinList(SysMenu.class, wrapper);
     }
 
-    @Override
+
     public void updateProjectId(Long menuId, Long projectId) {
         LambdaUpdateWrapper<SysMenuBDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(SysMenuBDBEntity::getParentId, menuId)

@@ -1,7 +1,9 @@
 package com.crrc.sys.service.homepage.imp;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
+import com.crrc.sys.entity.api.SysApiAuth;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.entity.homepage.SysHomePageComponent;
 import com.crrc.sys.entity.homepage.SysHomePageComponentUserParam;
@@ -52,11 +54,15 @@ public class SysHomePageComponentServiceImpl  implements SysHomePageComponentSer
 
 	@Override
 	public PaginationGrid<SysHomePageComponent> pageList(HomePageParam param) {
-		PaginationGrid<SysHomePageComponent> page = new PaginationGrid<>(param.getPage(), param.getPageSize());
-		PageHelper.startPage(page.getPage(), page.getPageSize());
-		List<SysHomePageComponent> rows = sysHomePageComponentMapper.findList(param);
-		PageInfo<SysHomePageComponent> pageInfo = new PageInfo<>(rows);
-		return PaginationGrid.success(pageInfo);
+//		PaginationGrid<SysHomePageComponent> page = new PaginationGrid<>(param.getPage(), param.getPageSize());
+//		PageHelper.startPage(page.getPage(), page.getPageSize());
+		IPage<SysHomePageComponent> midPage = sysHomePageComponentMapper.findPage(param);
+		PaginationGrid<SysHomePageComponent> page = new PaginationGrid<>(
+				Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
+		page.setTotal(midPage.getTotal());
+		page.setRows(midPage.getRecords());
+//		PageInfo<SysHomePageComponent> pageInfo = new PageInfo<>(rows);
+		return page;
 	}
 
 	@Override

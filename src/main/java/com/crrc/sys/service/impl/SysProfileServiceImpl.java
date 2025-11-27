@@ -1,5 +1,6 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.profile.*;
 import com.crrc.sys.enums.LanguageEnum;
@@ -38,10 +39,13 @@ public class SysProfileServiceImpl implements SysProfileService {
 	 */
 	@Override
 	public PaginationGrid<SysProfile> findByPage(SysProfileFindByPageParam param) {
-		PageHelper.startPage(param.getPage(), param.getPageSize());
-		List<SysProfile> rows = profileMapper.findByFuzzy(param);
-		PageInfo<SysProfile> pageInfo = new PageInfo<>(rows);
-		return PaginationGrid.success(pageInfo);
+//		PageHelper.startPage(param.getPage(), param.getPageSize());
+		IPage<SysProfile> midPage = profileMapper.findByFuzzyPage(param);
+		PaginationGrid<SysProfile> page = new PaginationGrid<>(
+				Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
+		page.setTotal(midPage.getTotal());
+		page.setRows(midPage.getRecords());
+		return page;
 	}
 
 	/**
@@ -123,6 +127,7 @@ public class SysProfileServiceImpl implements SysProfileService {
 	 */
 	@Override
 	public PaginationGrid<ValueSet> findValuePageBySql(SysProfileValuePageSearch search) {
+		// 此处最终为JDBC构建sql，能够使用PageHelper.startPage
 		PageHelper.startPage(search.getPage(), search.getPageSize());
 		List<ValueSet> rows = profileMapper.executeSql(search);
 		PageInfo<ValueSet> pageInfo = new PageInfo<>(rows);

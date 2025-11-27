@@ -2,8 +2,12 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.entity.homepage.SysHomePageComponent;
+import com.crrc.sys.entity.homepage.SysHomePageComponentDBEntity;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonBDBEntity;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
@@ -22,17 +26,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 组织架构-人员-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 组织架构-人员-mapper实现类，通过MyBatisPlus方案重写SQL
  * 李江涛
  * 2025-11-17
  */
 @Repository
-public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperService, SysOrgPersonBDBEntity> implements SysOrgPersonMapper {
+public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperService, SysOrgPersonBDBEntity> {
 
     @Resource
     private SysOrgPersonBMapperService sysOrgPersonBMapperService;
 
-    @Override
+
     public List<SysOrgPerson> findByFuzzy(SysOrgPersonFindByPageParam param) {
         MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class)
                 .selectAll(SysOrgPersonBDBEntity.class)
@@ -72,13 +76,54 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         return sysOrgPersonBMapperService.selectJoinList(SysOrgPerson.class, wrapper);
     }
 
-    @Override
+    public IPage<SysOrgPerson> findByFuzzyPage(SysOrgPersonFindByPageParam param) {
+        MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class)
+                .selectAll(SysOrgPersonBDBEntity.class)
+                .select(SysOrgPersonTlDBEntity::getFullName)
+                .innerJoin(SysOrgPersonTlDBEntity.class,
+                        fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
+                                .eq(SysOrgPersonTlDBEntity::getLanguage, param.getLanguage())
+                );
+
+        if (param.getStatus() != null) {
+            wrapper.eq(SysOrgPersonBDBEntity::getStatus, param.getStatus());
+        }
+
+        if (!CollectionUtils.isEmpty(param.getPersonTypeList())) {
+            wrapper.in(SysOrgPersonBDBEntity::getPersonType, param.getPersonTypeList());
+        }
+
+        if (StringUtils.hasText(param.getFullName()) && StringUtils.hasText(param.getJobNo())) {
+            if("or".equals(param.getMontage())) {
+                wrapper.and(w -> w.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName())
+                        .or()
+                        .like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo()));
+            }else {
+                wrapper.and(w -> w.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName())
+                        .like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo()));
+            }
+
+        } else {
+            if (StringUtils.hasText(param.getFullName())) {
+                wrapper.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName());
+            }
+            if (StringUtils.hasText(param.getJobNo())) {
+                wrapper.like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo());
+            }
+        }
+        wrapper.orderByDesc(SysOrgPersonBDBEntity::getPersonId);
+        Page<SysOrgPerson> page = sysOrgPersonBMapperService.selectJoinPage(
+                new Page<>(param.getPage(), param.getPageSize()), SysOrgPerson.class, wrapper);
+        return page;
+    }
+
+
     public int insert(SysOrgPerson person) {
         SysOrgPersonBDBEntity entity = convertToDB(person);
         return sysOrgPersonBMapperService.insert(entity);
     }
 
-    @Override
+
     public int update(SysOrgPerson person) {
         LambdaUpdateWrapper<SysOrgPersonBDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(SysOrgPersonBDBEntity::getPersonId, person.getPersonId())
@@ -97,7 +142,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         return sysOrgPersonBMapperService.update(wrapper);
     }
 
-    @Override
+
     public SysOrgPerson findById(long personId, String language) {
         MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class)
                 .selectAll(SysOrgPersonBDBEntity.class)
@@ -110,14 +155,14 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         return sysOrgPersonBMapperService.selectJoinOne(SysOrgPerson.class, wrapper);
     }
 
-    @Override
+
     public int delete(List<Long> personIdList) {
         LambdaQueryWrapper<SysOrgPersonBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(SysOrgPersonBDBEntity::getPersonId, personIdList);
         return sysOrgPersonBMapperService.delete(wrapper);
     }
 
-    @Override
+
     public SysOrgPerson findByJobNo(String jobNo) {
         LambdaQueryWrapper<SysOrgPersonBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysOrgPersonBDBEntity::getJobNo, jobNo);
@@ -125,7 +170,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         return convertFromDB(entity);
     }
 
-    @Override
+
     public List<SysOrgPerson> findByJobNos(List<String> jobNos) {
         LambdaQueryWrapper<SysOrgPersonBDBEntity> wrapper = new LambdaQueryWrapper<>();
         if (!CollectionUtils.isEmpty(jobNos)) {
@@ -135,7 +180,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         return convertFromDB(entities);
     }
 
-    @Override
+
     public List<SysOrgPerson> findByPersonIds(List<Long> personIdList, String language) {
         MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class)
                 .selectAll(SysOrgPersonBDBEntity.class)
@@ -148,7 +193,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         return sysOrgPersonBMapperService.selectJoinList(SysOrgPerson.class, wrapper);
     }
 
-    @Override
+
     public List<SysOrgPerson> findByIds(List<Long> personIds, String language) {
         MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class)
                 .selectAll(SysOrgPersonBDBEntity.class)
@@ -161,13 +206,13 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         return sysOrgPersonBMapperService.selectJoinList(SysOrgPerson.class, wrapper);
     }
 
-    @Override
+
     public boolean insertBatch(List<SysOrgPerson> persons) {
         List<SysOrgPersonBDBEntity> entities = convertToDB(persons);
         return super.saveBatch(entities);
     }
 
-    @Override
+
     public List<SysOrgPerson> findByQuitDate(Date nowDate) {
         LambdaQueryWrapper<SysOrgPersonBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.isNotNull(SysOrgPersonBDBEntity::getQuitDate)
@@ -176,7 +221,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         return convertFromDB(entities);
     }
 
-    @Override
+
     public void updateStatus(List<Long> personIdList, int status) {
         LambdaUpdateWrapper<SysOrgPersonBDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysOrgPersonBDBEntity::getPersonId, personIdList)
@@ -184,7 +229,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         sysOrgPersonBMapperService.update(wrapper);
     }
 
-    @Override
+
     public List<SysOrgPerson> findByPhoneList(List<String> phoneList) {
         LambdaQueryWrapper<SysOrgPersonBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(SysOrgPersonBDBEntity::getPhone, phoneList);

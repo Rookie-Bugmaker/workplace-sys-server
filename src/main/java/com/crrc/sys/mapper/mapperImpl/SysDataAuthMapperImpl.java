@@ -18,37 +18,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * mapper实现类，通过MyBatisPlus方案重写SQL
  * 李江涛
  * 2025-11-13
  */
 @Repository
-public class SysDataAuthMapperImpl extends ServiceImpl<SysDataAuthMapperService, SysDataAuthDBEntity> implements SysDataAuthMapper {
+public class SysDataAuthMapperImpl extends ServiceImpl<SysDataAuthMapperService, SysDataAuthDBEntity> {
 
     @Resource
     private SysDataAuthMapperService sysDataAuthMapperService;
 
-    @Override
+
     public void insertList(List<SysDataAuth> dataAuthList) {
         List<SysDataAuthDBEntity> sysDataAuthDBEntities = convertToDB(dataAuthList);
         super.saveBatch(sysDataAuthDBEntities);
     }
 
-    @Override
+
     public void delete(long objectId) {
         LambdaUpdateWrapper<SysDataAuthDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(SysDataAuthDBEntity::getObjectId, objectId);
         sysDataAuthMapperService.delete(wrapper);
     }
 
-    @Override
+
     public void deleteByObjectIds(List<Long> objectIds) {
         LambdaUpdateWrapper<SysDataAuthDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysDataAuthDBEntity::getObjectId, objectIds);
         sysDataAuthMapperService.delete(wrapper);
     }
 
-    @Override
+
     public List<SysDataAuth> findByObjectId(long objectId) {
         LambdaQueryWrapper<SysDataAuthDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysDataAuthDBEntity::getObjectId, objectId);

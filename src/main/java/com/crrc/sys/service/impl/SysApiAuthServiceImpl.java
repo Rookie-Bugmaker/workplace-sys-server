@@ -1,8 +1,10 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.api.SysApiAuth;
 import com.crrc.sys.entity.api.SysApiAuthPageDTO;
+import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.mapper.mapperImpl.SysApiAuthMapperImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -32,10 +34,15 @@ public class SysApiAuthServiceImpl implements SysApiAuthService {
      */
     @Override
     public PaginationGrid<SysApiAuth> findByPage(SysApiAuthPageDTO param) {
-        PageHelper.startPage(param.getPage(), param.getPageSize());
-        List<SysApiAuth> rows = apiAuthMapper.findByFuzzy(param);
-        PageInfo<SysApiAuth> pageInfo = new PageInfo<>(rows);
-        return PaginationGrid.success(pageInfo);
+//        PageHelper.startPage(param.getPage(), param.getPageSize());
+        IPage<SysApiAuth> midPage = apiAuthMapper.findByFuzzyPage(param);
+        PaginationGrid<SysApiAuth> page = new PaginationGrid<>(
+                Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
+        page.setTotal(midPage.getTotal());
+        page.setRows(midPage.getRecords());
+        return page;
+//        PageInfo<SysApiAuth> pageInfo = new PageInfo<>(rows);
+//        return PaginationGrid.success(pageInfo);
     }
 
     /**

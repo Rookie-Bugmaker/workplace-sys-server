@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * mapper实现类，通过MyBatisPlus方案重写SQL
  * 李江涛
  * 2025-11-13
  */
 @Repository
-public class SysDataAuthValueMapperImpl extends ServiceImpl<SysDataAuthValueMapperService, SysDataAuthValueDBEntity> implements SysDataAuthValueMapper {
+public class SysDataAuthValueMapperImpl extends ServiceImpl<SysDataAuthValueMapperService, SysDataAuthValueDBEntity> {
 
     @Resource
     private SysDataAuthValueMapperService sysDataAuthValueMapperService;
@@ -32,13 +32,13 @@ public class SysDataAuthValueMapperImpl extends ServiceImpl<SysDataAuthValueMapp
     @Resource
     private SysDataAuthMapperService sysDataAuthMapperService;
 
-    @Override
+
     public void insertList(List<SysDataAuthValue> dataAuthValueList) {
         List<SysDataAuthValueDBEntity> sysDataAuthValueDBEntities = convertToDB(dataAuthValueList);
         super.saveBatch(sysDataAuthValueDBEntities);
     }
 
-    @Override
+
     public void delete(long objectId) {
         LambdaQueryWrapper<SysDataAuthDBEntity> wrapper1 = new LambdaQueryWrapper<>();
         wrapper1.select(SysDataAuthDBEntity::getAuthId)
@@ -54,7 +54,7 @@ public class SysDataAuthValueMapperImpl extends ServiceImpl<SysDataAuthValueMapp
         }
     }
 
-    @Override
+
     public void deleteByObjectIds(List<Long> objectIds) {
         LambdaQueryWrapper<SysDataAuthDBEntity> wrapper1 = new LambdaQueryWrapper<>();
         wrapper1.select(SysDataAuthDBEntity::getAuthId)
@@ -70,7 +70,7 @@ public class SysDataAuthValueMapperImpl extends ServiceImpl<SysDataAuthValueMapp
         }
     }
 
-    @Override
+
     public List<SysDataAuthValue> findByAuthIds(List<Long> authIdList) {
         LambdaQueryWrapper<SysDataAuthValueDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(SysDataAuthValueDBEntity::getAuthId, authIdList);

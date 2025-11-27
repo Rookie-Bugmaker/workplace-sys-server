@@ -1,5 +1,6 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.MyThreadPoolExecutor;
 import com.crrc.sys.common.PaginationGrid;
@@ -65,9 +66,10 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     @Override
     public PaginationGrid<SysMenu> findByPage(SysMenuFindByPageParam param) {
-        PageHelper.startPage(param.getPage(), param.getPageSize());
+//        PageHelper.startPage(param.getPage(), param.getPageSize());
         //根菜单查询
-        List<SysMenu> rows = menuMapper.findByFuzzy(param);
+        IPage<SysMenu> midPage = menuMapper.findByFuzzyPage(param);
+        List<SysMenu> rows = midPage.getRecords();
         if (!CollectionUtils.isEmpty(rows)) {
             List<Long> projectIdList = rows.stream().map(SysMenu::getProjectId).filter(o -> !ObjectUtils.isEmpty(o)).distinct().collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(projectIdList)) {
@@ -80,8 +82,13 @@ public class SysMenuServiceImpl implements SysMenuService {
                 }
             }
         }
-        PageInfo<SysMenu> pageInfo = new PageInfo<>(rows);
-        return PaginationGrid.success(pageInfo);
+//        PageInfo<SysMenu> pageInfo = new PageInfo<>(rows);
+//        return PaginationGrid.success(pageInfo);
+        PaginationGrid<SysMenu> page = new PaginationGrid<>(
+                Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
+        page.setTotal(midPage.getTotal());
+        page.setRows(rows);
+        return page;
     }
 
     /**

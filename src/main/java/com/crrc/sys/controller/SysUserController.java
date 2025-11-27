@@ -3,6 +3,7 @@ package com.crrc.sys.controller;
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
@@ -1554,15 +1555,23 @@ public class SysUserController {
         if (StringUtils.hasText(param.getNickName())) {
             findByPageParam.setUserDescription(param.getNickName());
         }
-        PaginationGrid<SysUser> paginationGrid = userService.findPageByUserAndDept(findByPageParam, param.getDeptIdList());
-        List<SysUser> rows = paginationGrid.getRows();
-        Page<UserGetRespVO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
+//        PaginationGrid<SysUser> paginationGrid = userService.findByFuzzyAndDeptPage(findByPageParam, param.getDeptIdList());
+//        List<SysUser> rows = paginationGrid.getRows();
+//        Page<UserGetRespVO> page = Page.of(paginationGrid.getPage(), paginationGrid.getPageSize());
+//        if (CollectionUtils.isEmpty(rows)) {
+//            return page;
+//        }
+//        page.setTotal(paginationGrid.getTotal());
+//        page.setRecords(setUserAndDMRProperties(rows));
+        IPage<SysUser> minPage = userService.findByFuzzyAndDeptPage(findByPageParam, param.getDeptIdList());
+        List<SysUser> rows = minPage.getRecords();
+        Page<UserGetRespVO> resultPage = Page.of(minPage.getCurrent(), minPage.getSize());
         if (CollectionUtils.isEmpty(rows)) {
-            return page;
+            return resultPage;
         }
-        page.setTotal(paginationGrid.getTotal());
-        page.setRecords(setUserAndDMRProperties(rows));
-        return page;
+        resultPage.setTotal(minPage.getTotal());
+        resultPage.setRecords(setUserAndDMRProperties(rows));
+        return resultPage;
     }
 
     /**

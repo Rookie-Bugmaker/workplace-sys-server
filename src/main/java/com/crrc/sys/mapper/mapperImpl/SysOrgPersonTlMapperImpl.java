@@ -16,17 +16,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 组织架构-人员国际化-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 组织架构-人员国际化-mapper实现类，通过MyBatisPlus方案重写SQL
  * 李江涛
  * 2025-11-17
  */
 @Repository
-public class SysOrgPersonTlMapperImpl extends ServiceImpl<SysOrgPersonTlMapperService, SysOrgPersonTlDBEntity> implements SysOrgPersonTlMapper {
+public class SysOrgPersonTlMapperImpl extends ServiceImpl<SysOrgPersonTlMapperService, SysOrgPersonTlDBEntity> {
 
     @Resource
     private SysOrgPersonTlMapperService sysOrgPersonTlMapperService;
 
-    @Override
+
     public void insertList(List<SysOrgPersonTl> personTlList) {
         // 转换为数据库实体
         List<SysOrgPersonTlDBEntity> entities = convertToDB(personTlList);
@@ -34,7 +34,7 @@ public class SysOrgPersonTlMapperImpl extends ServiceImpl<SysOrgPersonTlMapperSe
         super.saveBatch(entities);
     }
 
-    @Override
+
     public void update(SysOrgPerson person) {
         LambdaUpdateWrapper<SysOrgPersonTlDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(SysOrgPersonTlDBEntity::getPersonId, person.getPersonId())
@@ -47,7 +47,7 @@ public class SysOrgPersonTlMapperImpl extends ServiceImpl<SysOrgPersonTlMapperSe
         sysOrgPersonTlMapperService.update(wrapper);
     }
 
-    @Override
+
     public void delete(List<Long> personIdList) {
         LambdaQueryWrapper<SysOrgPersonTlDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(SysOrgPersonTlDBEntity::getPersonId, personIdList);

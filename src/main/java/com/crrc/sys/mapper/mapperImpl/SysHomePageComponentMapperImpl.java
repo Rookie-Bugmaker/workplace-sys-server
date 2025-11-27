@@ -2,8 +2,12 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.entity.api.SysApiAuth;
+import com.crrc.sys.entity.api.SysApiAuthDBEntity;
 import com.crrc.sys.entity.function.column.SysFunctionColumn;
 import com.crrc.sys.entity.function.column.SysFunctionColumnBDBEntity;
 import com.crrc.sys.entity.function.column.SysFunctionColumnTlDBEntity;
@@ -21,13 +25,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 主页组件用户分配-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 主页组件用户分配-mapper实现类，通过MyBatisPlus方案重写SQL
  *
  * @author 李江涛
  * @date 2025-11-18
  */
 @Repository
-public class SysHomePageComponentMapperImpl extends ServiceImpl<SysHomePageComponentUserMapperService, SysHomePageComponentUserDBEntity> implements SysHomePageComponentMapper {
+public class SysHomePageComponentMapperImpl extends ServiceImpl<SysHomePageComponentUserMapperService, SysHomePageComponentUserDBEntity> {
 
     @Resource
     private SysHomePageComponentUserMapperService sysHomePageComponentUserMapperService;
@@ -35,13 +39,13 @@ public class SysHomePageComponentMapperImpl extends ServiceImpl<SysHomePageCompo
     @Resource
     private SysHomePageComponentMapperService sysHomePageComponentMapperService;
 
-    @Override
+
     public Integer add(SysHomePageComponent param) {
         SysHomePageComponentDBEntity sysHomePageComponentDBEntity = convertToDB(param);
         return sysHomePageComponentMapperService.insert(sysHomePageComponentDBEntity);
     }
 
-    @Override
+
     public List<SysHomePageComponent> findList(HomePageParam param) {
         LambdaQueryWrapper<SysHomePageComponentDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.like(StringUtils.isNotBlank(param.getHomePageTitle()), SysHomePageComponentDBEntity::getHomePageTitle, param.getHomePageTitle())
@@ -51,12 +55,24 @@ public class SysHomePageComponentMapperImpl extends ServiceImpl<SysHomePageCompo
         return convertFromDB(sysHomePageComponentDBEntities);
     }
 
-    @Override
+    public IPage<SysHomePageComponent> findPage(HomePageParam param) {
+        LambdaQueryWrapper<SysHomePageComponentDBEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(StringUtils.isNotBlank(param.getHomePageTitle()), SysHomePageComponentDBEntity::getHomePageTitle, param.getHomePageTitle())
+                .like(StringUtils.isNotBlank(param.getFunctionName()), SysHomePageComponentDBEntity::getFunctionName, param.getFunctionName())
+                .eq(StringUtils.isNotBlank(param.getStatus()), SysHomePageComponentDBEntity::getStatus, param.getStatus());
+        Page<SysHomePageComponentDBEntity> midPage = sysHomePageComponentMapperService.selectPage(
+                new Page<>(param.getPage(), param.getPageSize()), wrapper);
+        IPage<SysHomePageComponent> resultPage = new Page<>(midPage.getCurrent(), midPage.getSize(), midPage.getTotal());
+        resultPage.setRecords(convertFromDB(midPage.getRecords()));
+        return resultPage;
+    }
+
+
     public Integer deleteById(Long componentId) {
         return sysHomePageComponentMapperService.deleteById(componentId);
     }
 
-    @Override
+
     public Integer updateById(SysHomePageComponent param) {
         LambdaUpdateWrapper<SysHomePageComponentDBEntity> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper
@@ -78,13 +94,13 @@ public class SysHomePageComponentMapperImpl extends ServiceImpl<SysHomePageCompo
         return sysHomePageComponentMapperService.update(updateWrapper);
     }
 
-    @Override
+
     public Integer addUser(List<SysHomePageComponentUser> list) {
         List<SysHomePageComponentUserDBEntity> sysHomePageComponentUserDBEntities = convertToDB(list);
         return super.saveBatch(sysHomePageComponentUserDBEntities) ? sysHomePageComponentUserDBEntities.size() : 0;
     }
 
-    @Override
+
     public List<Long> findUserByComponentId(Long componentId) {
         LambdaQueryWrapper<SysHomePageComponentUserDBEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper
@@ -97,7 +113,7 @@ public class SysHomePageComponentMapperImpl extends ServiceImpl<SysHomePageCompo
                 .collect(Collectors.toList());
     }
 
-    @Override
+
     public List<SysHomePageComponent> findComponentByUserId(Long userId) {
         MPJLambdaWrapper<SysHomePageComponentUserDBEntity> wrapper = JoinWrappers.lambda(SysHomePageComponentUserDBEntity.class)
                 .selectAll(SysHomePageComponentDBEntity.class)
@@ -107,7 +123,7 @@ public class SysHomePageComponentMapperImpl extends ServiceImpl<SysHomePageCompo
         return sysHomePageComponentUserMapperService.selectJoinList(SysHomePageComponent.class, wrapper);
     }
 
-    @Override
+
     public List<SysHomePageComponent> findComponentByUserType(String userType) {
         LambdaQueryWrapper<SysHomePageComponentDBEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper
@@ -117,7 +133,7 @@ public class SysHomePageComponentMapperImpl extends ServiceImpl<SysHomePageCompo
         return convertFromDB(sysHomePageComponentDBEntities);
     }
 
-    @Override
+
     public Integer deleteUserByComponentId(Long componentId) {
         LambdaQueryWrapper<SysHomePageComponentUserDBEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(SysHomePageComponentUserDBEntity::getComponentId, componentId);
