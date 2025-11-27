@@ -27,12 +27,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 列权限表-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 列权限表-mapper实现类，通过MyBatisPlus方案重写SQL
  * @author 李江涛
  * @date 2025-11-17
  */
 @Repository
-public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTlMapperService, SysFunctionColumnTlDBEntity> implements SysFunctionColumnMapper {
+public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTlMapperService, SysFunctionColumnTlDBEntity> {
 
     @Resource
     private SysFunctionColumnBMapperService sysFunctionColumnBMapperService;
@@ -40,7 +40,7 @@ public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTl
     @Resource
     private SysFunctionColumnTlMapperService sysFunctionColumnTlMapperService;
 
-    @Override
+
     public List<SysFunctionColumn> findByParentIds(List<Long> blockIdList, String language) {
         MPJLambdaWrapper<SysFunctionColumnBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionColumnBDBEntity.class)
                 .selectAll(SysFunctionColumnBDBEntity.class)
@@ -55,19 +55,19 @@ public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTl
         return sysFunctionColumnBMapperService.selectJoinList(SysFunctionColumn.class, wrapper);
     }
 
-    @Override
+
     public void insertTl(List<SysFunctionColumnTl> functionColumnTlList) {
         List<SysFunctionColumnTlDBEntity> sysFunctionColumnTlDBEntities = convertToDB(functionColumnTlList);
         super.saveBatch(sysFunctionColumnTlDBEntities);
     }
 
-    @Override
+
     public int insert(SysFunctionColumn functionColumn) {
         SysFunctionColumnBDBEntity sysFunctionColumnBDBEntity = convertToDB(functionColumn);
         return sysFunctionColumnBMapperService.insert(sysFunctionColumnBDBEntity);
     }
 
-    @Override
+
     public SysFunctionColumn findByBlockCode(String blockCode, String language) {
         MPJLambdaWrapper<SysFunctionColumnBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionColumnBDBEntity.class)
                 .selectAll(SysFunctionColumnBDBEntity.class)
@@ -82,7 +82,7 @@ public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTl
         return sysFunctionColumnBMapperService.selectJoinOne(SysFunctionColumn.class, wrapper);
     }
 
-    @Override
+
     public SysFunctionColumn findByColumnCode(String columnCode, String language, long blockId) {
         MPJLambdaWrapper<SysFunctionColumnBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionColumnBDBEntity.class)
                 .selectAll(SysFunctionColumnBDBEntity.class)
@@ -97,7 +97,7 @@ public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTl
         return sysFunctionColumnBMapperService.selectJoinOne(SysFunctionColumn.class, wrapper);
     }
 
-    @Override
+
     public void updateTl(SysFunctionColumn functionColumn) {
         LambdaUpdateWrapper<SysFunctionColumnTlDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.set(SysFunctionColumnTlDBEntity::getFcName, functionColumn.getFcName())
@@ -110,7 +110,7 @@ public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTl
         sysFunctionColumnTlMapperService.update(wrapper);
     }
 
-    @Override
+
     public int update(SysFunctionColumn functionColumn) {
         LambdaUpdateWrapper<SysFunctionColumnBDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.set(SysFunctionColumnBDBEntity::getFcCode, functionColumn.getFcCode())
@@ -125,21 +125,21 @@ public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTl
         return sysFunctionColumnBMapperService.update(wrapper);
     }
 
-    @Override
+
     public void deleteTlByIds(List<Long> ids) {
         LambdaUpdateWrapper<SysFunctionColumnTlDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysFunctionColumnTlDBEntity::getFcId, ids);
         sysFunctionColumnTlMapperService.delete(wrapper);
     }
 
-    @Override
+
     public int deleteByIds(List<Long> ids) {
         LambdaUpdateWrapper<SysFunctionColumnBDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysFunctionColumnBDBEntity::getFcId, ids);
         return sysFunctionColumnBMapperService.delete(wrapper);
     }
 
-    @Override
+
     public List<SysFunctionColumn> findByFunctionIds(List<Long> functionIdList, String language) {
         MPJLambdaWrapper<SysFunctionColumnBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionColumnBDBEntity.class)
                 .selectAll(SysFunctionColumnBDBEntity.class)
@@ -154,7 +154,7 @@ public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTl
         return sysFunctionColumnBMapperService.selectJoinList(SysFunctionColumn.class, wrapper);
     }
 
-    @Override
+
     public List<SysFunctionColumn> getHaveNoColumnCode(long roleId, String blockCode) {
         MPJLambdaWrapper<SysFunctionColumnBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionColumnBDBEntity.class)
                 .select(SysFunctionColumnBDBEntity::getFcId)
@@ -168,7 +168,7 @@ public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTl
         return sysFunctionColumnBMapperService.selectJoinList(SysFunctionColumn.class, wrapper);
     }
 
-    @Override
+
     public List<SysFunctionColumn> findByColumnIds(List<Long> columnIdList, String language) {
         MPJLambdaWrapper<SysFunctionColumnBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionColumnBDBEntity.class)
                 .selectAll(SysFunctionColumnBDBEntity.class)

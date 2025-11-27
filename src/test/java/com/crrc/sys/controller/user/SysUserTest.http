@@ -303,3 +303,21 @@ Content-Type: application/json
   "pageNo": 2,
   "pageSize": 20
 }
+
+### 其它
+POST {{prefix}}/user/get_user_page_with_user_inform
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "pageNo": 1,
+  "pageSize": 50
+}
+
+### 其它
+GET {{prefix}}/user/get_user_page?pageNo=3&pageSize=50
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+

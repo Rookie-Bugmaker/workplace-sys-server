@@ -116,6 +116,11 @@ Content-Type: application/json
 
 {
   "page": 1,
-  "pageSize" : 10,
-  "profileCode": "TEST_LJT"
+  "pageSize" : 10
 }
+
+### 其它：配置文件分页查询
+POST {{prefix}}/profile/findByPage?page=4&pageSize=5&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json

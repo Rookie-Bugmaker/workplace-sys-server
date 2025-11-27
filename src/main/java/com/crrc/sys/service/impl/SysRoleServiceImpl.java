@@ -1,5 +1,6 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.IdKeyGenerator;
@@ -9,6 +10,7 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.controller.SysOnlineUserController;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
+import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUser;
@@ -79,8 +81,9 @@ public class SysRoleServiceImpl implements SysRoleService {
      */
     @Override
     public PaginationGrid<SysRole> findByPage(SysRoleFindByPageParam param) {
-        PageHelper.startPage(param.getPage(), param.getPageSize());
-        List<SysRole> rows = roleMapper.findByFuzzy(param);
+//        PageHelper.startPage(param.getPage(), param.getPageSize());
+        IPage<SysRole> midPage = roleMapper.findByFuzzyPage(param);
+        List<SysRole> rows = midPage.getRecords();
         if (!CollectionUtils.isEmpty(rows)) {
             List<Long> projectIdList = rows.stream().map(SysRole::getProjectId).distinct().collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(projectIdList)) {
@@ -93,8 +96,11 @@ public class SysRoleServiceImpl implements SysRoleService {
                 }
             }
         }
-        PageInfo<SysRole> pageInfo = new PageInfo<>(rows);
-        return PaginationGrid.success(pageInfo);
+        PaginationGrid<SysRole> page = new PaginationGrid<>(
+                Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
+        page.setTotal(midPage.getTotal());
+        page.setRows(rows);
+        return page;
     }
 
     /**

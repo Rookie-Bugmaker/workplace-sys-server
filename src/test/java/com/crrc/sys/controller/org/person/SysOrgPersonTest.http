@@ -147,3 +147,9 @@ Authorization: {{authToken}}
 GET {{prefix}}/test/org/person/findByPhoneList?phoneList=13800138002,13800138003
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
+
+### 其它 人员分页查询
+POST {{prefix}}/org/person/findByPage?page=1000&pageSize=10&language=zh-CN
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json

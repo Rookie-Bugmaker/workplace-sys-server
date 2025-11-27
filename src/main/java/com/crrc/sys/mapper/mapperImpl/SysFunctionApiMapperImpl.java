@@ -28,12 +28,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 功能API关系表-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 功能API关系表-mapper实现类，通过MyBatisPlus方案重写SQL
  * @author 李江涛
  * @date 2025-11-17
  */
 @Repository
-public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperService, SysFunctionApiDBEntity> implements SysFunctionApiMapper {
+public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperService, SysFunctionApiDBEntity> {
 
     @Resource
     private SysFunctionApiMapperService sysFunctionApiService;
@@ -41,27 +41,27 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
     @Resource
     private SysApiMapperService sysApiMapperService;
 
-    @Override
+
     public int deleteByFunctionId(Long functionId) {
         LambdaUpdateWrapper<SysFunctionApiDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(SysFunctionApiDBEntity::getFunctionId, functionId);
         return sysFunctionApiService.delete(wrapper);
     }
 
-    @Override
+
     public int deleteByFunctionIds(List<Long> functionIdList) {
         LambdaUpdateWrapper<SysFunctionApiDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysFunctionApiDBEntity::getFunctionId, functionIdList);
         return sysFunctionApiService.delete(wrapper);
     }
 
-    @Override
+
     public int insert(List<SysFunctionApiPO> functionApiList) {
         List<SysFunctionApiDBEntity> sysFunctionApiDBEntities = convertToDB(functionApiList);
         return super.saveBatch(sysFunctionApiDBEntities) ? sysFunctionApiDBEntities.size() : 0;
     }
 
-    @Override
+
     public List<SysFunctionApiBO> findByFunctionIds(List<Long> functionIdList) {
         MPJLambdaWrapper<SysApiDBEntity> wrapper = JoinWrappers.lambda(SysApiDBEntity.class)
                 .selectAs(SysFunctionApiDBEntity::getFunctionId, SysFunctionApiBO::getFunctionId)
@@ -80,7 +80,7 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
         return sysApiMapperService.selectJoinList(SysFunctionApiBO.class, wrapper);
     }
 
-    @Override
+
     public SysFunctionApiBO findByFunctionId(Long functionId) {
         MPJLambdaWrapper<SysApiDBEntity> wrapper = JoinWrappers.lambda(SysApiDBEntity.class)
                 .selectAs(SysFunctionApiDBEntity::getFunctionId, SysFunctionApiBO::getFunctionId)
@@ -97,7 +97,7 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
         return sysApiMapperService.selectJoinOne(SysFunctionApiBO.class, wrapper);
     }
 
-    @Override
+
     public int findAllFunctionApi() {
         MPJLambdaWrapper<SysApiDBEntity> wrapper = JoinWrappers.lambda(SysApiDBEntity.class)
                 .select(SysFunctionApiDBEntity::getApiId)
@@ -105,7 +105,7 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
         return sysApiMapperService.selectCount(wrapper).intValue();
     }
 
-    @Override
+
     public List<SysFunctionApi> findPageFunctionApi(Integer offset, Integer endset) {
         Page<SysFunctionApi> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
@@ -122,7 +122,7 @@ public class SysFunctionApiMapperImpl extends ServiceImpl<SysFunctionApiMapperSe
         return sysFunctionApiPage.getRecords();
     }
 
-    @Override
+
     public int deleteByApiIds(List<Long> ids) {
         LambdaUpdateWrapper<SysFunctionApiDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysFunctionApiDBEntity::getApiId, ids);

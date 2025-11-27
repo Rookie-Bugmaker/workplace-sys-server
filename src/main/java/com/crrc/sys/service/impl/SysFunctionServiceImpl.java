@@ -1,5 +1,6 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.MyThreadPoolExecutor;
@@ -60,8 +61,9 @@ public class SysFunctionServiceImpl implements SysFunctionService {
      */
     @Override
     public PaginationGrid<SysFunction> findByPage(SysFunctionFindByPageParam param) {
-        PageHelper.startPage(param.getPage(), param.getPageSize());
-        List<SysFunction> rows = functionMapper.findByFuzzy(param);
+//        PageHelper.startPage(param.getPage(), param.getPageSize());
+        IPage<SysFunction> midPage = functionMapper.findByFuzzyPage(param);
+        List<SysFunction> rows = midPage.getRecords();
         if (!ObjectUtils.isEmpty(rows)) {
             //查询所有子功能数据
             List<SysFunction> childrenAll = functionMapper.findByParentIds(null, param.getLanguage());
@@ -81,8 +83,13 @@ public class SysFunctionServiceImpl implements SysFunctionService {
                 }
             }
         }
-        PageInfo<SysFunction> pageInfo = new PageInfo<>(rows);
-        return PaginationGrid.success(pageInfo);
+//        PageInfo<SysFunction> pageInfo = new PageInfo<>(rows);
+//        return PaginationGrid.success(pageInfo);
+        PaginationGrid<SysFunction> page = new PaginationGrid<>(
+                Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
+        page.setTotal(midPage.getTotal());
+        page.setRows(rows);
+        return page;
     }
 
     /**

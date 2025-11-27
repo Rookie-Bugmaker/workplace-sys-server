@@ -2,6 +2,8 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.entity.api.*;
@@ -17,17 +19,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * mapper实现类，通过MyBatisPlus方案重写SQL
  * 李江涛
  * 2025-11-13
  */
 @Repository
-public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBEntity> implements SysApiMapper {
+public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBEntity> {
 
     @Resource
     private SysApiMapperService sysApiMapperService;
 
-    @Override
+
     public List<SysApi> findByFuzzy(SysApiFindByPageParam param) {
         LambdaQueryWrapper<SysApiDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.like(StringUtils.isNotBlank(param.getApiName()),
@@ -40,13 +42,28 @@ public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBE
         return convertFromDB(list);
     }
 
-    @Override
+    public IPage<SysApi> findByFuzzyPage(SysApiFindByPageParam param) {
+        LambdaQueryWrapper<SysApiDBEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(StringUtils.isNotBlank(param.getApiName()),
+                        SysApiDBEntity::getApiName, param.getApiName())
+                .like(StringUtils.isNotBlank(param.getApiUri()),
+                        SysApiDBEntity::getApiUri, param.getApiUri())
+                .like(StringUtils.isNotBlank(param.getApiDesc()),
+                        SysApiDBEntity::getApiDesc, param.getApiDesc());
+        Page<SysApiDBEntity> midPage = sysApiMapperService.selectPage(
+                new Page<>(param.getPage(), param.getPageSize()), wrapper);
+        IPage<SysApi> resultPage = new Page<>(midPage.getCurrent(), midPage.getSize(), midPage.getTotal());
+        resultPage.setRecords(convertFromDB(midPage.getRecords()));
+        return resultPage;
+    }
+
+
     public int insert(SysApi api) {
         SysApiDBEntity sysApiDBEntity = convertToDB(api);
         return sysApiMapperService.insert(sysApiDBEntity);
     }
 
-    @Override
+
     public int update(SysApi api) {
         LambdaUpdateWrapper<SysApiDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.set(SysApiDBEntity::getApiName, api.getApiName())
@@ -60,26 +77,26 @@ public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBE
         return sysApiMapperService.update(wrapper);
     }
 
-    @Override
+
     public int delete(List<Long> ids) {
         LambdaUpdateWrapper<SysApiDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysApiDBEntity::getApiId, ids);
         return sysApiMapperService.delete(wrapper);
     }
 
-    @Override
+
     public SysApi findById(long id) {
         SysApiDBEntity entity = sysApiMapperService.selectById(id);
         return convertFromDB(entity);
     }
 
-    @Override
+
     public List<SysApi> findByIds(List<Long> ids) {
         List<SysApiDBEntity> sysApiDBEntityList = sysApiMapperService.selectBatchIds(ids);
         return convertFromDB(sysApiDBEntityList);
     }
 
-    @Override
+
     public SysApi findByUri(String uri) {
         LambdaQueryWrapper<SysApiDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysApiDBEntity::getApiUri, uri);
@@ -87,7 +104,7 @@ public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBE
         return convertFromDB(sysApiDBEntity);
     }
 
-    @Override
+
     public SysApi findByMethodAndUri(String apiMethod, String apiUri) {
         LambdaQueryWrapper<SysApiDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysApiDBEntity::getApiUri, apiUri)
@@ -96,13 +113,13 @@ public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBE
         return convertFromDB(sysApiDBEntity);
     }
 
-    @Override
+
     public List<SysApi> findAll() {
         List<SysApiDBEntity> sysApiDBEntityList = sysApiMapperService.selectList(new LambdaQueryWrapper<>());
         return convertFromDB(sysApiDBEntityList);
     }
 
-    @Override
+
     public List<SysApi> findByMethodAndUris(List<SysApi> apiList) {
         List<SysApi> sysApiList= new ArrayList<>();
         apiList.forEach(sysApi -> {
@@ -115,7 +132,7 @@ public class SysApiMapperImpl extends ServiceImpl<SysApiMapperService, SysApiDBE
         return sysApiList;
     }
 
-    @Override
+
     public List<SysApi> findByUris(List<String> apiUriList) {
         LambdaQueryWrapper<SysApiDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(SysApiDBEntity::getApiUri, apiUriList);

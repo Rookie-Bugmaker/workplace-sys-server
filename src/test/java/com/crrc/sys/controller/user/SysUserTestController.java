@@ -1,5 +1,6 @@
 package com.crrc.sys.controller.user;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserRole;
@@ -43,9 +44,9 @@ public class SysUserTestController {
     }
 
     @Operation(summary = "模糊查询用户列表（带部门）")
-    @PostMapping("/findByFuzzyAndDept")
-    public List<SysUser> findByFuzzy(@RequestBody RequestParamForUserFuzzy param) {
-        return sysUserMapper.findByFuzzyAndDept(param.getParam(), param.getDeptIdList());
+    @PostMapping("/findByFuzzyAndDeptPage")
+    public IPage<SysUser> findByFuzzyAndDeptPage(@RequestBody RequestParamForUserFuzzy param) {
+        return sysUserMapper.findByFuzzyAndDeptPage(param.getParam(), param.getDeptIdList());
     }
 
     @Operation(summary = "新增用户")

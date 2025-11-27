@@ -118,3 +118,9 @@ Authorization: {{authToken}}
 DELETE {{prefix}}/test/homePageComponent/deleteUserByComponentId/1001
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
+
+### 其它 分页查询
+POST {{prefix}}/homePage/component/pageList?page=2&pageSize=5
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}

@@ -15,30 +15,30 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 角色列权限关系表-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 角色列权限关系表-mapper实现类，通过MyBatisPlus方案重写SQL
  * @author 李江涛
  * @date 2025-11-17
  */
 @Repository
-public class SysRoleFunctionColumnMapperImpl extends ServiceImpl<SysRoleFunctionColumnMapperService, SysRoleFunctionColumnDBEntity> implements SysRoleFunctionColumnMapper {
+public class SysRoleFunctionColumnMapperImpl extends ServiceImpl<SysRoleFunctionColumnMapperService, SysRoleFunctionColumnDBEntity> {
 
     @Resource
     private SysRoleFunctionColumnMapperService sysRoleFunctionColumnMapperService;
 
-    @Override
+
     public void insert(List<SysRoleFunctionColumn> functionColumnList) {
         List<SysRoleFunctionColumnDBEntity> sysRoleFunctionColumnDBEntities = convertToDB(functionColumnList);
         super.saveBatch(sysRoleFunctionColumnDBEntities);
     }
 
-    @Override
+
     public void deleteByRoleIds(List<Long> roleIdList) {
         LambdaUpdateWrapper<SysRoleFunctionColumnDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysRoleFunctionColumnDBEntity::getRoleId, roleIdList);
         sysRoleFunctionColumnMapperService.delete(wrapper);
     }
 
-    @Override
+
     public List<SysRoleFunctionColumn> findByRoleId(long roleId) {
         LambdaQueryWrapper<SysRoleFunctionColumnDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysRoleFunctionColumnDBEntity::getRoleId, roleId);

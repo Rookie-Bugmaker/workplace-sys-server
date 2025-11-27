@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 菜单-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 菜单-mapper实现类，通过MyBatisPlus方案重写SQL
  * @author 李江涛
  * @date 2025-11-18
  */

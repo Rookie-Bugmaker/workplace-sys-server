@@ -1,5 +1,6 @@
 package com.crrc.sys.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
@@ -75,7 +76,7 @@ public interface SysUserService {
      * @param param 查询条件
      * @return 分页数据
      */
-    PaginationGrid<SysUser> findPageByUserAndDept(SysUserFindByPageParam param, List<Long> deptIdList);
+    IPage<SysUser> findByFuzzyAndDeptPage(SysUserFindByPageParam param, List<Long> deptIdList);
 
     /**
      * 用户添加
