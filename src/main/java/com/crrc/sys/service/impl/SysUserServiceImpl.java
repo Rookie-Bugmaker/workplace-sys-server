@@ -441,6 +441,15 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
+    public List<SysUser> findUserByRoleCode(String roleCode) {
+        List<Long> userIdList = userRoleMapper.findUserByRoleCode(roleCode);
+        if (CollectionUtils.isEmpty(userIdList)) {
+            return null;
+        }
+        return userMapper.findByUserIds(userIdList);
+    }
+
+    @Override
     public List<UserGetRespVO> getUsersWithRoles(List<Long> userIds) {
         // 查询用户列表
         List<SysUser> users = userMapper.findByUserIds(userIds);

@@ -651,6 +651,21 @@ public class SysRoleController {
         return userService.findUserByRoleId(RoleId);
     }
 
+
+    /**
+     * 查询角色Code绑定的用户列表
+     *
+     * @param roleCode 角色Key
+     * @return 结果
+     */
+    @GetMapping("get_role_users_by_roleCode")
+    public List<SysUser> findUserByRoleId(String roleCode) {
+        if (ObjectUtils.isEmpty(roleCode)) {
+            throw new ParamValidateException("参数不能为空!");
+        }
+        return userService.findUserByRoleCode(roleCode);
+    }
+
     /**
      * 根据角色ID查询绑定的公司ID与部门ID集合
      *
