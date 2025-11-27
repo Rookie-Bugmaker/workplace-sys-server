@@ -2,6 +2,8 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.entity.dept.Dept;
@@ -32,17 +34,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 系统用户表-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 系统用户表-mapper实现类，通过MyBatisPlus方案重写SQL
  * @author 李江涛
  * @date 2025-11-20
  */
 @Repository
-public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUserDBEntity> implements SysUserMapper {
+public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUserDBEntity> {
 
     @Resource
     private SysUserMapperService sysUserMapperService;
-
-    @Override
+    
     public SysUser findByUserName(String userName) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -56,8 +57,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         SysUserInfoDBJoinDTO sysUserInfoDBJoinDTO = sysUserMapperService.selectJoinOne(SysUserInfoDBJoinDTO.class, wrapper);
         return convertFromJoinDB(sysUserInfoDBJoinDTO);
     }
-
-    @Override
+    
     public List<SysUser> findByFuzzy(SysUserFindByPageParam param) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -94,6 +94,47 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
 
         List<SysUserInfoDBJoinDTO> sysUserInfoDBJoinDTOS = sysUserMapperService.selectJoinList(SysUserInfoDBJoinDTO.class, wrapper);
         return convertFromJoinDB(sysUserInfoDBJoinDTOS);
+    }
+
+    public IPage<SysUser> findByFuzzyPage(SysUserFindByPageParam param) {
+        MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
+                .selectAll(SysUserDBEntity.class)
+                .select(SysOrgPersonTlDBEntity::getFullName)
+                .leftJoin(SysOrgPersonBDBEntity.class, SysOrgPersonBDBEntity::getPersonId, SysUserDBEntity::getUserRelationId)
+                .leftJoin(SysOrgPersonTlDBEntity.class,
+                        fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
+                                .eq(SysOrgPersonTlDBEntity::getLanguage, "zh-CN")
+                );
+
+        if (param.getRoleId() != null) {
+            wrapper.innerJoin(SysUserRoleDBEntity.class,
+                    fn -> fn.eq(SysUserRoleDBEntity::getUserId, SysUserDBEntity::getUserId)
+                            .eq(SysUserRoleDBEntity::getRoleId, param.getRoleId())
+            );
+        }
+        if(StringUtils.isNotBlank(param.getDisableState())) {
+            wrapper.eq(SysUserDBEntity::getDisableState, param.getDisableState());
+        }
+        if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
+            wrapper.like(SysUserDBEntity::getUserName, param.getUserName());
+        } else if (StringUtils.isBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
+            wrapper.like(SysUserDBEntity::getUserDescription, param.getUserDescription());
+        } else if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
+            if("or".equals(param.getMontage())) {
+                wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
+                        .or()
+                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+            } else {
+                wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
+                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+            }
+        }
+
+        Page<SysUserInfoDBJoinDTO> midPage = sysUserMapperService.selectJoinPage(
+                new Page<>(param.getPage(), param.getPageSize()), SysUserInfoDBJoinDTO.class, wrapper);
+        IPage<SysUser> resultPage = new Page<>(midPage.getCurrent(), midPage.getSize(), midPage.getTotal());
+        resultPage.setRecords(convertFromJoinDB(midPage.getRecords()));
+        return resultPage;
     }
 
     public List<SysUser> findByFuzzyAndDept(SysUserFindByPageParam param, List<Long> deptIdList) {
@@ -138,13 +179,57 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return convertFromJoinDB(sysUserInfoDBJoinDTOS);
     }
 
-    @Override
+    public IPage<SysUser> findByFuzzyAndDeptPage(SysUserFindByPageParam param, List<Long> deptIdList) {
+        MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
+                .selectAll(SysUserDBEntity.class)
+                .select(SysOrgPersonTlDBEntity::getFullName)
+                .leftJoin(SysOrgPersonBDBEntity.class, SysOrgPersonBDBEntity::getPersonId, SysUserDBEntity::getUserRelationId)
+                .leftJoin(SysOrgPersonTlDBEntity.class,
+                        fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
+                                .eq(SysOrgPersonTlDBEntity::getLanguage, "zh-CN")
+                );
+
+        if (param.getRoleId() != null) {
+            wrapper.innerJoin(SysUserRoleDBEntity.class,
+                    fn -> fn.eq(SysUserRoleDBEntity::getUserId, SysUserDBEntity::getUserId)
+                            .eq(SysUserRoleDBEntity::getRoleId, param.getRoleId())
+            );
+        }
+
+        if(deptIdList != null && deptIdList.size() > 0) {
+            wrapper.innerJoin(SysDeptPersonPO.class, SysDeptPersonPO::getPersonId, SysUserDBEntity::getUserRelationId);
+            wrapper.in(SysDeptPersonPO::getDeptId, deptIdList);
+        }
+        if(StringUtils.isNotBlank(param.getDisableState())) {
+            wrapper.eq(SysUserDBEntity::getDisableState, param.getDisableState());
+        }
+        if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
+            wrapper.like(SysUserDBEntity::getUserName, param.getUserName());
+        } else if (StringUtils.isBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
+            wrapper.like(SysUserDBEntity::getUserDescription, param.getUserDescription());
+        } else if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
+            if("or".equals(param.getMontage())) {
+                wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
+                        .or()
+                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+            } else {
+                wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
+                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+            }
+        }
+        Page<SysUserInfoDBJoinDTO> midPage = sysUserMapperService.selectJoinPage(
+                new Page<>(param.getPage(), param.getPageSize()), SysUserInfoDBJoinDTO.class, wrapper);
+        IPage<SysUser> resultPage = new Page<>(midPage.getCurrent(), midPage.getSize(), midPage.getTotal());
+        resultPage.setRecords(convertFromJoinDB(midPage.getRecords()));
+        return resultPage;
+    }
+
     public int insert(SysUser user) {
         SysUserDBEntity entity = convertToDB(user);
         return sysUserMapperService.insert(entity);
     }
 
-    @Override
+
     public int update(SysUser user) {
         SysUserDBEntity entity = convertToDB(user);
         LambdaUpdateWrapper<SysUserDBEntity> wrapper = new LambdaUpdateWrapper<SysUserDBEntity>()
@@ -165,12 +250,12 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.update(wrapper);
     }
 
-    @Override
+
     public int delete(List<Long> userIds) {
         return sysUserMapperService.deleteBatchIds(userIds);
     }
 
-    @Override
+
     public SysUser findById(long userId) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -185,7 +270,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return convertFromJoinDB(sysUserInfoDBJoinDTO);
     }
 
-    @Override
+
     public int updateLastLoginInfoId(long loginId, long userId) {
         LambdaUpdateWrapper<SysUserDBEntity> wrapper = new LambdaUpdateWrapper<SysUserDBEntity>()
                 .eq(SysUserDBEntity::getUserId, userId)
@@ -194,7 +279,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.update(wrapper);
     }
 
-    @Override
+
     public int updateLoginError(SysUser errorUser) {
         LambdaUpdateWrapper<SysUserDBEntity> wrapper = new LambdaUpdateWrapper<SysUserDBEntity>()
                 .eq(SysUserDBEntity::getUserId, errorUser.getUserId())
@@ -205,7 +290,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.update(wrapper);
     }
 
-    @Override
+
     public List<SysUser> findByUserIds(List<Long> userIds) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -222,7 +307,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return convertFromJoinDB(sysUserInfoDBJoinDTOS);
     }
 
-    @Override
+
     public List<SysUserDTO> findByUserIdListWithFullName(List<Long> userIds) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -235,7 +320,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.selectJoinList(SysUserDTO.class, wrapper);
     }
 
-    @Override
+
     public int updatePassword(SysUser user) {
         LambdaUpdateWrapper<SysUserDBEntity> wrapper = new LambdaUpdateWrapper<SysUserDBEntity>()
                 .eq(SysUserDBEntity::getUserId, user.getUserId())
@@ -247,7 +332,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.update(wrapper);
     }
 
-    @Override
+
     public List<SysUser> findByRelationIds(List<Long> relationIdList) {
         LambdaQueryWrapper<SysUserDBEntity> wrapper = new LambdaQueryWrapper<SysUserDBEntity>()
                 .in(SysUserDBEntity::getUserRelationId, relationIdList);
@@ -256,7 +341,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return convertFromDB(entities);
     }
 
-    @Override
+
     public List<SysUser> findByUserNameList(List<String> userNameList) {
         LambdaQueryWrapper<SysUserDBEntity> wrapper = new LambdaQueryWrapper<SysUserDBEntity>();
         if (userNameList != null && userNameList.size() > 0) {
@@ -266,7 +351,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return convertFromDB(entities);
     }
 
-    @Override
+
     public List<SysUser> findUsersByRoleCode(List<String> roleCode) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -280,7 +365,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.selectJoinList(SysUser.class, wrapper);
     }
 
-    @Override
+
     public List<SysUser> findUsersByOrgCode(String orgCode, Long companyId) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -295,7 +380,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.selectJoinList(SysUser.class, wrapper);
     }
 
-    @Override
+
     public List<SysUserDTO> findUserByRoleCodeAndCompanyId(String roleCode, Long companyId) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -317,7 +402,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.selectJoinList(SysUserDTO.class,wrapper);
     }
 
-    @Override
+
     public List<SysUserDTO> findUserByRoleCode(String roleCode, Long companyId, Long deptId) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -340,7 +425,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.selectJoinList(SysUserDTO.class, wrapper);
     }
 
-    @Override
+
     public List<SysUserDTO> findUsersByfullName(String fullName, Long companyId) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -358,13 +443,13 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return sysUserMapperService.selectJoinList(SysUserDTO.class, wrapper);
     }
 
-    @Override
+
     public boolean insertAll(List<SysUser> list) {
         List<SysUserDBEntity> entities = convertToDB(list);
         return super.saveBatch(entities);
     }
 
-    @Override
+
     public List<SysUser> findByUserIdsAndFuzzy(List<Long> userIdList, String userName, String fullName) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -388,7 +473,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return convertFromJoinDB(sysUserInfoDBJoinDTOS);
     }
 
-    @Override
+
     public List<SysOnlineUserVO> findByUserNamesAndFuzzy(List<String> userNameList, SysOnlineUserParamDTO search) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .select(SysUserDBEntity::getUserId)
@@ -447,6 +532,47 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         }
         wrapper.orderByDesc(SysUserDBEntity::getUserId);
         return sysUserMapperService.selectJoinList(SysUser.class, wrapper);
+    }
+
+    public IPage<SysUser> findByPersonParamPage(SysOrgPersonFindByPageParam param) {
+        MPJLambdaWrapper<SysUserDBEntity> wrapper = JoinWrappers.lambda(SysUserDBEntity.class)
+                .selectAll(SysUserDBEntity.class)
+                .innerJoin(SysOrgPersonBDBEntity.class, SysOrgPersonBDBEntity::getPersonId, SysUserDBEntity::getUserRelationId)
+                .innerJoin(SysOrgPersonTlDBEntity.class,
+                        fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
+                                .eq(SysOrgPersonTlDBEntity::getLanguage, "zh-CN")
+                );
+
+        if (param.getStatus() != null) {
+            wrapper.eq(SysOrgPersonBDBEntity::getStatus, param.getStatus());
+        }
+
+        if (!CollectionUtils.isEmpty(param.getPersonTypeList())) {
+            wrapper.in(SysOrgPersonBDBEntity::getPersonType, param.getPersonTypeList());
+        }
+
+        if (org.springframework.util.StringUtils.hasText(param.getFullName()) && org.springframework.util.StringUtils.hasText(param.getJobNo())) {
+            if("or".equals(param.getMontage())) {
+                wrapper.and(w -> w.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName())
+                        .or()
+                        .like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo()));
+            }else {
+                wrapper.and(w -> w.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName())
+                        .like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo()));
+            }
+
+        } else {
+            if (org.springframework.util.StringUtils.hasText(param.getFullName())) {
+                wrapper.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName());
+            }
+            if (org.springframework.util.StringUtils.hasText(param.getJobNo())) {
+                wrapper.like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo());
+            }
+        }
+        wrapper.orderByDesc(SysUserDBEntity::getUserId);
+        Page<SysUser> page = sysUserMapperService.selectJoinPage(
+                new Page<>(param.getPage(), param.getPageSize()), SysUser.class, wrapper);
+        return page;
     }
 
     private SysUserDBEntity convertToDB(SysUser data) {

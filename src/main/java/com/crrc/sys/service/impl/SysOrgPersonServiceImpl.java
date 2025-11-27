@@ -1,6 +1,8 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.common.PaginationGrid;
+import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.mapperImpl.SysOrgPersonMapperImpl;
 import com.crrc.sys.mapper.mapperImpl.SysOrgPersonTlMapperImpl;
@@ -46,10 +48,14 @@ public class SysOrgPersonServiceImpl implements SysOrgPersonService {
         if (!ObjectUtils.isEmpty(param.getFullName()) && !ObjectUtils.isEmpty(param.getJobNo()) && ObjectUtils.isEmpty(param.getMontage())) {
             param.setMontage("and");
         }
-        PageHelper.startPage(param.getPage(), param.getPageSize());
-        List<SysOrgPerson> rows = personMapper.findByFuzzy(param);
-        PageInfo<SysOrgPerson> pageInfo = new PageInfo<>(rows);
-        return PaginationGrid.success(pageInfo);
+//        PageHelper.startPage(param.getPage(), param.getPageSize());
+        IPage<SysOrgPerson> midPage = personMapper.findByFuzzyPage(param);
+        PaginationGrid<SysOrgPerson> page = new PaginationGrid<>(
+                Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
+        page.setTotal(midPage.getTotal());
+        page.setRows(midPage.getRecords());
+//        PageInfo<SysOrgPerson> pageInfo = new PageInfo<>(rows);
+        return page;
     }
 
     /**

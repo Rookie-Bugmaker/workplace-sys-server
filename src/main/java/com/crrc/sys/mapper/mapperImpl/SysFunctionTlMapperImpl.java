@@ -17,30 +17,30 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 系统功能多语言表-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 系统功能多语言表-mapper实现类，通过MyBatisPlus方案重写SQL
  * @author 李江涛
  * @date 2025-11-17
  */
 @Repository
-public class SysFunctionTlMapperImpl extends ServiceImpl<SysFunctionTlMapperService, SysFunctionTlDBEntity> implements SysFunctionTlMapper {
+public class SysFunctionTlMapperImpl extends ServiceImpl<SysFunctionTlMapperService, SysFunctionTlDBEntity> {
 
     @Resource
     private SysFunctionTlMapperService sysFunctionTlMapperService;
 
-    @Override
+
     public int insertTl(List<SysFunctionTl> functionTlList) {
         List<SysFunctionTlDBEntity> sysFunctionTlDBEntities = convertToDB(functionTlList);
         return super.saveBatch(sysFunctionTlDBEntities) ? sysFunctionTlDBEntities.size() : 0;
     }
 
-    @Override
+
     public int deleteTl(List<Long> functionIds) {
         LambdaUpdateWrapper<SysFunctionTlDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysFunctionTlDBEntity::getFunctionId, functionIds);
         return sysFunctionTlMapperService.delete(wrapper);
     }
 
-    @Override
+
     public List<SysFunctionTl> findByFunctionIds(List<Long> functionIdList) {
         LambdaQueryWrapper<SysFunctionTlDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(SysFunctionTlDBEntity::getFunctionId, functionIdList);

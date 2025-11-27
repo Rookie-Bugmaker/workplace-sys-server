@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 用户角色关联表-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 用户角色关联表-mapper实现类，通过MyBatisPlus方案重写SQL
  * @author 李江涛
  * @date 2025-11-20
  */
 @Repository
-public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService, SysUserRoleDBEntity> implements SysUserRoleMapper {
+public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService, SysUserRoleDBEntity> {
 
     @Resource
     private SysUserRoleMapperService sysUserRoleMapperService;
@@ -36,7 +36,7 @@ public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService,
     @Resource
     private SysRoleBMapperService sysRoleBMapperService;
 
-    @Override
+
     public List<SysRole> findByUserId(long userId, String language) {
         MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
                 .selectAll(SysRoleBDBEntity.class)
@@ -50,20 +50,20 @@ public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService,
         return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
     }
 
-    @Override
+
     public int insert(List<SysUserRole> userRoleList) {
         List<SysUserRoleDBEntity> entities = convertToDB(userRoleList);
         return super.saveBatch(entities) ? entities.size() : 0;
     }
 
-    @Override
+
     public int deleteByUserId(long userId) {
         LambdaUpdateWrapper<SysUserRoleDBEntity> wrapper = new LambdaUpdateWrapper<SysUserRoleDBEntity>()
                 .eq(SysUserRoleDBEntity::getUserId, userId);
         return sysUserRoleMapperService.delete(wrapper);
     }
 
-    @Override
+
     public List<Long> findRoleIdByUserId(long userId) {
         MPJLambdaWrapper<SysUserRoleDBEntity> wrapper = new MPJLambdaWrapper<SysUserRoleDBEntity>()
                 .select(SysRoleBDBEntity::getRoleId)
@@ -73,7 +73,7 @@ public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService,
         return sysUserRoleMapperService.selectJoinList(Long.class, wrapper);
     }
 
-    @Override
+
     public List<Long> findUserIdByRoleId(long roleId) {
         LambdaQueryWrapper<SysUserRoleDBEntity> wrapper = new LambdaQueryWrapper<SysUserRoleDBEntity>()
                 .select(SysUserRoleDBEntity::getUserId)
@@ -84,7 +84,7 @@ public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService,
                 .collect(Collectors.toList());
     }
 
-    @Override
+
     public List<SysUserRoleDTO> findUserRoleByUserIdOrUserName(List<Long> userIds, List<String> userNames) {
         MPJLambdaWrapper<SysUserRoleDBEntity> wrapper = new MPJLambdaWrapper<SysUserRoleDBEntity>()
                 .selectAll(SysUserRoleDBEntity.class)
@@ -103,14 +103,14 @@ public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService,
         return sysUserRoleMapperService.selectJoinList(SysUserRoleDTO.class, wrapper);
     }
 
-    @Override
+
     public void deleteByRoleIds(List<Long> roleIdList) {
         LambdaUpdateWrapper<SysUserRoleDBEntity> wrapper = new LambdaUpdateWrapper<SysUserRoleDBEntity>()
                 .in(SysUserRoleDBEntity::getRoleId, roleIdList);
         sysUserRoleMapperService.delete(wrapper);
     }
 
-    @Override
+
     public List<SysUserRolePO> findByUserIds(List<Long> userIdList) {
         LambdaQueryWrapper<SysUserRoleDBEntity> wrapper = new LambdaQueryWrapper<SysUserRoleDBEntity>()
                 .in(SysUserRoleDBEntity::getUserId, userIdList);

@@ -1,5 +1,6 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
@@ -10,6 +11,7 @@ import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonBDBEntity;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.org.person.SysOrgPersonTlDBEntity;
+import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserDBEntity;
@@ -149,21 +151,27 @@ public class SysUserServiceImpl implements SysUserService {
         if (!ObjectUtils.isEmpty(param.getUserName()) && !ObjectUtils.isEmpty(param.getUserDescription()) && ObjectUtils.isEmpty(param.getMontage())) {
             param.setMontage("and");
         }
-        PageHelper.startPage(param.getPage(), param.getPageSize());
-        List<SysUser> rows = userMapper.findByFuzzy(param);
-        PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
-        return PaginationGrid.success(pageInfo);
+//        PageHelper.startPage(param.getPage(), param.getPageSize());
+//        List<SysUser> rows = userMapper.findByFuzzy(param);
+//        PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
+        IPage<SysUser> midPage = userMapper.findByFuzzyPage(param);
+        PaginationGrid<SysUser> page = new PaginationGrid<>(
+                Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
+        page.setTotal(midPage.getTotal());
+        page.setRows(midPage.getRecords());
+        return page;
     }
 
     @Override
-    public PaginationGrid<SysUser> findPageByUserAndDept(SysUserFindByPageParam param, List<Long> deptIdList) {
+    public IPage<SysUser> findByFuzzyAndDeptPage(SysUserFindByPageParam param, List<Long> deptIdList) {
         if (!ObjectUtils.isEmpty(param.getUserName()) && !ObjectUtils.isEmpty(param.getUserDescription()) && ObjectUtils.isEmpty(param.getMontage())) {
             param.setMontage("and");
         }
-        PageHelper.startPage(param.getPage(), param.getPageSize());
-        List<SysUser> rows = userMapper.findByFuzzyAndDept(param, deptIdList);
-        PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
-        return PaginationGrid.success(pageInfo);
+        // PageHelper.startPage(param.getPage(), param.getPageSize());
+//        List<SysUser> rows = userMapper.findByFuzzyAndDeptPage(param, deptIdList);
+//        PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
+//        return PaginationGrid.success(pageInfo);
+        return userMapper.findByFuzzyAndDeptPage(param, deptIdList);
     }
 
     /**
@@ -497,7 +505,7 @@ public class SysUserServiceImpl implements SysUserService {
         if (!Objects.isNull(param.getPageNo()) && !Objects.isNull(param.getPageSize())) {
             personParam.setPage(param.getPageNo());
             personParam.setPageSize(param.getPageSize());
-            PageHelper.startPage(personParam.getPage(), personParam.getPageSize());
+//            PageHelper.startPage(personParam.getPage(), personParam.getPageSize());
         }
         if (!Objects.isNull(param.getPersonTypeList()) && !param.getPersonTypeList().isEmpty()) {
             personParam.setPersonTypeList(param.getPersonTypeList());
@@ -512,9 +520,13 @@ public class SysUserServiceImpl implements SysUserService {
             personParam.setMontage("and");
         }
         // 通过人员id关联查询用户
-        PageHelper.startPage(param.getPageNo(), param.getPageSize());
-        List<SysUser> rows = userMapper.findByPersonParam(personParam);
-        PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
-        return PaginationGrid.success(pageInfo);
+//        PageHelper.startPage(param.getPageNo(), param.getPageSize());
+//        PageInfo<SysUser> pageInfo = new PageInfo<>(rows);
+        IPage<SysUser> midPage = userMapper.findByPersonParamPage(personParam);
+        PaginationGrid<SysUser> page = new PaginationGrid<>(
+                Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
+        page.setTotal(midPage.getTotal());
+        page.setRows(midPage.getRecords());
+        return page;
     }
 }

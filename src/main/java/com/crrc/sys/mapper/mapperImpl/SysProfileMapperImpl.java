@@ -3,6 +3,8 @@ package com.crrc.sys.mapper.mapperImpl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.entity.profile.*;
@@ -21,12 +23,12 @@ import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * 配置文件-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 配置文件-mapper实现类，通过MyBatisPlus方案重写SQL
  * 李江涛
  * 2025-11-17
  */
 @Repository
-public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, SysProfileBDBEntity> implements SysProfileMapper {
+public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, SysProfileBDBEntity> {
 
     @Resource
     private SysProfileBMapperService sysProfileBMapperService;
@@ -34,7 +36,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-    @Override
+
     public List<SysProfile> findByFuzzy(SysProfileFindByPageParam param) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
                 .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
@@ -57,13 +59,36 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         return sysProfileBMapperService.selectJoinList(SysProfile.class, wrapper);
     }
 
-    @Override
+    public IPage<SysProfile> findByFuzzyPage(SysProfileFindByPageParam param) {
+        MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
+                .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
+                .selectAs(SysProfileBDBEntity::getProfileFieldAlias, SysProfile::getFieldAlias)
+                .select(SysProfileTlDBEntity::getProfileName)
+                .innerJoin(SysProfileTlDBEntity.class,
+                        fn -> fn.eq(SysProfileTlDBEntity::getProfileId, SysProfileBDBEntity::getProfileId)
+                                .eq(SysProfileTlDBEntity::getLanguage, param.getLanguage())
+                );
+        if (param.getProfileCode() != null && !param.getProfileCode().isEmpty()) {
+            wrapper.like(SysProfileBDBEntity::getProfileCode, param.getProfileCode());
+        }
+        if (param.getProfileName() != null && !param.getProfileName().isEmpty()) {
+            wrapper.like(SysProfileTlDBEntity::getProfileName, param.getProfileName());
+        }
+        if (param.getProfileType() != null && !param.getProfileType().isEmpty()) {
+            wrapper.eq(SysProfileBDBEntity::getProfileType, param.getProfileType());
+        }
+        wrapper.orderByAsc(SysProfileBDBEntity::getProfileId);
+        return sysProfileBMapperService.selectJoinPage(
+                new Page<>(param.getPage(), param.getPageSize()), SysProfile.class, wrapper);
+    }
+
+
     public int insert(SysProfile profile) {
         SysProfileBDBEntity entity = convertToDB(profile);
         return sysProfileBMapperService.insert(entity);
     }
 
-    @Override
+
     public int update(SysProfile profile) {
         SysProfileBDBEntity entity = convertToDB(profile);
         LambdaUpdateWrapper<SysProfileBDBEntity> wrapper = new LambdaUpdateWrapper<>();
@@ -85,7 +110,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         return sysProfileBMapperService.update(wrapper);
     }
 
-    @Override
+
     public SysProfile findById(long profileId, String language) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
                 .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
@@ -100,14 +125,14 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         return sysProfileBMapperService.selectJoinOne(SysProfile.class, wrapper);
     }
 
-    @Override
+
     public int delete(List<Long> profileIdList) {
         LambdaQueryWrapper<SysProfileBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(SysProfileBDBEntity::getProfileId, profileIdList);
         return sysProfileBMapperService.delete(wrapper);
     }
 
-    @Override
+
     public SysProfile findByCode(String profileCode) {
         LambdaQueryWrapper<SysProfileBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysProfileBDBEntity::getProfileCode, profileCode);
@@ -115,7 +140,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         return entity != null ? convertFromDB(entity) : null;
     }
 
-    @Override
+
     public List<ValueSet> executeSql(SysProfileValuePageSearch search) {
         // 构建动态列选择
         StringJoiner selectColumns = new StringJoiner(",");
@@ -164,7 +189,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         return convertValueSetFromDB(maps);
     }
 
-    @Override
+
     public List<SysProfile> findByType(String profileType, String language) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
                 .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)
@@ -179,7 +204,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         return sysProfileBMapperService.selectJoinList(SysProfile.class, wrapper);
     }
 
-    @Override
+
     public List<SysProfile> findByIds(List<Long> profileIdList, String language) {
         MPJLambdaWrapper<SysProfileBDBEntity> wrapper = new MPJLambdaWrapper<SysProfileBDBEntity>()
                 .selectAll(SysProfileBDBEntity.class, SysProfileBDBEntity::getProfileFieldAlias)

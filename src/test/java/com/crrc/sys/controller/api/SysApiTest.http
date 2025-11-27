@@ -113,3 +113,11 @@ Content-Type: application/json
   "/auth/code/image",
   "/api/train/bogie-data"
 ]
+
+### 其它 API信息分页查询
+# @no-log
+# @no-redirect
+POST {{prefix}}/api/findByPage?page=2&pageSize=20
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json

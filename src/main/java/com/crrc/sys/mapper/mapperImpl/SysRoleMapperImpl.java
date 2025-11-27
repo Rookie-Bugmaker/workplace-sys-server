@@ -2,6 +2,8 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.entity.role.*;
@@ -18,13 +20,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 系统角色多语言表-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 系统角色多语言表-mapper实现类，通过MyBatisPlus方案重写SQL
  *
  * @author 李江涛
  * @date 2025-11-20
  */
 @Repository
-public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRoleTlDBEntity> implements SysRoleMapper {
+public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRoleTlDBEntity> {
 
     @Resource
     private SysRoleTlMapperService sysRoleTlMapperService;
@@ -32,7 +34,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
     @Resource
     private SysRoleBMapperService sysRoleBMapperService;
 
-    @Override
+
     public List<SysRole> findByFuzzy(SysRoleFindByPageParam param) {
         MPJLambdaWrapper<SysRoleBDBEntity> wrapper = JoinWrappers.lambda(SysRoleBDBEntity.class)
                 .selectAll(SysRoleBDBEntity.class)
@@ -78,19 +80,64 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
     }
 
-    @Override
+    public IPage<SysRole> findByFuzzyPage(SysRoleFindByPageParam param) {
+        MPJLambdaWrapper<SysRoleBDBEntity> wrapper = JoinWrappers.lambda(SysRoleBDBEntity.class)
+                .selectAll(SysRoleBDBEntity.class)
+                .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
+                .innerJoin(SysRoleTlDBEntity.class, SysRoleTlDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                .eq(SysRoleTlDBEntity::getLanguage, param.getLanguage());
+
+        if (param.getMenuId() != null) {
+            wrapper.innerJoin(
+                    SysRoleMenuDBEntity.class,
+                    fn -> {
+                        fn.setAlias("rm")
+                                .select(SysRoleMenuDBEntity::getRoleId)
+                                .eq(SysRoleMenuDBEntity::getMenuId, param.getMenuId())
+                                .groupBy(SysRoleMenuDBEntity::getMenuId);
+                    },
+                    SysRoleMenuDBEntity::getRoleId, SysRoleBDBEntity::getRoleId
+            );
+        }
+
+        if (param.getEnableFlag() != null && !param.getEnableFlag().isEmpty()) {
+            wrapper.eq(SysRoleBDBEntity::getEnableFlag, param.getEnableFlag());
+        }
+
+        if (param.getRoleCode() != null && !param.getRoleCode().isEmpty()) {
+            wrapper.like(SysRoleBDBEntity::getRoleCode, param.getRoleCode());
+        }
+
+        if (param.getRoleName() != null && !param.getRoleName().isEmpty()) {
+            wrapper.like(SysRoleTlDBEntity::getRoleName, param.getRoleName());
+        }
+
+        if (param.getRoleDescription() != null && !param.getRoleDescription().isEmpty()) {
+            wrapper.like(SysRoleTlDBEntity::getRoleDescription, param.getRoleDescription());
+        }
+
+        if (param.getProjectId() != null) {
+            wrapper.eq(SysRoleBDBEntity::getProjectId, param.getProjectId());
+        }
+
+        wrapper.orderByAsc(SysRoleTlDBEntity::getRoleName);
+
+        return sysRoleBMapperService.selectJoinPage(new Page<>(param.getPage(), param.getPageSize()), SysRole.class, wrapper);
+    }
+
+
     public int addTl(List<SysRoleTl> roleTlList) {
         List<SysRoleTlDBEntity> entities = convertToDB(roleTlList);
         return super.saveBatch(entities) ? entities.size() : 0;
     }
 
-    @Override
+
     public int addB(SysRole role) {
         SysRoleBDBEntity entity = convertToDB(role);
         return sysRoleBMapperService.insert(entity);
     }
 
-    @Override
+
     public int updateTl(SysRole role) {
         LambdaUpdateWrapper<SysRoleTlDBEntity> wrapper = new LambdaUpdateWrapper<SysRoleTlDBEntity>()
                 .eq(SysRoleTlDBEntity::getRoleId, role.getRoleId())
@@ -104,7 +151,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleTlMapperService.update(wrapper);
     }
 
-    @Override
+
     public int updateB(SysRole role) {
         LambdaUpdateWrapper<SysRoleBDBEntity> wrapper = new LambdaUpdateWrapper<SysRoleBDBEntity>()
                 .eq(SysRoleBDBEntity::getRoleId, role.getRoleId())
@@ -119,7 +166,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleBMapperService.update(wrapper);
     }
 
-    @Override
+
     public int deleteTl(List<Long> ids) {
         LambdaQueryWrapper<SysRoleTlDBEntity> wrapper = new LambdaQueryWrapper<SysRoleTlDBEntity>()
                 .in(SysRoleTlDBEntity::getRoleId, ids);
@@ -127,7 +174,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleTlMapperService.delete(wrapper);
     }
 
-    @Override
+
     public int deleteB(List<Long> ids) {
         LambdaQueryWrapper<SysRoleBDBEntity> wrapper = new LambdaQueryWrapper<SysRoleBDBEntity>()
                 .in(SysRoleBDBEntity::getRoleId, ids);
@@ -135,7 +182,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleBMapperService.delete(wrapper);
     }
 
-    @Override
+
     public SysRole findById(long roleId, String language) {
         MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
                 .selectAll(SysRoleBDBEntity.class)
@@ -147,7 +194,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleBMapperService.selectJoinOne(SysRole.class, wrapper);
     }
 
-    @Override
+
     public SysRole findByCode(String roleCode, String language) {
         MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
                 .selectAll(SysRoleBDBEntity.class)
@@ -159,7 +206,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleBMapperService.selectJoinOne(SysRole.class, wrapper);
     }
 
-    @Override
+
     public List<SysRole> findByUserId(long userId, String language) {
         MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
                 .selectAll(SysRoleBDBEntity.class)
@@ -174,7 +221,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
     }
 
-    @Override
+
     public SysRole findByName(String roleName, String language) {
         MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
                 .selectAll(SysRoleBDBEntity.class)
@@ -186,7 +233,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleBMapperService.selectJoinOne(SysRole.class, wrapper);
     }
 
-    @Override
+
     public List<SysRole> findByCodes(List<String> roleCodeList, String language) {
         MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
                 .selectAll(SysRoleBDBEntity.class)
@@ -198,7 +245,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
     }
 
-    @Override
+
     public List<Long> findRoleIdList() {
         LambdaQueryWrapper<SysRoleBDBEntity> wrapper = new LambdaQueryWrapper<SysRoleBDBEntity>()
                 .select(SysRoleBDBEntity::getRoleId)

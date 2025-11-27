@@ -87,3 +87,11 @@ Authorization: {{authToken}}
 Content-Type: application/json
 
 [188978419321597952]
+
+### 其它 权限(白/黑)名单分页查询
+# @no-log
+# @no-redirect
+POST {{prefix}}//api/auth/findByPage?page=3&pageSize=10
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json

@@ -2,6 +2,7 @@ package com.crrc.sys.mapper.mapperImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
@@ -11,11 +12,13 @@ import com.crrc.sys.entity.function.column.SysFunctionColumn;
 import com.crrc.sys.entity.function.column.SysFunctionColumnBDBEntity;
 import com.crrc.sys.entity.function.column.SysFunctionColumnTlDBEntity;
 import com.crrc.sys.entity.role.SysRoleMenuDBEntity;
+import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.mapper.SysFunctionMapper;
 import com.crrc.sys.mapper.mapperService.SysFunctionBMapperService;
 import com.crrc.sys.mapper.mapperService.SysFunctionColumnBMapperService;
 import com.crrc.sys.mapper.mapperService.SysFunctionColumnTlMapperService;
 import com.crrc.sys.mapper.mapperService.SysFunctionTlMapperService;
+import com.crrc.sys.model.user.SysUserInfoDBJoinDTO;
 import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.apache.commons.lang3.StringUtils;
@@ -26,12 +29,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 系统功能-mapper继承类，用于继承mapper的方法，通过MyBatisPlus方案重写SQL
+ * 系统功能-mapper实现类，通过MyBatisPlus方案重写SQL
  * @author 李江涛
  * @date 2025-11-17
  */
 @Repository
-public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService, SysFunctionBDBEntity> implements SysFunctionMapper {
+public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService, SysFunctionBDBEntity> {
 
     @Resource
     private SysFunctionTlMapperService sysFunctionTlMapperService;
@@ -39,7 +42,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
     @Resource
     private SysFunctionBMapperService sysFunctionBMapperService;
 
-    @Override
+
     public List<SysFunction> findByFuzzy(SysFunctionFindByPageParam param) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -71,13 +74,46 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
     }
 
-    @Override
+    public IPage<SysFunction> findByFuzzyPage(SysFunctionFindByPageParam param) {
+        MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
+                .selectAll(SysFunctionBDBEntity.class)
+                .select(SysFunctionTlDBEntity::getFunctionName)
+                .select(SysFunctionTlDBEntity::getFunctionDescription)
+                .leftJoin(SysFunctionTlDBEntity.class,
+                        fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
+                                .eq(SysFunctionTlDBEntity::getLanguage, param.getLanguage())
+                )
+                .isNull(SysFunctionBDBEntity::getParentId)
+                .eq(param.getProjectId() != null, SysFunctionBDBEntity::getProjectId, param.getProjectId())
+                .like(StringUtils.isNotBlank(param.getFunctionCode()), SysFunctionBDBEntity::getFunctionCode, param.getFunctionCode())
+                .like(StringUtils.isNotBlank(param.getFunctionName()), SysFunctionTlDBEntity::getFunctionName, param.getFunctionName())
+                .like(StringUtils.isNotBlank(param.getPath()), SysFunctionBDBEntity::getPath, param.getPath())
+                .like(StringUtils.isNotBlank(param.getParameters()), SysFunctionBDBEntity::getParameters, param.getParameters())
+                .like(StringUtils.isNotBlank(param.getComponent()), SysFunctionBDBEntity::getComponent, param.getComponent())
+                .like(StringUtils.isNotBlank(param.getName()), SysFunctionBDBEntity::getName, param.getName())
+                .like(StringUtils.isNotBlank(param.getRedirect()), SysFunctionBDBEntity::getRedirect, param.getRedirect())
+                .like(StringUtils.isNotBlank(param.getFunctionDescription()), SysFunctionTlDBEntity::getFunctionDescription, param.getFunctionDescription());
+        if(param.getColumnValueSetMap() != null) {
+            param.getColumnValueSetMap().entrySet().forEach(kv -> {
+                List<Object> value = kv.getValue();
+                String key = kv.getKey();
+                if(value != null) {
+                    wrapper.in(key, value);
+                }
+            });
+        }
+        Page<SysFunction> page = sysFunctionBMapperService.selectJoinPage(
+                new Page<>(param.getPage(), param.getPageSize()), SysFunction.class, wrapper);
+        return page;
+    }
+
+
     public int insert(SysFunction function) {
         SysFunctionBDBEntity sysFunctionBDBEntity = convertToDB(function);
         return sysFunctionBMapperService.insert(sysFunctionBDBEntity);
     }
 
-    @Override
+
     public List<SysFunction> findByParentIds(List<Long> parentIdList, String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -92,7 +128,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
     }
 
-    @Override
+
     public int updateTl(SysFunctionTl functionTl) {
         LambdaUpdateWrapper<SysFunctionTlDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.set(SysFunctionTlDBEntity::getFunctionName, functionTl.getFunctionName())
@@ -105,7 +141,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionTlMapperService.update(wrapper);
     }
 
-    @Override
+
     public int update(SysFunction function) {
         LambdaUpdateWrapper<SysFunctionBDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.set(SysFunctionBDBEntity::getParentId, function.getParentId())
@@ -132,14 +168,14 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.update(wrapper);
     }
 
-    @Override
+
     public int delete(List<Long> functionIds) {
         LambdaUpdateWrapper<SysFunctionBDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.in(SysFunctionBDBEntity::getFunctionId, functionIds);
         return sysFunctionBMapperService.delete(wrapper);
     }
 
-    @Override
+
     public SysFunction findById(long functionId, String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -153,7 +189,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinOne(SysFunction.class, wrapper);
     }
 
-    @Override
+
     public SysFunction findByCode(String functionCode, String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -167,7 +203,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinOne(SysFunction.class, wrapper);
     }
 
-    @Override
+
     public List<SysFunction> findByIds(List<Long> functionIdList, String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -181,7 +217,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
     }
 
-    @Override
+
     public List<SysFunction> findAll(String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -194,7 +230,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
     }
 
-    @Override
+
     public List<SysFunction> findByRoleId(long roleId, String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -209,7 +245,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
     }
 
-    @Override
+
     public SysFunction findByPageId(long pageId, String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -223,7 +259,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinOne(SysFunction.class, wrapper);
     }
 
-    @Override
+
     public List<SysFunction> findButtonById(long functionId) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
@@ -237,7 +273,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
     }
 
-    @Override
+
     public SysFunction findByRouteName(String routeName) {
         LambdaQueryWrapper<SysFunctionBDBEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysFunctionBDBEntity::getName, routeName);
@@ -245,7 +281,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return convertFromDB(sysFunctionBDBEntity);
     }
 
-    @Override
+
     public int findCount() {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionId)
@@ -256,7 +292,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinCount(wrapper).intValue();
     }
 
-    @Override
+
     public List<SysFunction> findByPage(String language, int offset, int endset) {
         Page<SysFunction> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
@@ -272,7 +308,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionPage.getRecords();
     }
 
-    @Override
+
     public int findCountByRoleId(long roleId) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionId)
@@ -281,7 +317,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinCount(wrapper).intValue();
     }
 
-    @Override
+
     public List<SysFunction> findPageByRoleId(long roleId, String language, int offset, int endset) {
         Page<SysFunction> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
@@ -300,7 +336,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionPage.getRecords();
     }
 
-    @Override
+
     public int findNotParent(String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionId)
@@ -312,7 +348,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         return sysFunctionBMapperService.selectJoinCount(wrapper).intValue();
     }
 
-    @Override
+
     public List<SysFunction> findPageByNotParent(String language, Integer offset, Integer endset) {
         Page<SysFunction> page = MyBatisUtil.convertToPage(offset, endset);
         page.setSearchCount(false);
@@ -334,12 +370,12 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
      * 弃用
      */
     @Deprecated
-    @Override
+
     public List<SysFunction> findByWorkflow() {
         return null;
     }
 
-    @Override
+
     public void updateProjectId(long functionId, Long projectId) {
         LambdaUpdateWrapper<SysFunctionBDBEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.set(SysFunctionBDBEntity::getProjectId, projectId)

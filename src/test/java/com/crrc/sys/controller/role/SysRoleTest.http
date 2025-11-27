@@ -243,3 +243,9 @@ Authorization: {{authToken}}
 GET {{prefix}}/test/sysRole/findRoleIdList
 X-Project-Code: {{projectCode}}
 Authorization: {{authToken}}
+
+### 其它 角色信息分页查询
+POST {{prefix}}/role/findByPage?page=1&pageSize=10&language=zh-CN
+Content-Type: application/json
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
