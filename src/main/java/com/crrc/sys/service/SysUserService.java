@@ -186,6 +186,8 @@ public interface SysUserService {
      */
     List<SysUser> findUserByRoleId(Long roleId);
 
+    List<SysUser> findUserByRoleCode(String rokeKey);
+
     /**
      * 获取带角色的用户List
      *
