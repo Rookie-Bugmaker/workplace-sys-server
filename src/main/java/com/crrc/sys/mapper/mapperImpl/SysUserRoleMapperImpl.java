@@ -10,7 +10,6 @@ import com.crrc.sys.entity.role.SysRoleTlDBEntity;
 import com.crrc.sys.entity.user.SysUserDBEntity;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.SysUserRoleDBEntity;
-import com.crrc.sys.mapper.SysUserRoleMapper;
 import com.crrc.sys.mapper.mapperService.SysRoleBMapperService;
 import com.crrc.sys.mapper.mapperService.SysUserRoleMapperService;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
@@ -19,6 +18,7 @@ import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +78,22 @@ public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService,
         LambdaQueryWrapper<SysUserRoleDBEntity> wrapper = new LambdaQueryWrapper<SysUserRoleDBEntity>()
                 .select(SysUserRoleDBEntity::getUserId)
                 .eq(SysUserRoleDBEntity::getRoleId, roleId);
+
+        return sysUserRoleMapperService.selectList(wrapper)
+                .stream().map(SysUserRoleDBEntity::getUserId)
+                .collect(Collectors.toList());
+    }
+
+    public List<Long> findUserByRoleCode(String roleCode) {
+        LambdaQueryWrapper<SysRoleBDBEntity> roleWrapper = new LambdaQueryWrapper<SysRoleBDBEntity>()
+                .eq(SysRoleBDBEntity::getRoleCode,roleCode);
+        SysRoleBDBEntity role = sysRoleBMapperService.selectOne(roleWrapper);
+        if (null == role) {
+            return new ArrayList<>();
+        }
+        LambdaQueryWrapper<SysUserRoleDBEntity> wrapper = new LambdaQueryWrapper<SysUserRoleDBEntity>()
+                .select(SysUserRoleDBEntity::getUserId)
+                .eq(SysUserRoleDBEntity::getRoleId, role.getRoleId());
 
         return sysUserRoleMapperService.selectList(wrapper)
                 .stream().map(SysUserRoleDBEntity::getUserId)
