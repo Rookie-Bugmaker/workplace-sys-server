@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.MyBatisUtil;
 import com.crrc.sys.entity.profile.*;
 import com.crrc.sys.mapper.SysProfileMapper;
 import com.crrc.sys.mapper.mapperService.SysProfileBMapperService;
@@ -79,7 +80,7 @@ public class SysProfileMapperImpl extends ServiceImpl<SysProfileBMapperService, 
         }
         wrapper.orderByAsc(SysProfileBDBEntity::getProfileId);
         return sysProfileBMapperService.selectJoinPage(
-                new Page<>(param.getPage(), param.getPageSize()), SysProfile.class, wrapper);
+                MyBatisUtil.makePage(param.getPage(), param.getPageSize()), SysProfile.class, wrapper);
     }
 
 

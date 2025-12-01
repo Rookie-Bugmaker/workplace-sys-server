@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.MyBatisUtil;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUserRoleDBEntity;
 import com.crrc.sys.mapper.SysRoleMapper;
@@ -122,7 +123,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
 
         wrapper.orderByAsc(SysRoleTlDBEntity::getRoleName);
 
-        return sysRoleBMapperService.selectJoinPage(new Page<>(param.getPage(), param.getPageSize()), SysRole.class, wrapper);
+        return sysRoleBMapperService.selectJoinPage(MyBatisUtil.makePage(param.getPage(), param.getPageSize()), SysRole.class, wrapper);
     }
 
 
