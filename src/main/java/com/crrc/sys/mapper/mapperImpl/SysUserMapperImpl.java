@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.MyBatisUtil;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.org.person.*;
 import com.crrc.sys.entity.profile.SysProfileBDBEntity;
@@ -131,7 +132,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         }
 
         Page<SysUserInfoDBJoinDTO> midPage = sysUserMapperService.selectJoinPage(
-                new Page<>(param.getPage(), param.getPageSize()), SysUserInfoDBJoinDTO.class, wrapper);
+                MyBatisUtil.makePage(param.getPage(), param.getPageSize()), SysUserInfoDBJoinDTO.class, wrapper);
         IPage<SysUser> resultPage = new Page<>(midPage.getCurrent(), midPage.getSize(), midPage.getTotal());
         resultPage.setRecords(convertFromJoinDB(midPage.getRecords()));
         return resultPage;

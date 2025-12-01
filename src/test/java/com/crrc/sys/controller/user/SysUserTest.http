@@ -17,6 +17,17 @@ Content-Type: application/json
   "montage": "and"
 }
 
+### 2.1 模糊查询用户列表分页
+POST {{prefix}}/test/user/findByFuzzyPage
+X-Project-Code: {{projectCode}}
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "page": 1,
+  "pageSize": 0
+}
+
 ### 2.2 模糊查询用户列表
 POST {{prefix}}/test/user/findByFuzzyAndDept
 X-Project-Code: {{projectCode}}

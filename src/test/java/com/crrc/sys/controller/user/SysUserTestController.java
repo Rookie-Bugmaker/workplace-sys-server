@@ -43,6 +43,12 @@ public class SysUserTestController {
         return sysUserMapper.findByFuzzy(param);
     }
 
+    @Operation(summary = "模糊查询用户列表分页")
+    @PostMapping("/findByFuzzyPage")
+    public IPage<SysUser> findByFuzzyPage(@RequestBody SysUserFindByPageParam param) {
+        return sysUserMapper.findByFuzzyPage(param);
+    }
+
     @Operation(summary = "模糊查询用户列表（带部门）")
     @PostMapping("/findByFuzzyAndDeptPage")
     public IPage<SysUser> findByFuzzyAndDeptPage(@RequestBody RequestParamForUserFuzzy param) {
