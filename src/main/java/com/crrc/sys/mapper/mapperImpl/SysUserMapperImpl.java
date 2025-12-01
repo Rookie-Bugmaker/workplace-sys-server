@@ -219,7 +219,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
             }
         }
         Page<SysUserInfoDBJoinDTO> midPage = sysUserMapperService.selectJoinPage(
-                new Page<>(param.getPage(), param.getPageSize()), SysUserInfoDBJoinDTO.class, wrapper);
+                MyBatisUtil.makePage(param.getPage(), param.getPageSize()), SysUserInfoDBJoinDTO.class, wrapper);
         IPage<SysUser> resultPage = new Page<>(midPage.getCurrent(), midPage.getSize(), midPage.getTotal());
         resultPage.setRecords(convertFromJoinDB(midPage.getRecords()));
         return resultPage;
@@ -572,7 +572,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         }
         wrapper.orderByDesc(SysUserDBEntity::getUserId);
         Page<SysUser> page = sysUserMapperService.selectJoinPage(
-                new Page<>(param.getPage(), param.getPageSize()), SysUser.class, wrapper);
+                MyBatisUtil.makePage(param.getPage(), param.getPageSize()), SysUser.class, wrapper);
         return page;
     }
 

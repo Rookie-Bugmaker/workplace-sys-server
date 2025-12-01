@@ -103,7 +103,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
             });
         }
         Page<SysFunction> page = sysFunctionBMapperService.selectJoinPage(
-                new Page<>(param.getPage(), param.getPageSize()), SysFunction.class, wrapper);
+                MyBatisUtil.makePage(param.getPage(), param.getPageSize()), SysFunction.class, wrapper);
         return page;
     }
 

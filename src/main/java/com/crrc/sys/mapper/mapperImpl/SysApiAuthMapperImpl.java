@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.MyBatisUtil;
 import com.crrc.sys.entity.api.SysApiAuth;
 import com.crrc.sys.entity.api.SysApiAuthDBEntity;
 import com.crrc.sys.entity.api.SysApiAuthPageDTO;
@@ -53,7 +54,7 @@ public class SysApiAuthMapperImpl extends ServiceImpl<SysApiAuthMapperService, S
                 .like(StringUtils.isNotBlank(param.getAuthDesc()),
                         SysApiAuthDBEntity::getAuthDesc, param.getAuthDesc());
         Page<SysApiAuthDBEntity> midPage = sysApiAuthMapperService.selectPage(
-                new Page<>(param.getPage(), param.getPageSize()), wrapper);
+                MyBatisUtil.makePage(param.getPage(), param.getPageSize()), wrapper);
         IPage<SysApiAuth> resultPage = new Page<>(midPage.getCurrent(), midPage.getSize(), midPage.getTotal());
         resultPage.setRecords(BeanUtils.toBean(midPage.getRecords(), SysApiAuth.class));
         return resultPage;

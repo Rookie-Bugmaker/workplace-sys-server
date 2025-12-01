@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.MyBatisUtil;
 import com.crrc.sys.entity.api.SysApiAuth;
 import com.crrc.sys.entity.api.SysApiAuthDBEntity;
 import com.crrc.sys.entity.function.column.SysFunctionColumn;
@@ -61,7 +62,7 @@ public class SysHomePageComponentMapperImpl extends ServiceImpl<SysHomePageCompo
                 .like(StringUtils.isNotBlank(param.getFunctionName()), SysHomePageComponentDBEntity::getFunctionName, param.getFunctionName())
                 .eq(StringUtils.isNotBlank(param.getStatus()), SysHomePageComponentDBEntity::getStatus, param.getStatus());
         Page<SysHomePageComponentDBEntity> midPage = sysHomePageComponentMapperService.selectPage(
-                new Page<>(param.getPage(), param.getPageSize()), wrapper);
+                MyBatisUtil.makePage(param.getPage(), param.getPageSize()), wrapper);
         IPage<SysHomePageComponent> resultPage = new Page<>(midPage.getCurrent(), midPage.getSize(), midPage.getTotal());
         resultPage.setRecords(convertFromDB(midPage.getRecords()));
         return resultPage;

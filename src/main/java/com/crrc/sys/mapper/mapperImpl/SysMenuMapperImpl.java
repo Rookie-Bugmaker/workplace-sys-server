@@ -75,7 +75,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
                 .like(StringUtils.isNotBlank(param.getMenuDescription()), SysMenuTlDBEntity::getMenuDescription, param.getMenuDescription())
                 .orderByAsc(SysMenuTlDBEntity::getMenuName);
         Page<SysMenu> page = sysMenuBMapperService.selectJoinPage(
-                new Page<>(param.getPage(), param.getPageSize()), SysMenu.class, wrapper);
+                MyBatisUtil.makePage(param.getPage(), param.getPageSize()), SysMenu.class, wrapper);
         return page;
     }
 

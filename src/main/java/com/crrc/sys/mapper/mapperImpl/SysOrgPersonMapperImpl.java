@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.common.MyBatisUtil;
 import com.crrc.sys.entity.homepage.SysHomePageComponent;
 import com.crrc.sys.entity.homepage.SysHomePageComponentDBEntity;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
@@ -113,7 +114,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         }
         wrapper.orderByDesc(SysOrgPersonBDBEntity::getPersonId);
         Page<SysOrgPerson> page = sysOrgPersonBMapperService.selectJoinPage(
-                new Page<>(param.getPage(), param.getPageSize()), SysOrgPerson.class, wrapper);
+                MyBatisUtil.makePage(param.getPage(), param.getPageSize()), SysOrgPerson.class, wrapper);
         return page;
     }
 
