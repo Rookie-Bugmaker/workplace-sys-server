@@ -31,4 +31,21 @@ public class MyBatisUtil {
         // 创建并返回Page对象
         return new Page<>(current, size);
     }
+
+    /**
+     * 根据页数确认正确的分页对象
+     * @param page
+     * @param pageSize
+     * @return
+     * @param <T>
+     */
+    public static <T> Page<T> makePage(Integer page, Integer pageSize) {
+        if(page == null || pageSize == null) {
+            return new Page<>();
+        }
+        if(page <= 0 || pageSize <= 0) {
+            return new Page<>(-1, -1);
+        }
+        return new Page<>(page, pageSize);
+    }
 }
