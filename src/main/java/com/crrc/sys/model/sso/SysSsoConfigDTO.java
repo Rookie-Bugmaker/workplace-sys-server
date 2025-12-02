@@ -29,4 +29,8 @@ public class SysSsoConfigDTO {
      * 单点类型(ESC)
      */
     private String configType;
+    /**
+     * 所属项目
+     */
+    private Long projectId;
 }

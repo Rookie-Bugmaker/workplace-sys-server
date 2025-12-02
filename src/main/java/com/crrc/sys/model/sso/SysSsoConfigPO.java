@@ -65,9 +65,7 @@ public class SysSsoConfigPO extends BaseEntity {
     @TableLogic
     private Integer deleted;
     /**
-     * 文件ID
-     * 由于图标只会存在1个，所以此处旧就没有必要使用集合了
+     * 所属项目
      */
-    @TableField(exist = false)
-    private Long fileId;
+    private Long projectId;
 }
