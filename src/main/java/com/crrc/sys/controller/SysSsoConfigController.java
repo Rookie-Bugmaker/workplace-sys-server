@@ -62,7 +62,12 @@ public class SysSsoConfigController {
         queryWrapper.like(!ObjectUtils.isEmpty(param.getConfigName()), SysSsoConfigPO::getConfigName, param.getConfigName());
         queryWrapper.like(!ObjectUtils.isEmpty(param.getConfigCode()), SysSsoConfigPO::getConfigCode, param.getConfigCode());
         queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigType()), SysSsoConfigPO::getConfigType, param.getConfigType());
-        queryWrapper.eq(!ObjectUtils.isEmpty(param.getProjectId()), SysSsoConfigPO::getProjectId, param.getProjectId());
+        if (!ObjectUtils.isEmpty(param.getProjectCode())) {
+            ProjectEntity project = projectService.findByCode(param.getProjectCode());
+            if (!ObjectUtils.isEmpty(project)) {
+                queryWrapper.eq(!ObjectUtils.isEmpty(project.getId()), SysSsoConfigPO::getProjectId, project.getId());
+            }
+        }
         page = ssoConfigService.page(page, queryWrapper);
         List<SysSsoConfigPO> records = page.getRecords();
         Page<SysSsoConfigVO> pageVo = new Page<>(param.getPage(), param.getPageSize());

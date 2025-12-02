@@ -30,7 +30,7 @@ public class SysSsoConfigDTO {
      */
     private String configType;
     /**
-     * 所属项目
+     * 项目编码()
      */
-    private Long projectId;
+    private String projectCode;
 }
