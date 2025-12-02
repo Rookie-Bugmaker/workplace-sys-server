@@ -183,6 +183,26 @@ public class SysSsoConfigController {
     }
 
     /**
+     * 根据项目编码查询配置信息
+     *
+     * @param projectCode 配置编码
+     * @return 配置信息
+     */
+    @GetMapping("findByProjectCode")
+    public List<SysSsoConfigPO> findByProjectCode(String projectCode) {
+        if (ObjectUtils.isEmpty(projectCode)) {
+            throw new ParamValidateException("项目编码不能为空!");
+        }
+        ProjectEntity project = projectService.findByCode(projectCode);
+        if (ObjectUtils.isEmpty(project)) {
+            throw new BizException("项目编码不存在!");
+        }
+        LambdaQueryWrapper<SysSsoConfigPO> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(SysSsoConfigPO::getProjectId, project.getId());
+        return ssoConfigService.list(lambdaQueryWrapper);
+    }
+
+    /**
      * 公共参数校验
      *
      * @param operation 新增或修改
