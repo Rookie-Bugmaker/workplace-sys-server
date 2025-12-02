@@ -8,10 +8,14 @@ import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
+import com.crrc.sys.convert.SysSsoConfigConvert;
+import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.enums.OperationTypeEnum;
 import com.crrc.sys.model.file.SysFileDTO;
 import com.crrc.sys.model.sso.SysSsoConfigDTO;
 import com.crrc.sys.model.sso.SysSsoConfigPO;
+import com.crrc.sys.model.sso.SysSsoConfigVO;
+import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysSsoConfigService;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -37,6 +41,8 @@ public class SysSsoConfigController {
     private SysSsoConfigService ssoConfigService;
     @Resource
     private FileClient fileClient;
+    @Resource
+    private ProjectService projectService;
 
     /**
      * 分页查询
@@ -44,7 +50,7 @@ public class SysSsoConfigController {
      * @param param 查询条件
      */
     @PostMapping("page")
-    public PaginationGrid<SysSsoConfigPO> page(@RequestBody SysSsoConfigDTO param) {
+    public PaginationGrid<SysSsoConfigVO> page(@RequestBody SysSsoConfigDTO param) {
         if (ObjectUtils.isEmpty(param.getPage())) {
             throw new ParamValidateException("page不能为空");
         }
@@ -56,30 +62,47 @@ public class SysSsoConfigController {
         queryWrapper.like(!ObjectUtils.isEmpty(param.getConfigName()), SysSsoConfigPO::getConfigName, param.getConfigName());
         queryWrapper.like(!ObjectUtils.isEmpty(param.getConfigCode()), SysSsoConfigPO::getConfigCode, param.getConfigCode());
         queryWrapper.eq(!ObjectUtils.isEmpty(param.getConfigType()), SysSsoConfigPO::getConfigType, param.getConfigType());
+        queryWrapper.eq(!ObjectUtils.isEmpty(param.getProjectId()), SysSsoConfigPO::getProjectId, param.getProjectId());
         page = ssoConfigService.page(page, queryWrapper);
         List<SysSsoConfigPO> records = page.getRecords();
+        Page<SysSsoConfigVO> pageVo = new Page<>(param.getPage(), param.getPageSize());
+        pageVo.setTotal(page.getTotal());
         if (!CollectionUtils.isEmpty(records)) {
-            records.forEach(o -> o.setClientSecret(null));
+            List<SysSsoConfigVO> voList = SysSsoConfigConvert.INSTANCE.poToVoList(records);
+            pageVo.setRecords(voList);
+            //附件
             List<Long> fileHeaderIdList = records.stream().map(SysSsoConfigPO::getFileHeaderId).filter(o -> !ObjectUtils.isEmpty(o)).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(fileHeaderIdList)) {
-                return PaginationGrid.success(page);
+                return PaginationGrid.success(pageVo);
             }
             ResultData<List<SysFileDTO>> resultData = fileClient.findByFileHeaderIds(fileHeaderIdList);
             if (!resultData.getSuccess()) {
-                return PaginationGrid.success(page);
+                return PaginationGrid.success(pageVo);
             }
             List<SysFileDTO> fileList = resultData.getResult();
             if (CollectionUtils.isEmpty(fileList)) {
-                return PaginationGrid.success(page);
+                return PaginationGrid.success(pageVo);
             }
-            records.forEach(o -> {
+            voList.forEach(o -> {
                 SysFileDTO sysFileDTO = fileList.stream().filter(f -> f.getFileHeaderId().equals(o.getFileHeaderId())).findFirst().orElse(null);
                 if (!ObjectUtils.isEmpty(sysFileDTO)) {
                     o.setFileId(sysFileDTO.getFileId());
                 }
             });
+            //所属项目
+            List<Long> projectIdList = records.stream().map(SysSsoConfigPO::getProjectId).filter(projectId -> !ObjectUtils.isEmpty(projectId)).distinct().collect(Collectors.toList());
+            List<ProjectEntity> projectEntityList = projectService.listByIds(projectIdList);
+            if (!CollectionUtils.isEmpty(projectEntityList)) {
+                voList.forEach(o -> {
+                    ProjectEntity projectEntity = projectEntityList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
+                    if (!ObjectUtils.isEmpty(projectEntity)) {
+                        o.setProjectCode(projectEntity.getName());
+                        o.setProjectName(projectEntity.getNameCn());
+                    }
+                });
+            }
         }
-        return PaginationGrid.success(page);
+        return PaginationGrid.success(pageVo);
     }
 
     /**
@@ -207,6 +230,9 @@ public class SysSsoConfigController {
         }
         if (ObjectUtils.isEmpty(ssoConfig.getRedirectUrl())) {
             throw new ParamValidateException("回调地址不能为空");
+        }
+        if (ObjectUtils.isEmpty(ssoConfig.getProjectId())) {
+            throw new ParamValidateException("所属项目不能为空");
         }
     }
 }
