@@ -24,6 +24,7 @@ import com.crrc.sys.service.SysRoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -56,7 +57,7 @@ public class ProjectController {
     public ProjectRespVO getProject(@NotNull @RequestParam Long id) {
         ProjectEntity projectEntity = projectService.getById(id);
         if (ObjectUtils.isEmpty(projectEntity)) {
-            throw new BizException("项目部存在");
+            throw new BizException("项目不存在");
         }
         return BeanUtils.toBean(projectEntity, ProjectRespVO.class);
     }
@@ -65,6 +66,15 @@ public class ProjectController {
     @Operation(summary = "创建项目")
     @AuditLog(value = "创建项目", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_ADD)
     public void createProject(@NotNull @RequestBody ProjectCreateReqVO createReqVO) {
+        if(createReqVO == null) {
+            throw new BizException("保存的项目信息为空!");
+        }
+        if(StringUtils.isNotBlank(createReqVO.getName())) {
+            Long countByCode = projectService.findCountByCode(createReqVO.getName());
+            if(countByCode > 0) {
+                throw new BizException("保存错误，名称为"+createReqVO.getName()+"的项目已经存在!");
+            }
+        }
         ProjectEntity projectEntity = BeanUtils.toBean(createReqVO, ProjectEntity.class);
         boolean result = projectService.save(projectEntity);
         if (!result) {
@@ -76,9 +86,19 @@ public class ProjectController {
     @Operation(summary = "更新项目")
     @AuditLog(value = "更新项目", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_MODIFY)
     public void updateProject(@NotNull @RequestBody ProjectUpdateReqVO updateReqVO) {
+        if(updateReqVO == null) {
+            throw new BizException("更新的项目信息为空!");
+        }
         ProjectEntity projectEntityInDB = projectService.getById(updateReqVO.getId());
         if (ObjectUtils.isEmpty(projectEntityInDB)) {
             throw new BizException("项目不存在");
+        }
+        // 项目存在,且更新项目名称时,要判断新的项目名称是否存在
+        if(StringUtils.isNotBlank(updateReqVO.getName()) && !projectEntityInDB.getName().equals(updateReqVO.getName())) {
+            Long countByCode = projectService.findCountByCode(updateReqVO.getName());
+            if(countByCode > 0) {
+                throw new BizException("修改错误，名称为"+updateReqVO.getName()+"的项目已经存在!");
+            }
         }
         ProjectEntity projectEntity = BeanUtils.toBean(updateReqVO, ProjectEntity.class);
         boolean result = projectService.updateById(projectEntity);

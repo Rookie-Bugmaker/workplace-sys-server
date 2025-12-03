@@ -12,4 +12,6 @@ public interface ProjectService extends IService<ProjectEntity> {
      * @return 结果
      */
     ProjectEntity findByCode(String projectCode);
+
+    Long findCountByCode(String projectCode);
 }
