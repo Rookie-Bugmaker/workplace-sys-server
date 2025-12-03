@@ -21,10 +21,12 @@ import com.crrc.sys.enums.DataAuthTypeEnum;
 import com.crrc.sys.enums.EnableFlagEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.mapper.mapperImpl.SysUserRoleMapperImpl;
 import com.crrc.sys.model.role.BindUserDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptInfoDTO;
 import com.crrc.sys.service.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -62,6 +64,9 @@ public class SysRoleController {
     private DeptService deptService;
     @Resource
     private ProjectService projectService;
+
+    @Autowired
+    private SysUserRoleMapperImpl userRoleMapper;
 
     /**
      * 角色信息分页查询
@@ -370,6 +375,10 @@ public class SysRoleController {
             throw new ParamValidateException("roleIds不能为空!");
         }
         List<Long> ids = Arrays.stream(roleIds.split(",")).map(Long::parseLong).collect(Collectors.toList());
+        Long countByRoleIds = userRoleMapper.findCountByRoleIds(ids);
+        if(countByRoleIds > 0) {
+            throw new BizException("需要删除的角色中存在关联用户");
+        }
         int result = roleService.delete(ids);
         if (result <= 0) {
             throw new BizException("删除失败!");

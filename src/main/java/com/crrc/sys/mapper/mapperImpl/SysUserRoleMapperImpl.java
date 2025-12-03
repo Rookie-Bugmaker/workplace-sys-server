@@ -84,6 +84,13 @@ public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService,
                 .collect(Collectors.toList());
     }
 
+    public Long findCountByRoleIds(List<Long> roleIds) {
+        LambdaQueryWrapper<SysUserRoleDBEntity> wrapper = new LambdaQueryWrapper<SysUserRoleDBEntity>()
+                .in(SysUserRoleDBEntity::getRoleId, roleIds);
+
+        return sysUserRoleMapperService.selectCount(wrapper);
+    }
+
     public List<Long> findUserByRoleCode(String roleCode) {
         LambdaQueryWrapper<SysRoleBDBEntity> roleWrapper = new LambdaQueryWrapper<SysRoleBDBEntity>()
                 .eq(SysRoleBDBEntity::getRoleCode,roleCode);
