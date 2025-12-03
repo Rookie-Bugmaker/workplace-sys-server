@@ -640,15 +640,15 @@ public class SysRoleController {
     /**
      * 查询角色ID绑定的用户列表
      *
-     * @param RoleId 角色ID
+     * @param roleId 角色ID
      * @return 结果
      */
     @GetMapping("get_role_users_by_roleid")
-    public List<SysUser> findUserByRoleId(Long RoleId) {
-        if (ObjectUtils.isEmpty(RoleId)) {
+    public List<SysUser> findUserByRoleId(Long roleId) {
+        if (ObjectUtils.isEmpty(roleId)) {
             throw new ParamValidateException("参数不能为空!");
         }
-        return userService.findUserByRoleId(RoleId);
+        return userService.findUserByRoleId(roleId);
     }
 
 
