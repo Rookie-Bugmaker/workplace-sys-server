@@ -48,7 +48,20 @@ public class ProjectEntity extends BaseEntity {
     private String description;
 
 
+    /**
+     * 状态（0正常 1停用）
+     */
     private String status;
+
+    /**
+     * 图形符号
+     */
+    private String graphicSymbol;
+
+    /**
+     * 归属分组
+     */
+    private String ownershipGroup;
 
     @TableLogic(value = "0",delval = "id")
     @Schema(description = "删除" ,example = "false")

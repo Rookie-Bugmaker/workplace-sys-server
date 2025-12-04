@@ -3,6 +3,8 @@ package com.crrc.sys.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.crrc.sys.entity.project.ProjectEntity;
 
+import java.util.List;
+
 public interface ProjectService extends IService<ProjectEntity> {
 
     /**
@@ -14,4 +16,6 @@ public interface ProjectService extends IService<ProjectEntity> {
     ProjectEntity findByCode(String projectCode);
 
     Long findCountByCode(String projectCode);
+
+    List<String> findGroup();
 }
