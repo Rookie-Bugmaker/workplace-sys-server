@@ -26,10 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -547,5 +544,27 @@ public class SysFunctionController {
         if (result <= 0) {
             throw new BizException("导入失败!");
         }
+    }
+
+    /**
+     * 根据项目编码查询项目下绑定的功能ID集合
+     *
+     * @param projectCode 项目编码(必填)
+     * @return 功能ID集合
+     */
+    @GetMapping("findFunctionIdByProjectCode")
+    public List<Long> findFunctionIdByProjectCode(String projectCode) {
+        if (ObjectUtils.isEmpty(projectCode)) {
+            throw new ParamValidateException("projectCode不能为空!");
+        }
+        ProjectEntity project = projectService.findByCode(projectCode);
+        if (ObjectUtils.isEmpty(project)) {
+            throw new BizException("项目编码不存在");
+        }
+        List<SysFunction> functionList = functionService.findByProjectId(project.getId());
+        if (!CollectionUtils.isEmpty(functionList)) {
+            return functionList.stream().map(SysFunction::getFunctionId).collect(Collectors.toList());
+        }
+        return null;
     }
 }

@@ -1,9 +1,12 @@
 package com.crrc.sys.convert;
 
 import com.crrc.sys.entity.function.SysFunction;
+import com.crrc.sys.entity.function.SysFunctionBDBEntity;
 import com.crrc.sys.entity.function.SysFunctionBO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+
+import java.util.List;
 
 /**
  * @author 谭永强
@@ -32,4 +35,20 @@ public abstract class SysFunctionConvert {
      * @return SysFunction
      */
     public abstract SysFunction boToFunction(SysFunctionBO functionBo);
+
+    /**
+     * SysFunctionBDBEntity转换为SysFunction
+     *
+     * @param entity 功能实体
+     * @return SysFunction
+     */
+    public abstract SysFunction functionToBo(SysFunctionBDBEntity entity);
+
+    /**
+     * SysFunctionBDBEntity转换为SysFunction
+     *
+     * @param entityList 功能实体
+     * @return SysFunction
+     */
+    public abstract List<SysFunction> functionToBoList(List<SysFunctionBDBEntity> entityList);
 }
