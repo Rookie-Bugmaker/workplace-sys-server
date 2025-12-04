@@ -150,6 +150,7 @@ public class ProjectController {
         wapper.like(!StrUtil.isEmpty(pageReqVO.getName()), ProjectEntity::getName, pageReqVO.getName());
         wapper.like(!StrUtil.isEmpty(pageReqVO.getNameCn()), ProjectEntity::getNameCn, pageReqVO.getNameCn());
         wapper.eq(!StrUtil.isEmpty(pageReqVO.getStatus()), ProjectEntity::getStatus, pageReqVO.getStatus());
+        wapper.like(!StrUtil.isEmpty(pageReqVO.getOwnershipGroup()), ProjectEntity::getOwnershipGroup, pageReqVO.getOwnershipGroup());
         IPage<ProjectEntity> iPage = Page.of(pageReqVO.getPageNo(), pageReqVO.getPageSize());
         iPage = projectService.page(iPage, wapper);
         List<ProjectEntity> records = iPage.getRecords();
@@ -238,5 +239,14 @@ public class ProjectController {
         //排除`中车平台`项目
         lambdaQueryWrapper.notIn(ProjectEntity::getName, "crrc_platform");
         return projectService.list(lambdaQueryWrapper);
+    }
+
+    /**
+     * 获取项目分组
+     * @return 结果
+     */
+    @GetMapping("findGroup")
+    public List<String> findGroup() {
+        return projectService.findGroup();
     }
 }

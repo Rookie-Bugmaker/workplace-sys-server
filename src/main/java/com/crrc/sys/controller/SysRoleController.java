@@ -25,6 +25,7 @@ import com.crrc.sys.mapper.mapperImpl.SysUserRoleMapperImpl;
 import com.crrc.sys.model.role.BindUserDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptInfoDTO;
+import com.crrc.sys.model.user.role.SysUserRolePO;
 import com.crrc.sys.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -375,8 +376,8 @@ public class SysRoleController {
             throw new ParamValidateException("roleIds不能为空!");
         }
         List<Long> ids = Arrays.stream(roleIds.split(",")).map(Long::parseLong).collect(Collectors.toList());
-        Long countByRoleIds = userRoleMapper.findCountByRoleIds(ids);
-        if(countByRoleIds > 0) {
+        List<SysUserRolePO> userRoleList = userRoleMapper.findByUserIds(ids);
+        if (!CollectionUtils.isEmpty(userRoleList)) {
             throw new BizException("需要删除的角色中存在关联用户");
         }
         int result = roleService.delete(ids);
@@ -649,15 +650,15 @@ public class SysRoleController {
     /**
      * 查询角色ID绑定的用户列表
      *
-     * @param RoleId 角色ID
+     * @param roleId 角色ID
      * @return 结果
      */
-    @GetMapping("get_role_users_by_roleid")
-    public List<SysUser> findUserByRoleId(Long RoleId) {
-        if (ObjectUtils.isEmpty(RoleId)) {
+    @GetMapping({"get_role_users_by_roleid", "getBindUserByRoleId"})
+    public List<SysUser> findUserByRoleId(Long roleId) {
+        if (ObjectUtils.isEmpty(roleId)) {
             throw new ParamValidateException("参数不能为空!");
         }
-        return userService.findUserByRoleId(RoleId);
+        return userService.findUserByRoleId(roleId);
     }
 
 

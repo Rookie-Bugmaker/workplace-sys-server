@@ -40,6 +40,16 @@ public class ProjectRespVO {
     @Schema(description = "项目状态" ,example = "1")
     private String status;
 
+    /**
+     * 图形符号
+     */
+    private String graphicSymbol;
+
+    /**
+     * 归属分组
+     */
+    private String ownershipGroup;
+
     private List<ServiceEntity> serviceList = new ArrayList<>();
 
 
