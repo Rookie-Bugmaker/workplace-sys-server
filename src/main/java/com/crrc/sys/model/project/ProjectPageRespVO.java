@@ -39,6 +39,19 @@ public class ProjectPageRespVO {
     @Schema(description = "项目状态", example = "1")
     private String status;
 
+
+    /**
+     * 图形符号
+     */
+    @Schema(description = "图形符号" ,example = "1")
+    private String graphicSymbol;
+
+    /**
+     * 归属分组
+     */
+    @Schema(description = "归属分组" ,example = "1")
+    private String ownershipGroup;
+
     private List<ServiceEntity> ServiceList = new ArrayList<>();
 
     @Data

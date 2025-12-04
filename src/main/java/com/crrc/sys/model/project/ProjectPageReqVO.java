@@ -23,6 +23,13 @@ public class ProjectPageReqVO {
     @Schema(description = "项目中文名称" ,example = "1")
     private String nameCn;
 
+    /**
+     * 归属分组
+     */
+    @Schema(description = "归属分组" ,example = "1")
+    private String ownershipGroup;
+
+
     @Schema(description = "项目状态" ,example = "1")
     private String status;
     private static final Integer PAGE_NO = 0;
