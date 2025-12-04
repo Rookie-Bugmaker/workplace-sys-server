@@ -2,7 +2,6 @@ package com.crrc.sys.service;
 
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.function.*;
-import com.crrc.sys.entity.function.*;
 
 import java.util.List;
 
@@ -132,4 +131,12 @@ public interface SysFunctionService {
      * @return 功能信息
      */
     SysFunction findMinById(long functionId, String language);
+
+    /**
+     * 根据项目编码查询功能列表
+     *
+     * @param projectId 项目ID
+     * @return 功能ID集合
+     */
+    List<SysFunction> findByProjectId(Long projectId);
 }
