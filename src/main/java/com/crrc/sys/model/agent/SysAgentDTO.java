@@ -3,6 +3,8 @@ package com.crrc.sys.model.agent;
 import lombok.Data;
 
 /**
+ * 分页查询参数
+ *
  * @author 谭永强
  * @date 2025-11-13
  */

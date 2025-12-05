@@ -60,4 +60,16 @@ public class SysAgentPO extends BaseEntity {
      */
     @TableField(exist = false)
     private Long fileId;
+    /**
+     * 主题编码
+     */
+    private String themeCode;
+    /**
+     * 文本转语言(Y/N)
+     */
+    private String textToVoice;
+    /**
+     * 语言转文本(Y/N)
+     */
+    private String voiceToText;
 }
