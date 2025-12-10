@@ -31,9 +31,6 @@ spec:
         - ip: 10.216.244.161
           hostnames:
             - "aistart.cccar.com.cn"
-        - ip: 10.216.0.98
-          hostnames:
-            - "qywx.cccar.com.cn"
 ---
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
