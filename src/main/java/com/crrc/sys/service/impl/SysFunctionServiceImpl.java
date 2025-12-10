@@ -1,11 +1,13 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.common.Arith;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.MyThreadPoolExecutor;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.convert.SysFunctionConvert;
 import com.crrc.sys.entity.api.SysApi;
 import com.crrc.sys.entity.function.*;
@@ -18,8 +20,6 @@ import com.crrc.sys.mapper.mapperImpl.SysFunctionMapperImpl;
 import com.crrc.sys.mapper.mapperImpl.SysFunctionTlMapperImpl;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysFunctionService;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -442,7 +442,7 @@ public class SysFunctionServiceImpl implements SysFunctionService {
         functionTl.setLastUpdateBy(function.getLastUpdateBy());
         functionTl.setLastUpdateDate(function.getLastUpdateDate());
         functionTl.setLastUpdateLogin(function.getLastUpdateLogin());
-        if(FunctionTypeEnum.A.getValue().equals(function.getFunctionType())){
+        if (FunctionTypeEnum.A.getValue().equals(function.getFunctionType())) {
             //1.修改子功能的项目ID
             functionMapper.updateProjectId(function.getFunctionId(), function.getProjectId());
         }
@@ -896,5 +896,25 @@ public class SysFunctionServiceImpl implements SysFunctionService {
             }
         }
         return functionApiUri;
+    }
+
+    /**
+     * 根据项目编码查询功能列表
+     *
+     * @param projectId 项目ID
+     * @return 功能ID集合
+     */
+    @Override
+    public List<SysFunction> findByProjectId(Long projectId) {
+        if (ObjectUtils.isEmpty(projectId)) {
+            throw new ParamValidateException("projectId不能为空!");
+        }
+        LambdaQueryWrapper<SysFunctionBDBEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysFunctionBDBEntity::getProjectId, projectId);
+        List<SysFunctionBDBEntity> entityList = functionMapper.list(queryWrapper);
+        if (!CollectionUtils.isEmpty(entityList)) {
+            return SysFunctionConvert.INSTANCE.functionToBoList(entityList);
+        }
+        return null;
     }
 }

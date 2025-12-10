@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 /**
  * 系统用户表-mapper实现类，通过MyBatisPlus方案重写SQL
+ *
  * @author 李江涛
  * @date 2025-11-20
  */
@@ -44,7 +45,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
 
     @Resource
     private SysUserMapperService sysUserMapperService;
-    
+
     public SysUser findByUserName(String userName) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -58,7 +59,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         SysUserInfoDBJoinDTO sysUserInfoDBJoinDTO = sysUserMapperService.selectJoinOne(SysUserInfoDBJoinDTO.class, wrapper);
         return convertFromJoinDB(sysUserInfoDBJoinDTO);
     }
-    
+
     public List<SysUser> findByFuzzy(SysUserFindByPageParam param) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -71,11 +72,11 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
 
         if (param.getRoleId() != null) {
             wrapper.innerJoin(SysUserRoleDBEntity.class,
-                        fn -> fn.eq(SysUserRoleDBEntity::getUserId, SysUserDBEntity::getUserId)
-                                .eq(SysUserRoleDBEntity::getRoleId, param.getRoleId())
-                    );
+                    fn -> fn.eq(SysUserRoleDBEntity::getUserId, SysUserDBEntity::getUserId)
+                            .eq(SysUserRoleDBEntity::getRoleId, param.getRoleId())
+            );
         }
-        if(StringUtils.isNotBlank(param.getDisableState())) {
+        if (StringUtils.isNotBlank(param.getDisableState())) {
             wrapper.eq(SysUserDBEntity::getDisableState, param.getDisableState());
         }
         if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
@@ -83,7 +84,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         } else if (StringUtils.isBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
             wrapper.like(SysUserDBEntity::getUserDescription, param.getUserDescription());
         } else if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
-            if("or".equals(param.getMontage())) {
+            if ("or".equals(param.getMontage())) {
                 wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
                         .or()
                         .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
@@ -113,7 +114,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
                             .eq(SysUserRoleDBEntity::getRoleId, param.getRoleId())
             );
         }
-        if(StringUtils.isNotBlank(param.getDisableState())) {
+        if (StringUtils.isNotBlank(param.getDisableState())) {
             wrapper.eq(SysUserDBEntity::getDisableState, param.getDisableState());
         }
         if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
@@ -121,7 +122,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         } else if (StringUtils.isBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
             wrapper.like(SysUserDBEntity::getUserDescription, param.getUserDescription());
         } else if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
-            if("or".equals(param.getMontage())) {
+            if ("or".equals(param.getMontage())) {
                 wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
                         .or()
                         .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
@@ -155,11 +156,11 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
             );
         }
 
-        if(deptIdList != null && deptIdList.size() > 0) {
+        if (deptIdList != null && deptIdList.size() > 0) {
             wrapper.innerJoin(SysDeptPersonPO.class, SysDeptPersonPO::getPersonId, SysUserDBEntity::getUserRelationId);
             wrapper.in(SysDeptPersonPO::getDeptId, deptIdList);
         }
-        if(StringUtils.isNotBlank(param.getDisableState())) {
+        if (StringUtils.isNotBlank(param.getDisableState())) {
             wrapper.eq(SysUserDBEntity::getDisableState, param.getDisableState());
         }
         if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
@@ -167,7 +168,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         } else if (StringUtils.isBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
             wrapper.like(SysUserDBEntity::getUserDescription, param.getUserDescription());
         } else if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
-            if("or".equals(param.getMontage())) {
+            if ("or".equals(param.getMontage())) {
                 wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
                         .or()
                         .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
@@ -197,25 +198,36 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
             );
         }
 
-        if(deptIdList != null && deptIdList.size() > 0) {
+        if (deptIdList != null && deptIdList.size() > 0) {
             wrapper.innerJoin(SysDeptPersonPO.class, SysDeptPersonPO::getPersonId, SysUserDBEntity::getUserRelationId);
             wrapper.in(SysDeptPersonPO::getDeptId, deptIdList);
         }
-        if(StringUtils.isNotBlank(param.getDisableState())) {
+        if (StringUtils.isNotBlank(param.getDisableState())) {
             wrapper.eq(SysUserDBEntity::getDisableState, param.getDisableState());
         }
         if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
             wrapper.like(SysUserDBEntity::getUserName, param.getUserName());
         } else if (StringUtils.isBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
-            wrapper.like(SysUserDBEntity::getUserDescription, param.getUserDescription());
+            wrapper.and(w -> w.like(SysUserDBEntity::getUserDescription, param.getUserDescription())
+                    .or()
+                    .like(SysOrgPersonTlDBEntity::getFullName, param.getUserDescription())
+            );
         } else if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
-            if("or".equals(param.getMontage())) {
+            if ("or".equals(param.getMontage())) {
                 wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
-                        .or()
-                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+                        .or(
+                                w1 -> w1.like(SysUserDBEntity::getUserDescription, param.getUserDescription())
+                                        .or()
+                                        .like(SysOrgPersonTlDBEntity::getFullName, param.getUserDescription())
+                        )
+                );
             } else {
                 wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
-                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+                        .and(w1 -> w1.like(SysUserDBEntity::getUserDescription, param.getUserDescription())
+                                .or()
+                                .like(SysOrgPersonTlDBEntity::getFullName, param.getUserDescription())
+                        )
+                );
             }
         }
         Page<SysUserInfoDBJoinDTO> midPage = sysUserMapperService.selectJoinPage(
@@ -301,7 +313,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
                         fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
                                 .eq(SysOrgPersonTlDBEntity::getLanguage, "zh-CN")
                 );
-        if(userIds != null && userIds.size() > 0) {
+        if (userIds != null && userIds.size() > 0) {
             wrapper.in(SysUserDBEntity::getUserId, userIds);
         }
         List<SysUserInfoDBJoinDTO> sysUserInfoDBJoinDTOS = sysUserMapperService.selectJoinList(SysUserInfoDBJoinDTO.class, wrapper);
@@ -400,7 +412,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
                 .groupBy(SysUserDBEntity::getUserName)
                 .orderByDesc(SysUserDBEntity::getCreateDate);
 
-        return sysUserMapperService.selectJoinList(SysUserDTO.class,wrapper);
+        return sysUserMapperService.selectJoinList(SysUserDTO.class, wrapper);
     }
 
 
@@ -460,7 +472,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
                         fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
                                 .eq(SysOrgPersonTlDBEntity::getLanguage, "zh-CN")
                 );
-        if(userIdList != null && userIdList.size() > 0) {
+        if (userIdList != null && userIdList.size() > 0) {
             wrapper.in(SysUserDBEntity::getUserId, userIdList);
         }
         if (StringUtils.isNotBlank(userName)) {
@@ -484,7 +496,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
                         fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysUserDBEntity::getUserRelationId)
                                 .eq(SysOrgPersonTlDBEntity::getLanguage, "zh-CN")
                 );
-        if(userNameList != null && userNameList.size() > 0) {
+        if (userNameList != null && userNameList.size() > 0) {
             wrapper.in(SysUserDBEntity::getUserName, userNameList);
         }
         if (StringUtils.isNotBlank(search.getUserName())) {
@@ -496,6 +508,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
 
         return sysUserMapperService.selectJoinList(SysOnlineUserVO.class, wrapper);
     }
+
     public List<SysUser> findByPersonParam(SysOrgPersonFindByPageParam param) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = JoinWrappers.lambda(SysUserDBEntity.class)
                 .selectAll(SysUserDBEntity.class)
@@ -514,11 +527,11 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         }
 
         if (org.springframework.util.StringUtils.hasText(param.getFullName()) && org.springframework.util.StringUtils.hasText(param.getJobNo())) {
-            if("or".equals(param.getMontage())) {
+            if ("or".equals(param.getMontage())) {
                 wrapper.and(w -> w.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName())
                         .or()
                         .like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo()));
-            }else {
+            } else {
                 wrapper.and(w -> w.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName())
                         .like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo()));
             }
@@ -553,11 +566,11 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         }
 
         if (org.springframework.util.StringUtils.hasText(param.getFullName()) && org.springframework.util.StringUtils.hasText(param.getJobNo())) {
-            if("or".equals(param.getMontage())) {
+            if ("or".equals(param.getMontage())) {
                 wrapper.and(w -> w.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName())
                         .or()
                         .like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo()));
-            }else {
+            } else {
                 wrapper.and(w -> w.like(SysOrgPersonTlDBEntity::getFullName, param.getFullName())
                         .like(SysOrgPersonBDBEntity::getJobNo, param.getJobNo()));
             }
@@ -598,7 +611,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
 
     private SysUser convertFromJoinDB(SysUserInfoDBJoinDTO entity) {
         SysUser data = BeanUtils.toBean(entity, SysUser.class);
-        if(data != null && StringUtils.isNotBlank(entity.getFullName())) {
+        if (data != null && StringUtils.isNotBlank(entity.getFullName())) {
             data.setUserDescription(entity.getFullName());
         }
         return data;
@@ -608,7 +621,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         List<SysUser> dataList = new ArrayList<>();
         entityList.forEach(entity -> {
             SysUser data = BeanUtils.toBean(entity, SysUser.class);
-            if(data != null && StringUtils.isNotBlank(entity.getFullName())) {
+            if (data != null && StringUtils.isNotBlank(entity.getFullName())) {
                 data.setUserDescription(entity.getFullName());
             }
             dataList.add(data);
