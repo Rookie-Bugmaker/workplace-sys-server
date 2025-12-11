@@ -305,7 +305,11 @@ public class SysFunctionController {
      */
     @PostMapping("findByCode")
     public SysFunction findByCode(String functionCode, String language) {
-        return functionService.findByCode(functionCode, language);
+        List<SysFunction> functionList = functionService.findByCode(functionCode, language);
+        if (CollectionUtils.isEmpty(functionList)) {
+            return null;
+        }
+        return functionList.get(0);
     }
 
     /**
@@ -365,10 +369,10 @@ public class SysFunctionController {
             throw new ParamValidateException("functionId不能为空");
         }
         if (ObjectUtils.isEmpty(function.getFunctionCode())) {
-            throw new ParamValidateException("代码不能为空");
+            throw new ParamValidateException("功能编码不能为空");
         }
         if (function.getFunctionCode().length() > 80) {
-            throw new ParamValidateException("代码超长(最大80))");
+            throw new ParamValidateException("功能编码超长(最大80))");
         }
         if (ObjectUtils.isEmpty(function.getFunctionName())) {
             throw new ParamValidateException("名称不能为空");
@@ -388,20 +392,24 @@ public class SysFunctionController {
                 throw new ParamValidateException("路由名称不能为空!");
             }
             //根据功能编码查询功能信息
-            SysFunction resultData = functionService.findByCode(function.getFunctionCode(), LanguageEnum.ZH_CN.getValue());
-            if (!ObjectUtils.isEmpty(resultData) && resultData.getFunctionType().equals(function.getFunctionType())) {
-                if (OperationTypeEnum.ADD.getValue().equals(operation)) {
-                    throw new ParamValidateException("功能编码已存在!");
-                } else {
-                    //根据功能ID查询功能信息
-                    SysFunction resultIdData = functionService.findById(function.getFunctionId(), function.getLanguage());
-                    if (!ObjectUtils.isEmpty(resultData) && !resultData.getFunctionId().equals(resultIdData.getFunctionId())) {
+            List<SysFunction> functionList = functionService.findByCode(function.getFunctionCode(), LanguageEnum.ZH_CN.getValue());
+            if (!CollectionUtils.isEmpty(functionList)) {
+                //获取功能类型=A的数据
+                SysFunction functionOld = functionList.stream().filter(o -> FunctionTypeEnum.A.getValue().equals(o.getFunctionType())).findFirst().orElse(null);
+                if (!ObjectUtils.isEmpty(functionOld)) {
+                    if (OperationTypeEnum.ADD.getValue().equals(operation)) {
                         throw new ParamValidateException("功能编码已存在!");
+                    } else {
+                        //根据功能ID查询功能信息
+                        SysFunction resultIdData = functionService.findById(function.getFunctionId(), function.getLanguage());
+                        if (!ObjectUtils.isEmpty(functionOld) && !functionOld.getFunctionId().equals(resultIdData.getFunctionId())) {
+                            throw new ParamValidateException("功能编码已存在!");
+                        }
                     }
                 }
             }
             //根据路由名称查询功能信息
-            resultData = functionService.findByRouteName(function.getName());
+            SysFunction resultData = functionService.findByRouteName(function.getName());
             if (!ObjectUtils.isEmpty(resultData) && resultData.getFunctionType().equals(function.getFunctionType())) {
                 if (OperationTypeEnum.ADD.getValue().equals(operation)) {
                     throw new ParamValidateException("路由名称已存在!");
