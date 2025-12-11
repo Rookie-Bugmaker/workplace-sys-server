@@ -68,7 +68,7 @@ public interface SysFunctionService {
      * @param language     语言
      * @return 结果
      */
-    SysFunction findByCode(String functionCode, String language);
+    List<SysFunction> findByCode(String functionCode, String language);
 
     /**
      * 根据页面ID查询功能信息
