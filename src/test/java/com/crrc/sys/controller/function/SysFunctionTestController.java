@@ -5,6 +5,7 @@ import com.crrc.sys.mapper.mapperImpl.SysFunctionMapperImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,8 +32,8 @@ public class SysFunctionTestController {
 
     @GetMapping("/findByParentIds")
     @Operation(summary = "根据父ID列表查询系统功能")
-    public List<SysFunction> findByParentIds(@RequestParam(required = false) List<Long> parentIdList, 
-                                           @RequestParam String language) {
+    public List<SysFunction> findByParentIds(@RequestParam(required = false) List<Long> parentIdList,
+                                             @RequestParam String language) {
         return sysFunctionMapper.findByParentIds(parentIdList, language);
     }
 
@@ -56,22 +57,26 @@ public class SysFunctionTestController {
 
     @GetMapping("/findById")
     @Operation(summary = "根据ID查询系统功能")
-    public SysFunction findById(@RequestParam long functionId, 
-                              @RequestParam String language) {
+    public SysFunction findById(@RequestParam long functionId,
+                                @RequestParam String language) {
         return sysFunctionMapper.findById(functionId, language);
     }
 
     @GetMapping("/findByCode")
     @Operation(summary = "根据代码查询系统功能")
-    public SysFunction findByCode(@RequestParam String functionCode, 
-                                @RequestParam String language) {
-        return sysFunctionMapper.findByCode(functionCode, language);
+    public SysFunction findByCode(@RequestParam String functionCode,
+                                  @RequestParam String language) {
+        List<SysFunction> functionList = sysFunctionMapper.findByCode(functionCode, language);
+        if (CollectionUtils.isEmpty(functionList)) {
+            return null;
+        }
+        return functionList.get(0);
     }
 
     @GetMapping("/findByIds")
     @Operation(summary = "根据ID列表查询系统功能")
-    public List<SysFunction> findByIds(@RequestParam List<Long> functionIdList, 
-                                     @RequestParam String language) {
+    public List<SysFunction> findByIds(@RequestParam List<Long> functionIdList,
+                                       @RequestParam String language) {
         return sysFunctionMapper.findByIds(functionIdList, language);
     }
 
@@ -83,15 +88,15 @@ public class SysFunctionTestController {
 
     @GetMapping("/findByRoleId")
     @Operation(summary = "根据角色ID查询系统功能")
-    public List<SysFunction> findByRoleId(@RequestParam long roleId, 
-                                        @RequestParam String language) {
+    public List<SysFunction> findByRoleId(@RequestParam long roleId,
+                                          @RequestParam String language) {
         return sysFunctionMapper.findByRoleId(roleId, language);
     }
 
     @GetMapping("/findByPageId")
     @Operation(summary = "根据页面ID查询系统功能")
-    public SysFunction findByPageId(@RequestParam long pageId, 
-                                  @RequestParam String language) {
+    public SysFunction findByPageId(@RequestParam long pageId,
+                                    @RequestParam String language) {
         return sysFunctionMapper.findByPageId(pageId, language);
     }
 
@@ -115,9 +120,9 @@ public class SysFunctionTestController {
 
     @GetMapping("/findByPage")
     @Operation(summary = "分页查询系统功能")
-    public List<SysFunction> findByPage(@RequestParam String language, 
-                                      @RequestParam int offset, 
-                                      @RequestParam int endset) {
+    public List<SysFunction> findByPage(@RequestParam String language,
+                                        @RequestParam int offset,
+                                        @RequestParam int endset) {
         return sysFunctionMapper.findByPage(language, offset, endset);
     }
 
@@ -129,10 +134,10 @@ public class SysFunctionTestController {
 
     @GetMapping("/findPageByRoleId")
     @Operation(summary = "根据角色ID分页查询系统功能")
-    public List<SysFunction> findPageByRoleId(@RequestParam long roleId, 
-                                            @RequestParam String language, 
-                                            @RequestParam int offset, 
-                                            @RequestParam int endset) {
+    public List<SysFunction> findPageByRoleId(@RequestParam long roleId,
+                                              @RequestParam String language,
+                                              @RequestParam int offset,
+                                              @RequestParam int endset) {
         return sysFunctionMapper.findPageByRoleId(roleId, language, offset, endset);
     }
 
@@ -144,16 +149,16 @@ public class SysFunctionTestController {
 
     @GetMapping("/findPageByNotParent")
     @Operation(summary = "分页查询非父级系统功能")
-    public List<SysFunction> findPageByNotParent(@RequestParam String language, 
-                                               @RequestParam Integer offset, 
-                                               @RequestParam Integer endset) {
+    public List<SysFunction> findPageByNotParent(@RequestParam String language,
+                                                 @RequestParam Integer offset,
+                                                 @RequestParam Integer endset) {
         return sysFunctionMapper.findPageByNotParent(language, offset, endset);
     }
 
     @PutMapping("/updateProjectId")
     @Operation(summary = "更新项目ID")
-    public void updateProjectId(@RequestParam long functionId, 
-                              @RequestParam Long projectId) {
+    public void updateProjectId(@RequestParam long functionId,
+                                @RequestParam Long projectId) {
         sysFunctionMapper.updateProjectId(functionId, projectId);
     }
 }
