@@ -96,15 +96,17 @@ public class SysSsoConfigController {
             });
             //所属项目
             List<Long> projectIdList = records.stream().map(SysSsoConfigPO::getProjectId).filter(projectId -> !ObjectUtils.isEmpty(projectId)).distinct().collect(Collectors.toList());
-            List<ProjectEntity> projectEntityList = projectService.listByIds(projectIdList);
-            if (!CollectionUtils.isEmpty(projectEntityList)) {
-                voList.forEach(o -> {
-                    ProjectEntity projectEntity = projectEntityList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
-                    if (!ObjectUtils.isEmpty(projectEntity)) {
-                        o.setProjectCode(projectEntity.getName());
-                        o.setProjectName(projectEntity.getNameCn());
-                    }
-                });
+            if (!CollectionUtils.isEmpty(projectIdList)) {
+                List<ProjectEntity> projectEntityList = projectService.listByIds(projectIdList);
+                if (!CollectionUtils.isEmpty(projectEntityList)) {
+                    voList.forEach(o -> {
+                        ProjectEntity projectEntity = projectEntityList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
+                        if (!ObjectUtils.isEmpty(projectEntity)) {
+                            o.setProjectCode(projectEntity.getName());
+                            o.setProjectName(projectEntity.getNameCn());
+                        }
+                    });
+                }
             }
         }
         return PaginationGrid.success(pageVo);
