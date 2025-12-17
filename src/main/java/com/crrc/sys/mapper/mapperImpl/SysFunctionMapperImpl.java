@@ -190,7 +190,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
     }
 
 
-    public SysFunction findByCode(String functionCode, String language) {
+    public List<SysFunction> findByCode(String functionCode, String language) {
         MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
                 .selectAll(SysFunctionBDBEntity.class)
                 .select(SysFunctionTlDBEntity::getFunctionName)
@@ -200,7 +200,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
                                 .eq(SysFunctionTlDBEntity::getLanguage, language)
                 )
                 .eq(SysFunctionBDBEntity::getFunctionCode, functionCode);
-        return sysFunctionBMapperService.selectJoinOne(SysFunction.class, wrapper);
+        return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
     }
 
 

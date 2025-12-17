@@ -629,7 +629,7 @@ public class SysFunctionServiceImpl implements SysFunctionService {
      * @return 结果
      */
     @Override
-    public SysFunction findByCode(String functionCode, String language) {
+    public List<SysFunction> findByCode(String functionCode, String language) {
         return functionMapper.findByCode(functionCode, language);
     }
 

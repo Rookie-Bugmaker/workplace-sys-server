@@ -1689,14 +1689,17 @@ public class SysUserController {
             List<Long> companyIdList = deptList.stream().map(Dept::getCompanyId).distinct().collect(Collectors.toList());
             // 关联部门
             List<UserGetRespVO.Company> companys = new ArrayList<>();
-            companyService.listByIds(companyIdList).forEach(sysCompany -> {
-                UserGetRespVO.Company company = new UserGetRespVO.Company();
-                company.setId(sysCompany.getId());
-                company.setCompanyId(String.valueOf(sysCompany.getCompanyId()));
-                company.setOrgCode(sysCompany.getOrgCode());
-                company.setCompanyName(sysCompany.getCompanyName());
-                companys.add(company);
-            });
+            if (!companyIdList.isEmpty()) {
+                companyService.listByIds(companyIdList).forEach(sysCompany -> {
+                    UserGetRespVO.Company company = new UserGetRespVO.Company();
+                    company.setId(sysCompany.getId());
+                    company.setCompanyId(String.valueOf(sysCompany.getCompanyId()));
+                    company.setOrgCode(sysCompany.getOrgCode());
+                    company.setCompanyName(sysCompany.getCompanyName());
+                    companys.add(company);
+                });
+            }
+
             dto.setRoles(roles);
             dto.setDepts(depts);
             dto.setCompanys(companys);
