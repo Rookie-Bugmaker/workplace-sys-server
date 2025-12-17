@@ -8,4 +8,5 @@ import java.util.Map;
 public class IdRequest {
     private String businessId;
     private Map<Integer, String> positionToParamMap;
+    private Long companyId;
 }

@@ -99,6 +99,8 @@ public class IdDesign extends BaseEntity implements Serializable {
     @Schema(description = "最后一次重置日期", example = "")
     private LocalDateTime lastResetDate;
 
+    @Schema(description = "启用公司隔离（0 启用 1不启用）", example = "")
+    private String enableCompany;
 
     public IdDesign() {
     }
@@ -286,24 +288,40 @@ public class IdDesign extends BaseEntity implements Serializable {
         this.lastResetDate = lastResetDate;
     }
 
+    public String getEnableCompany() {
+        return enableCompany;
+    }
+
+    public void setEnableCompany(String enableCompany) {
+        this.enableCompany = enableCompany;
+    }
+
     @Override
     public String toString() {
         return "IdDesign{" +
                 "id=" + id +
-                ",businessIdentifier='" + businessIdentifier + "'" +
-                ",timePrecision='" + timePrecision + "'" +
-                ",timeFormat='" + timeFormat + "'" +
-                ",timePosition='" + timePosition + "'" +
-                ",enableTime='" + enableTime + "'" +
-                ",uniqueCodeType='" + uniqueCodeType + "'" +
-                ",serialNumberStart='" + serialNumberStart + "'" +
-                ",serialNumberCurrent='" + serialNumberCurrent + "'" +
-                ",serialNumberDigits='" + serialNumberDigits + "'" +
-                ",uniqueCodePosition='" + uniqueCodePosition + "'" +
-                ",customString='" + customString + "'" +
-                ",stringPosition='" + stringPosition + "'" +
-                ",enableString='" + enableString + "'" +
-                ",spliceSeparator='" + spliceSeparator + "'" +
+                ", remark='" + remark + '\'' +
+                ", orgId=" + orgId +
+                ", deleted=" + deleted +
+                ", businessIdentifier='" + businessIdentifier + '\'' +
+                ", timePrecision='" + timePrecision + '\'' +
+                ", timeFormat='" + timeFormat + '\'' +
+                ", timePosition='" + timePosition + '\'' +
+                ", enableTime='" + enableTime + '\'' +
+                ", uniqueCodeType='" + uniqueCodeType + '\'' +
+                ", serialNumberStart=" + serialNumberStart +
+                ", serialNumberCurrent=" + serialNumberCurrent +
+                ", serialNumberDigits=" + serialNumberDigits +
+                ", uniqueCodePosition='" + uniqueCodePosition + '\'' +
+                ", customString='" + customString + '\'' +
+                ", stringPosition='" + stringPosition + '\'' +
+                ", enableString='" + enableString + '\'' +
+                ", spliceSeparator='" + spliceSeparator + '\'' +
+                ", enableCycle='" + enableCycle + '\'' +
+                ", cycleUnit='" + cycleUnit + '\'' +
+                ", cycleDate=" + cycleDate +
+                ", lastResetDate=" + lastResetDate +
+                ", enableCompany='" + enableCompany + '\'' +
                 '}';
     }
 }

@@ -93,6 +93,10 @@ public class IdDesignExcelVO {
     @Schema(description = "最后一次重置日期", example = "")
     private LocalDateTime lastResetDate;
 
+    @ExcelProperty(value = {"启用公司隔离（0 启用 1不启用）"}, index = 17)
+    @Schema(description = "启用公司隔离（0 启用 1不启用）", example = "")
+    private String enableCompany;
+
     public IdDesignExcelVO() {
     }
 

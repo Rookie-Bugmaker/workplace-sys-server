@@ -29,7 +29,7 @@ public interface IdDesignService extends IService<IdDesign> {
 
     List<IdDesign> queryExcel(IdDesignListReqVO queryReqVO);
 
-    String nextId(String businessId, Map<Integer, String> positionToParamMap);
+    String nextId(String businessId, Map<Integer, String> positionToParamMap, Long companyId);
 
-    String safeNextId(String businessId, Map<Integer, String> positionToParamMap);
+    String safeNextId(String businessId, Map<Integer, String> positionToParamMap, Long companyId);
 }

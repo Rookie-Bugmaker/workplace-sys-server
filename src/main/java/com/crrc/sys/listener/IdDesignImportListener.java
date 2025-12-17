@@ -8,6 +8,8 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.dict.Dict;
 import com.crrc.sys.entity.dict.DictItem;
 import com.crrc.sys.entity.iddesign.IdDesign;
+import com.crrc.sys.enums.IdDesignEnableEnum;
+import com.crrc.sys.enums.IdDesignUniqueTypeEnum;
 import com.crrc.sys.model.dict.DictAndItemExcelVO;
 import com.crrc.sys.model.dict.DictItemExcelVO;
 import com.crrc.sys.model.dict.DictItemVO;
@@ -63,7 +65,10 @@ public class IdDesignImportListener extends AnalysisEventListener<IdDesignExcelV
         }
 
         // 3. 检查流水号相关字段
-        if ("2".equals(data.getUniqueCodeType())) { // 流水号类型
+        if(!IdDesignUniqueTypeEnum.contains(data.getUniqueCodeType())) {
+            errorMsg("第" + row + "行: 未知唯一编码类型"+data.getUniqueCodeType());
+        }
+        if (IdDesignUniqueTypeEnum.SERIAL.getValue().equals(data.getUniqueCodeType())) { // 流水号类型
             if (data.getSerialNumberStart() == null) {
                 errorMsg("第" + row + "行: 流水号起始值不能为空");
             }
@@ -77,7 +82,10 @@ public class IdDesignImportListener extends AnalysisEventListener<IdDesignExcelV
         }
 
         // 4. 检查时间相关字段
-        if ("0".equals(data.getEnableTime())) { // 启用时间
+        if(!IdDesignEnableEnum.contains(data.getEnableTime())) {
+            errorMsg("第" + row + "行: 未知时间状态"+data.getEnableTime());
+        }
+        if (IdDesignEnableEnum.TRUE.getValue().equals(data.getEnableTime())) { // 启用时间
             if (StringUtils.isBlank(data.getTimeFormat())) {
                 errorMsg("第" + row + "行: 时间格式不能为空");
             }
@@ -91,7 +99,10 @@ public class IdDesignImportListener extends AnalysisEventListener<IdDesignExcelV
         }
 
         // 5. 检查字符串相关字段
-        if ("0".equals(data.getEnableString())) { // 启用字符串
+        if(!IdDesignEnableEnum.contains(data.getEnableString())) {
+            errorMsg("第" + row + "行: 未知自定义字符串状态"+data.getEnableString());
+        }
+        if (IdDesignEnableEnum.TRUE.getValue().equals(data.getEnableString())) { // 启用字符串
             if (StringUtils.isBlank(data.getCustomString())) {
                 errorMsg("第" + row + "行: 自定义字符串不能为空");
             }
@@ -110,7 +121,10 @@ public class IdDesignImportListener extends AnalysisEventListener<IdDesignExcelV
         }
 
         // 6. 检查循环相关字段
-        if ("0".equals(data.getEnableCycle())) { // 启用循环
+        if(!IdDesignEnableEnum.contains(data.getEnableCycle())) {
+            errorMsg("第" + row + "行: 未知周期重置状态"+data.getEnableCycle());
+        }
+        if (IdDesignEnableEnum.TRUE.getValue().equals(data.getEnableCycle())) { // 启用循环
             if (StringUtils.isBlank(data.getCycleUnit())) {
                 errorMsg("第" + row + "行: 循环单位不能为空");
             } else if (!Arrays.asList("HOUR", "DAY", "WEEK", "MONTH", "YEAR").contains(data.getCycleUnit())) {
@@ -120,6 +134,12 @@ public class IdDesignImportListener extends AnalysisEventListener<IdDesignExcelV
                 errorMsg("第" + row + "行: 循环日期不能为空");
             }
         }
+
+        // 7. 检查公司隔离相关字段
+        if(!IdDesignEnableEnum.contains(data.getEnableCompany())) {
+            errorMsg("第" + row + "行: 未知公司隔离状态"+data.getEnableCompany());
+        }
+
         if(!errorFlag){
             validDataList.add(data);
         }

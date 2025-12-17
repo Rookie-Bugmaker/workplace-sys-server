@@ -12,6 +12,7 @@ import com.crrc.sys.annotation.AuditLog;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.entity.company.Company;
 import com.crrc.sys.entity.iddesign.IdDesign;
 import com.crrc.sys.enums.LogType;
 import com.crrc.sys.enums.OperateType;
@@ -24,6 +25,8 @@ import com.crrc.sys.model.iddesign.IdDesignExcelVO;
 import com.crrc.sys.model.iddesign.IdDesignListReqVO;
 import com.crrc.sys.model.iddesign.IdDesignPageReqVO;
 import com.crrc.sys.model.iddesign.IdRequest;
+import com.crrc.sys.service.CompanyService;
+import com.crrc.sys.service.impl.DesignIdCompanyServiceImpl;
 import com.crrc.sys.service.impl.IdDesignServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -62,6 +65,12 @@ public class IdDesignController {
 
     @Autowired
     private IdDesignServiceImpl idDesignService;
+
+    @Autowired
+    private DesignIdCompanyServiceImpl designIdCompanyService;
+
+    @Autowired
+    private CompanyService companyService;
 
     @GetMapping("/page")
     @Operation(summary = "获取自定义ID列表 page")
@@ -121,6 +130,7 @@ public class IdDesignController {
                 .set(IdDesign::getCycleUnit, updateReqVO.getCycleUnit())
                 .set(IdDesign::getCycleDate, updateReqVO.getCycleDate())
                 .set(IdDesign::getLastResetDate, updateReqVO.getLastResetDate())
+                .set(IdDesign::getEnableCompany, updateReqVO.getEnableCompany())
                 .eq(IdDesign::getId, updateReqVO.getId());
         return idDesignService.update(queryWrapper);
     }
@@ -130,6 +140,8 @@ public class IdDesignController {
     @Operation(summary = "删除自定义ID实体")
     @AuditLog(value = "删除自定义ID实体", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_DELETE)
     public Boolean deleteIdDesign(@NotNull @RequestParam Long id) {
+        // 先删除公司隔离数据
+        designIdCompanyService.deleteByDesignId(id);
         return idDesignService.removeById(id);
     }
 
@@ -192,9 +204,20 @@ public class IdDesignController {
     @Operation(summary = "获得对应业务标识的下一个id-openfeign接口")
     public String nextId(@RequestBody IdRequest request) {
         if(StringUtils.isBlank(request.getBusinessId())){
-            throw new BizException("业务标识不能为空");
+            throw new BizException("流水号生成错误-错误业务标识不能为空");
         }
-        return idDesignService.safeNextId(request.getBusinessId(), request.getPositionToParamMap());
+        if(request.getCompanyId() != null && !isExistedCompanyById(request.getCompanyId())) {
+            throw new BizException("流水号生成错误-ID为"+request.getCompanyId()+"的公司不存在");
+        }
+        return idDesignService.safeNextId(request.getBusinessId(),
+                request.getPositionToParamMap(),
+                request.getCompanyId());
+    }
+
+    private Boolean isExistedCompanyById(Long companyId) {
+        LambdaQueryWrapper<Company> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Company::getId, companyId);
+        return companyService.exists(wrapper);
     }
 
 }
