@@ -1,5 +1,7 @@
 package com.crrc.sys.entity.user;
 
+import java.util.Date;
+
 /**
  * 用户信息分页查询参数
  *
@@ -36,6 +38,11 @@ public class SysUserFindByPageParam {
 	 * 角色ID
 	 */
 	private Long roleId;
+	/**
+	 * 用户类型
+	 * EMPLOYEE：员工、SUPPLIER：供应商、CUSTOMER：客户
+	 */
+	private String userType;
 
 	public Integer getPage() {
 		return page;
@@ -91,5 +98,13 @@ public class SysUserFindByPageParam {
 
 	public void setRoleId(Long roleId) {
 		this.roleId = roleId;
+	}
+
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
 	}
 }

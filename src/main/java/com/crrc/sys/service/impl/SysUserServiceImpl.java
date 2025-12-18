@@ -7,30 +7,20 @@ import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
-import com.crrc.sys.entity.org.person.SysOrgPerson;
-import com.crrc.sys.entity.org.person.SysOrgPersonBDBEntity;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
-import com.crrc.sys.entity.org.person.SysOrgPersonTlDBEntity;
-import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
-import com.crrc.sys.entity.user.SysUserDBEntity;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
-import com.crrc.sys.mapper.*;
 import com.crrc.sys.mapper.mapperImpl.*;
-import com.crrc.sys.mapper.mapperService.SysUserMapperService;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
 import com.crrc.sys.model.user.SysOnlineUserVO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
+import com.crrc.sys.model.user.role.SysUserRolePO;
 import com.crrc.sys.service.SysUserService;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
-import com.github.yulichang.toolkit.JoinWrappers;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -160,6 +150,20 @@ public class SysUserServiceImpl implements SysUserService {
         page.setTotal(midPage.getTotal());
         page.setRows(midPage.getRecords());
         return page;
+    }
+
+    /**
+     * 用户信息列表查询
+     *
+     * @param param 查询条件
+     * @return 分页数据
+     */
+    @Override
+    public List<SysUser> findList(SysUserFindByPageParam param) {
+        if (!ObjectUtils.isEmpty(param.getUserName()) && !ObjectUtils.isEmpty(param.getUserDescription()) && ObjectUtils.isEmpty(param.getMontage())) {
+            param.setMontage("and");
+        }
+        return userMapper.findByFuzzy(param);
     }
 
     @Override

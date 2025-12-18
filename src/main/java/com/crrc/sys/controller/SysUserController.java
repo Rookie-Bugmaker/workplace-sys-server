@@ -1,10 +1,14 @@
 package com.crrc.sys.controller;
 
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.support.ExcelTypeEnum;
+import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crrc.sys.annotation.AuditLog;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.*;
@@ -17,6 +21,7 @@ import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.excel.ExcelParams;
 import com.crrc.sys.entity.excel.ExcelResultData;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
+import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.*;
@@ -27,15 +32,18 @@ import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
 import com.crrc.sys.excel.ExcelImport;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.model.org.person.SysOrgPersonDeliveryExcelVO;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.SysUserCompatibilityDTO;
 import com.crrc.sys.model.user.SysUserParamDTO;
+import com.crrc.sys.model.user.UserDeliveryExcelVO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.*;
 import com.crrc.sys.service.impl.SysUserServiceImpl;
 import com.crrc.sys.service.impl.SysUserValidServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
@@ -52,6 +60,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -868,6 +878,30 @@ public class SysUserController {
         return userService.findRoleByUserName(userName, language);
     }
 
+    @GetMapping("/export")
+    @AuditLog(value = "导出用户信息", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "导出用户信息")
+    public void exportSysPerson(SysUserFindByPageParam exportReqVO, HttpServletResponse response) throws IOException {
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("用户信息-" + new SimpleDateFormat("yyyyMMddhhmmss")
+                        .format(System.currentTimeMillis()), "UTF-8")
+                .replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+
+        exportReqVO = (exportReqVO == null) ? new SysUserFindByPageParam() : exportReqVO;
+        List<SysUser> userList = userService.findList(exportReqVO);
+        List<UserDeliveryExcelVO> userExcelVOS = transUserToExcelVOS(userList);
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), UserDeliveryExcelVO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("用户信息")
+                .doWrite(userExcelVOS);
+    }
 
     /**
      * 下载导入模板
@@ -1333,5 +1367,38 @@ public class SysUserController {
             dtoList.add(dto);
         }
         return dtoList;
+    }
+
+    private List<UserDeliveryExcelVO> transUserToExcelVOS(List<SysUser> userList) {
+        // 使用并行流处理
+        return userList.parallelStream().map(user -> {
+            UserDeliveryExcelVO excelVO = new UserDeliveryExcelVO();
+            excelVO.setUserName(user.getUserName());
+            excelVO.setUserDescription(user.getUserDescription());
+            if(UserTypeEnum.EMPLOYEE.getValue().equals(user.getUserType())) {
+                excelVO.setUserType(UserTypeEnum.EMPLOYEE.getText());
+            } else if (UserTypeEnum.SUPPLIER.getValue().equals(user.getUserType())) {
+                excelVO.setUserType(UserTypeEnum.SUPPLIER.getText());
+            } else if (UserTypeEnum.CUSTOMER.getValue().equals(user.getUserType())) {
+                excelVO.setUserType(UserTypeEnum.CUSTOMER.getText());
+            } else {
+                excelVO.setUserType("未知");
+            }
+            if(UserStatusEnum.N.getValue().equals(user.getDisableState())) {
+                excelVO.setDisableState(UserStatusEnum.N.getText());
+            } else if (UserStatusEnum.Y.getValue().equals(user.getDisableState())) {
+                excelVO.setDisableState(UserStatusEnum.Y.getText());
+            } else {
+                excelVO.setDisableState("未知");
+            }
+            if(user.getUserRelationId() != null) {
+                String jobNo = personService.findById(user.getUserRelationId(), LanguageEnum.ZH_CN.getValue()).getJobNo();
+                excelVO.setUserRelation(jobNo);
+            }
+            String roleCodeList = roleService.findByUserId(user.getUserId(), LanguageEnum.ZH_CN.getValue())
+                    .stream().map(SysRole::getRoleCode).collect(Collectors.joining(","));
+            excelVO.setRoleAuth(roleCodeList);
+            return excelVO;
+        }).collect(Collectors.toList());
     }
 }

@@ -20,6 +20,8 @@ public interface SysRoleService {
      */
     PaginationGrid<SysRole> findByPage(SysRoleFindByPageParam param);
 
+    List<SysRole> findList(SysRoleFindByPageParam param);
+
     /**
      * 新增
      *

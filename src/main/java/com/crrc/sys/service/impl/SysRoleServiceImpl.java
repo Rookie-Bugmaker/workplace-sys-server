@@ -10,21 +10,17 @@ import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.controller.SysOnlineUserController;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
-import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.mapper.*;
 import com.crrc.sys.mapper.mapperImpl.*;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.role.SysUserRolePO;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysRoleCompanyDeptService;
 import com.crrc.sys.service.SysRoleService;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ValueOperations;
@@ -101,6 +97,30 @@ public class SysRoleServiceImpl implements SysRoleService {
         page.setTotal(midPage.getTotal());
         page.setRows(rows);
         return page;
+    }
+
+    /**
+     * 角色信息列表查询
+     *
+     * @param param 查询条件
+     * @return 列表结果
+     */
+    @Override
+    public List<SysRole> findList(SysRoleFindByPageParam param) {
+        List<SysRole> roleList = roleMapper.findByFuzzy(param);
+        if (!CollectionUtils.isEmpty(roleList)) {
+            List<Long> projectIdList = roleList.stream().map(SysRole::getProjectId).distinct().collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(projectIdList)) {
+                List<ProjectEntity> projectList = projectService.listByIds(projectIdList);
+                if (!CollectionUtils.isEmpty(projectList)) {
+                    roleList.forEach(o -> {
+                        ProjectEntity projectEntity = projectList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
+                        o.setProjectName(ObjectUtils.isEmpty(projectEntity) ? null : projectEntity.getNameCn());
+                    });
+                }
+            }
+        }
+        return roleList;
     }
 
     /**

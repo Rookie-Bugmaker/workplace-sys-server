@@ -1,40 +1,62 @@
 package com.crrc.sys.controller;
 
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.support.ExcelTypeEnum;
+import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.crrc.sys.annotation.AuditLog;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
-import com.crrc.sys.common.Constant;
-import com.crrc.sys.common.IdKeyGenerator;
-import com.crrc.sys.common.PaginationGrid;
-import com.crrc.sys.common.ResultData;
+import com.crrc.sys.common.*;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.company.Company;
 import com.crrc.sys.entity.dept.Dept;
+import com.crrc.sys.entity.excel.ExcelResultData;
+import com.crrc.sys.entity.org.person.SysOrgPerson;
+import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUser;
-import com.crrc.sys.enums.DataAuthTypeEnum;
-import com.crrc.sys.enums.EnableFlagEnum;
-import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.enums.OperationTypeEnum;
+import com.crrc.sys.entity.user.SysUserRole;
+import com.crrc.sys.entity.user.SysUserRoleDBEntity;
+import com.crrc.sys.enums.*;
+import com.crrc.sys.listener.SysOrgPersonImportListener;
+import com.crrc.sys.listener.SysUserRoleImportListener;
 import com.crrc.sys.mapper.mapperImpl.SysUserRoleMapperImpl;
+import com.crrc.sys.model.dept.person.SysDeptPersonPO;
+import com.crrc.sys.model.org.person.SysOrgPersonDeliveryExcelVO;
+import com.crrc.sys.model.org.person.SysOrgPersonVerifyExcelDTO;
 import com.crrc.sys.model.role.BindUserDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptInfoDTO;
+import com.crrc.sys.model.user.role.SysUserRoleDeliveryExcelVO;
 import com.crrc.sys.model.user.role.SysUserRolePO;
+import com.crrc.sys.model.user.role.SysUserRoleVerifyExcelDTO;
 import com.crrc.sys.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +90,12 @@ public class SysRoleController {
 
     @Autowired
     private SysUserRoleMapperImpl userRoleMapper;
+
+    @Resource
+    private ValueOperations<String, Object> valueOperations;
+
+    private static final String REDIS_PREFIX_BIND = "import_user_role_data";
+
 
     /**
      * 角色信息分页查询
@@ -784,4 +812,180 @@ public class SysRoleController {
             throw new BizException("保存失败!");
         }
     }
+
+    @GetMapping("/export/bind")
+    @AuditLog(value = "导出角色绑定人员信息", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "导出角色绑定人员信息")
+    public void exportSysUserRole(SysRoleFindByPageParam exportReqVO, HttpServletResponse response) throws IOException {
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("人员信息-" + new SimpleDateFormat("yyyyMMddhhmmss")
+                        .format(System.currentTimeMillis()), "UTF-8")
+                .replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+
+        exportReqVO = (exportReqVO == null) ? new SysRoleFindByPageParam() : exportReqVO;
+        List<SysRole> roleList = roleService.findList(exportReqVO);
+        List<SysUserRoleDeliveryExcelVO> userRoleExcelVOS = transRoleToUserRoleExcelVOS(roleList);
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), SysUserRoleDeliveryExcelVO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("角色绑定人员信息")
+                .doWrite(userRoleExcelVOS);
+    }
+
+    @GetMapping("/download/bind")
+    @AuditLog(value = "导出角色绑定人员信息模板", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "导出角色绑定人员信息模板")
+    public void exportTemplateSysUserRole(HttpServletResponse response) throws IOException {
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("角色绑定人员信息模板", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), SysUserRoleDeliveryExcelVO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("角色绑定人员信息")
+                .doWrite(new ArrayList<>());
+    }
+
+    @PostMapping("/import/bind")
+    @AuditLog(value = "导入角色绑定人员信息报表", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
+    @Operation(summary = "导入角色绑定人员信息报表")
+    public ResultData<ExcelResultData<List<SysUserRoleVerifyExcelDTO>>> importsSysUserRole(MultipartFile file) throws IOException {
+        SysUserRoleImportListener listener = new SysUserRoleImportListener(userService, roleService);
+        EasyExcel.read(file.getInputStream(), SysUserRoleDeliveryExcelVO.class, listener)
+                .headRowNumber(1)
+                .sheet()
+                .doRead();
+        // 形成数据
+        List<SysUserRoleVerifyExcelDTO> verifyExcelList = listener.getResult();
+        if (CollectionUtils.isEmpty(verifyExcelList)) {
+            throw new BizException("导入文件不能为空");
+        }
+        List<SysUserRole> userRoleList = transExcelVOsToUserRole(verifyExcelList);
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("userRole", userRoleList);
+        map.put("excel", verifyExcelList);
+        //存入redis
+        String redisKey = REDIS_PREFIX_BIND + idKeyGenerator.getId();
+        String jsonStr = JSON.toJSONString(map);
+        valueOperations.set(redisKey, jsonStr, 3600, TimeUnit.SECONDS);
+        ExcelResultData<List<SysUserRoleVerifyExcelDTO>> build = ExcelResultData.build(redisKey, verifyExcelList);
+        // 验证是否有失败的数据
+        List<String> validateStatus = verifyExcelList.stream().map(SysUserRoleVerifyExcelDTO::getValidateStatus).filter(status -> StatusEnum.N.name().equals(status)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(validateStatus)) {
+            return ResultData.success(build);
+        }
+        return ResultData.fail(ReturnCode.EXCEL_ERROR.getCode(), ReturnCode.EXCEL_ERROR.getMessage(), build);
+    }
+
+    @GetMapping("/download/data/bind")
+    @AuditLog(value = "下载角色绑定人员导入验证结果", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @Operation(summary = "下载角色绑定人员导入验证结果")
+    public void downloadVerifyResultBind(HttpServletResponse response, @RequestParam String redisKey) throws IOException {
+        String redisData = (String) valueOperations.get(redisKey);
+        // 反序列化
+        HashMap<String, Object> map = JSON.parseObject(redisData,
+                new TypeReference<HashMap<String, Object>>() {
+                });
+        // 获取数据
+        List<SysUserRoleVerifyExcelDTO> list = JSON.parseObject(
+                JSON.toJSONString(map.get("excel")),
+                new TypeReference<List<SysUserRoleVerifyExcelDTO>>() {
+                });
+        String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        response.setContentType(contentType);
+        response.setCharacterEncoding("utf-8");
+        // 这里URLEncoder.encode可以防止中文乱码
+        String fileName = URLEncoder.encode("角色绑定人员导入验证结果下载", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+        ExcelTypeEnum typeEnum = ExcelTypeEnum.XLSX;
+        EasyExcel.write(response.getOutputStream(), SysUserRoleVerifyExcelDTO.class)
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .autoCloseStream(true)
+                .excelType(typeEnum)
+                .sheet("角色绑定人员导入验证结果下载")
+                .doWrite(list);
+    }
+
+    /**
+     * 验证数据入库
+     *
+     * @param redisKey redis缓存主键
+     */
+    @Transactional
+    @AutoIdempotent(seconds = 30)
+    @AuditLog(value = "导入角色绑定人员数据", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
+    @GetMapping("/import/data/bind")
+    public void importData(@RequestParam String redisKey) {
+        String redisData = (String) valueOperations.get(redisKey);
+        // 反序列化
+        HashMap<String, Object> map = JSON.parseObject(redisData,
+                new TypeReference<HashMap<String, Object>>() {
+                });
+        // 获取数据
+        List<SysUserRole> userRoleList = JSON.parseObject(
+                JSON.toJSONString(map.get("userRole")),
+                new TypeReference<List<SysUserRole>>() {
+                });
+
+        if(userRoleList != null && userRoleList.size() > 0) {
+            boolean result = userRoleMapper.insert(userRoleList) > 0;
+            if (!result) {
+                throw new BizException("角色绑定人员数据写入失败！");
+            }
+        }
+    }
+
+    private List<SysUserRole> transExcelVOsToUserRole(List<SysUserRoleVerifyExcelDTO> verifyExcelList) {
+        List<SysUserRole> sysUserRoleList = new ArrayList<>();
+        verifyExcelList.forEach(excelDTO -> {
+            SysUserRole userRole = new SysUserRole();
+            userRole.setId(idKeyGenerator.getId());
+            if (StringUtils.isNotBlank(excelDTO.getRoleCode())) {
+                SysRole sysRole = roleService.findByCode(excelDTO.getRoleCode(), LanguageEnum.ZH_CN.getValue());
+                userRole.setRoleId(sysRole == null ? null : sysRole.getRoleId());
+            }
+            if (StringUtils.isNotBlank(excelDTO.getUserName())) {
+                SysUser sysUser = userService.findByUserName(excelDTO.getUserName());
+                userRole.setUserId(sysUser == null ? null : sysUser.getUserId());
+            }
+            // 获取当前用户
+            ResultData<SysUser> resultData = authClient.currentUser();
+            if (!resultData.getSuccess()) {
+                throw new BizException(resultData.getMessage());
+            }
+            userRole.setCreateBy(resultData.getResult().getUserId());
+            userRole.setCreateDate(Calendar.getInstance().getTime());
+            sysUserRoleList.add(userRole);
+        });
+        return sysUserRoleList;
+    }
+
+    private List<SysUserRoleDeliveryExcelVO> transRoleToUserRoleExcelVOS(List<SysRole> roleList) {
+        List<SysUserRoleDeliveryExcelVO> excelVOList = new ArrayList<>();
+        roleList.forEach(role -> {
+            List<SysUser> userList = userService.findUserByRoleId(role.getRoleId());
+            if(userList != null) {
+                userList.forEach(user -> {
+                    SysUserRoleDeliveryExcelVO excelVO = new SysUserRoleDeliveryExcelVO();
+                    excelVO.setUserName(user.getUserName());
+                    excelVO.setRoleCode(role.getRoleCode());
+                    excelVOList.add(excelVO);
+                });
+            }
+        });
+        return excelVOList;
+    }
+
 }

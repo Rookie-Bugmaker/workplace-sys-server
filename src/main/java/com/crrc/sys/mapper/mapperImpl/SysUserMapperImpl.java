@@ -79,6 +79,9 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         if (StringUtils.isNotBlank(param.getDisableState())) {
             wrapper.eq(SysUserDBEntity::getDisableState, param.getDisableState());
         }
+        if(StringUtils.isNotBlank(param.getUserType())) {
+            wrapper.eq(SysUserDBEntity::getUserType, param.getUserType());
+        }
         if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
             wrapper.like(SysUserDBEntity::getUserName, param.getUserName());
         } else if (StringUtils.isBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
@@ -116,6 +119,9 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         }
         if (StringUtils.isNotBlank(param.getDisableState())) {
             wrapper.eq(SysUserDBEntity::getDisableState, param.getDisableState());
+        }
+        if(StringUtils.isNotBlank(param.getUserType())) {
+            wrapper.eq(SysUserDBEntity::getUserType, param.getUserType());
         }
         if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
             wrapper.like(SysUserDBEntity::getUserName, param.getUserName());

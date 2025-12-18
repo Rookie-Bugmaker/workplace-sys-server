@@ -70,6 +70,8 @@ public interface SysUserService {
      */
     PaginationGrid<SysUser> findByPage(SysUserFindByPageParam param);
 
+    List<SysUser> findList(SysUserFindByPageParam param);
+
     /**
      * 用户信息分页查询
      *

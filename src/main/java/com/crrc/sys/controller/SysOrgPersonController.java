@@ -510,7 +510,7 @@ public class SysOrgPersonController {
 
     @GetMapping("/download")
     @AuditLog(value = "导出人员信息模板", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
-    @Operation(summary = "导出自人员信息模板")
+    @Operation(summary = "导出人员信息模板")
     public void exportTemplateSysPerson(HttpServletResponse response) throws IOException {
         String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         response.setContentType(contentType);
@@ -603,7 +603,7 @@ public class SysOrgPersonController {
      */
     @Transactional
     @AutoIdempotent(seconds = 30)
-    @AuditLog(value = "下载导入验证结果", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
+    @AuditLog(value = "导入数据", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_IMPORT)
     @GetMapping("/import/data")
     public void importData(@RequestParam String redisKey) {
         String redisData = (String) valueOperations.get(redisKey);

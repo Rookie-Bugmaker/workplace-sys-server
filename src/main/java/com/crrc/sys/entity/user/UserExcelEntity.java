@@ -18,24 +18,24 @@ public class UserExcelEntity extends BaseExcelEntity {
     /**
      * 用户名
      */
-    @ExcelProperty(value = "*用户名")
+    @ExcelProperty(value = "*用户名", index = 0)
     private String userName;
 
     /**
      * 用户密码
      */
-    @ExcelProperty(value = "*用户密码")
+    @ExcelProperty(value = "*用户密码", index = 1)
     private String password;
     /**
      * 用户类型
      * EMPLOYEE：员工、SUPPLIER：供应商、CUSTOMER：客户
      */
-    @ExcelProperty(value = "*用户类型")
+    @ExcelProperty(value = "*用户类型", index = 2)
     private String userType;
     /**
      * 用户关联
      */
-    @ExcelProperty(value = "关联用户")
+    @ExcelProperty(value = "关联用户", index = 3)
     private String userRelation;
     /**
      * 登录终端
@@ -58,18 +58,18 @@ public class UserExcelEntity extends BaseExcelEntity {
     /**
      * 禁用状态(Y/N)
      */
-    @ExcelProperty(value = "*用户状态")
+    @ExcelProperty(value = "*用户状态", index = 4)
     private String disableState;
     /**
      * 用户描述
      */
-    @ExcelProperty(value = "*用户描述")
+    @ExcelProperty(value = "*用户描述", index = 5)
     private String userDescription;
 
     /**
      * 角色授权
      */
-    @ExcelProperty(value = "角色授权")
+    @ExcelProperty(value = "角色授权", index = 6)
     private String roleAuth;
 
 
