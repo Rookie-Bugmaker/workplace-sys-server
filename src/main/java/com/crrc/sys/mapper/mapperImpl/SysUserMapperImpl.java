@@ -433,7 +433,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
                 .innerJoin(SysRoleBDBEntity.class, SysRoleBDBEntity::getRoleId, SysUserRoleDBEntity::getRoleId)
                 .innerJoin(SysDeptPersonPO.class, SysDeptPersonPO::getPersonId, SysUserDBEntity::getUserRelationId)
                 .innerJoin(SysOrgPersonTlDBEntity.class, SysOrgPersonTlDBEntity::getPersonId, SysUserDBEntity::getUserRelationId)
-                .eq(SysRoleBDBEntity::getRoleCode, roleCode)
+                .in(SysRoleBDBEntity::getRoleCode, roleCode.split(","))  // 修改为in查询，支持多个角色编码
                 .eq(SysDeptPersonPO::getCompanyId, companyId)
                 .eq(SysDeptPersonPO::getDeptId, deptId)
                 .eq(SysUserDBEntity::getDisableState, "N")
