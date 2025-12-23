@@ -20,4 +20,6 @@ public interface FileDataService extends IService<FileData> {
     List<FileData> listFileData(List<String> fileIds);
 
     void saveFileData(String fileId, String actualName, String contentType, Long size);
+
+    void removeFileData(List<String> fileIds);
 }

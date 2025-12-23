@@ -56,4 +56,10 @@ public class SysFileDataGlobalController {
         return fileDataService.listFileData(fileIds);
     }
 
+    @GetMapping("/removeFileData")
+    @Operation(summary = "公共方法：获取文件数据表实体")
+    @AuditLog(value = "公共方法：获取文件数据表实体", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_DELETE)
+    public void removeFileData(@RequestParam("fileIds") List<String> fileIds) {
+        fileDataService.removeFileData(fileIds);
+    }
 }

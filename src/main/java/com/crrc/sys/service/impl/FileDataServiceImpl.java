@@ -1,19 +1,16 @@
 package com.crrc.sys.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.entity.filedata.FileData;
 import com.crrc.sys.mapper.FileDataMapper;
 import com.crrc.sys.service.FileDataService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * <p>
@@ -60,5 +57,12 @@ public class FileDataServiceImpl extends ServiceImpl<FileDataMapper, FileData> i
         fileData.setMimeType(contentType);
         fileData.setFileSize(size);
         this.save(fileData);
+    }
+
+    @Override
+    public void removeFileData(List<String> fileIds) {
+        LambdaQueryWrapper<FileData> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(FileData::getFileId, fileIds);
+        this.remove(queryWrapper);
     }
 }
