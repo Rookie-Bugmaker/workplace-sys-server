@@ -19,6 +19,8 @@ public class DeptOfUserDTO {
 
     private String remark;
 
+    private String orgCode;
+
     private Boolean deleted;
 
 }

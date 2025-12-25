@@ -240,6 +240,7 @@ public class DeptController {
                 deptOfUserDTO.setRemark(deptList.get(0).getRemark());
                 deptOfUserDTO.setStatus(deptList.get(0).getStatus());
                 deptOfUserDTO.setDeleted("0".equals(deptList.get(0).getDeleted()) ? false : true);
+                deptOfUserDTO.setOrgCode(deptList.get(0).getOrgCode());
                 deptOfUserDTOs.add(deptOfUserDTO);
             }
         });
