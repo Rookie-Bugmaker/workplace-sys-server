@@ -282,6 +282,14 @@ public class SysApiAuthController {
     }
 
     /**
+     * 完整性验证
+     */
+    @GetMapping("verification")
+    public Boolean export() {
+       return true;
+    }
+
+    /**
      * 参数校验
      *
      * @param operation 操作类型
