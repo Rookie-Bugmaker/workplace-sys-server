@@ -38,6 +38,7 @@ public class RedissonManager {
                             .setPassword(redisProperties.getPassword())
                             .setMasterName(redisProperties.getSentinel().getMaster())
                             .setSentinelPassword(redisProperties.getSentinel().getPassword())
+                            .setDatabase(redisProperties.getDatabase())
                             .setSentinelAddresses(redisProperties.getSentinel().getNodes().stream().map(o -> "redis://" + o).collect(Collectors.toList()));
                     break;
                 default:
