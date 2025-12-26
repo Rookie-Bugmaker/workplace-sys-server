@@ -1,9 +1,11 @@
 package com.crrc.sys.controller;
 
-import com.crrc.sys.annotation.AuditLog;
+import com.crrc.annotation.AuditLog;
+import com.crrc.enums.LogType;
+import com.crrc.enums.OperateType;
 import com.crrc.sys.entity.filedata.FileData;
-import com.crrc.sys.enums.LogType;
-import com.crrc.sys.enums.OperateType;
+import com.crrc.enums.LogType;
+import com.crrc.enums.OperateType;
 import com.crrc.sys.service.impl.FileDataServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

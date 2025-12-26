@@ -1,7 +1,8 @@
 package com.crrc.sys.model.log;
 
-import com.crrc.sys.enums.LogType;
-import com.crrc.sys.enums.OperateType;
+import com.crrc.enums.LogType;
+import com.crrc.enums.OperateType;
+
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

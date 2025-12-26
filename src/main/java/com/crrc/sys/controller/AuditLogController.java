@@ -6,12 +6,13 @@ import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.crrc.sys.annotation.AuditLog;
+import com.crrc.annotation.AuditLog;
+import com.crrc.enums.LogType;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.log.AuditLogEntity;
-import com.crrc.sys.enums.LogType;
-import com.crrc.sys.enums.OperateType;
+import com.crrc.enums.LogType;
+import com.crrc.enums.OperateType;
 import com.crrc.sys.model.log.AuditLogPageReqVO;
 import com.crrc.sys.service.AuditLogService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -8,7 +8,9 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.crrc.sys.annotation.AuditLog;
+import com.crrc.annotation.AuditLog;
+import com.crrc.enums.LogType;
+import com.crrc.enums.OperateType;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.*;
@@ -151,6 +153,7 @@ public class SysUserController {
      * @return 分页数据
      */
     @RequestMapping("findByPage")
+    @AuditLog(value = "用户信息分页查询NEW-审计日志测试", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_QUERY)
     public PaginationGrid<SysUser> findByPage(SysUserFindByPageParam param) {
         if (ObjectUtils.isEmpty(param)) {
             throw new ParamValidateException("参数错误");
