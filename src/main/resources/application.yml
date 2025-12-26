@@ -107,47 +107,11 @@ feign:
   sentinel:
     enabled: true
 crrc:
-  config:
-    captcha:
-      enable: true
   service:
-    name: workplace-core
-    sys_name: workplace
+    name: sys-server
+    sys_name: sys
     sys_service: true
   datasource:
     decrypt:
       type: aes
       key: lfJRbW42v1tqd8cpAMNLXj1eGUEP8d5DHt61vBH4oYw=
-springdoc:
-  swagger-ui:
-    host: 10.151.255.79
-    port: 9091
-    url: /${spring.application.name}/v3/api-docs
-mainData:
-  mq:
-    # 队列管理器名称
-    queueManagerName: @mainData.mq.queueManagerName@
-    # MQ服务器地址
-    hostName: @mainData.mq.hostName@
-    # MQ通道名
-    channel: @mainData.mq.channel@
-    # 端口号
-    port: @mainData.mq.port@
-    # 字符集
-    ccsid: @mainData.mq.ccsid@
-    # 队列名
-    queueString: @mainData.mq.queueString@
-    # 用户名
-    userId: @mainData.mq.userId@
-    # 密码
-    password: @mainData.mq.password@
-logging:
-  level:
-    org:
-      springframework:
-        web: DEBUG
-        boot:
-          autoconfigure: ERROR
-dify:
-  baseUrl: https://aistart.cccar.com.cn/v1
-  apiKey: app-s3z4HYqnBBIspT9UXciYLhSH
