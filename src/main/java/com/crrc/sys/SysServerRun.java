@@ -5,6 +5,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * 启动类
@@ -15,7 +17,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 @EnableDiscoveryClient
 @MapperScan("com.crrc.sys.mapper")
-@EnableFeignClients
+@EnableFeignClients("com.crrc")
+@ComponentScan("com.crrc")
 public class SysServerRun {
 
     public static void main(String[] args) {

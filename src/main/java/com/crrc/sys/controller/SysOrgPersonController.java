@@ -6,7 +6,9 @@ import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.crrc.sys.annotation.AuditLog;
+import com.crrc.annotation.AuditLog;
+import com.crrc.enums.LogType;
+import com.crrc.enums.OperateType;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;

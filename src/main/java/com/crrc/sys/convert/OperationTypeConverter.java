@@ -6,7 +6,7 @@ import com.alibaba.excel.metadata.GlobalConfiguration;
 import com.alibaba.excel.metadata.data.ReadCellData;
 import com.alibaba.excel.metadata.data.WriteCellData;
 import com.alibaba.excel.metadata.property.ExcelContentProperty;
-import com.crrc.sys.enums.OperateType;
+import com.crrc.enums.OperateType;
 
 public class OperationTypeConverter implements Converter<OperateType> {
 

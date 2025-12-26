@@ -6,7 +6,9 @@ import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.crrc.sys.annotation.AuditLog;
+import com.crrc.annotation.AuditLog;
+import com.crrc.enums.LogType;
+import com.crrc.enums.OperateType;
 import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.*;
@@ -814,7 +816,7 @@ public class SysRoleController {
     }
 
     @GetMapping("/export/bind")
-    @AuditLog(value = "导出角色绑定人员信息", logType = LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
+    @AuditLog(value = "导出角色绑定人员信息", logType =LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
     @Operation(summary = "导出角色绑定人员信息")
     public void exportSysUserRole(SysRoleFindByPageParam exportReqVO, HttpServletResponse response) throws IOException {
         String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
