@@ -7,6 +7,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * 启动类
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.ComponentScan;
 @MapperScan("com.crrc.sys.mapper")
 @EnableFeignClients("com.crrc")
 @ComponentScan("com.crrc")
+@EnableAsync
 public class SysServerRun {
 
     public static void main(String[] args) {
