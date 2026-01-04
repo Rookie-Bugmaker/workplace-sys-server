@@ -7,6 +7,7 @@ import com.crrc.sys.model.dept.DeptListRespVO;
 import com.crrc.sys.model.dept.DeptOfUserDTO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DeptService extends IService<Dept> {
     List<Long> getSubDeptId(Long deptId);
@@ -42,4 +43,6 @@ public interface DeptService extends IService<Dept> {
      * @return 部门信息
      */
     Dept findByCode(String deptCode);
+
+    Map<Long, String> getSubdeptIdToCodeMap(Long id);
 }

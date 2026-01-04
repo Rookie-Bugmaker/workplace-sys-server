@@ -148,6 +148,12 @@ public class DeptController {
         return deptService.getSubDeptId(id);
     }
 
+    @GetMapping("/get_subdept_idToCodeMap")
+    @Operation(summary = "通过部门id获取子部门id与编码映射")
+    public Map<Long, String> getSubdeptIdToCodeMap(@RequestParam Long id) {
+        return deptService.getSubdeptIdToCodeMap(id);
+    }
+
 
     @PostMapping("/get_list")
     @Operation(summary = "通过部门id获取部门列表")

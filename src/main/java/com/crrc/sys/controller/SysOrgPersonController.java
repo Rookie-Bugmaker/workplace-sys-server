@@ -432,6 +432,20 @@ public class SysOrgPersonController {
     }
 
     /**
+     * 根据人员ID查询人员简单信息(只有人员,没有其它关联)
+     *
+     * @param personId 人员ID
+     * @return 人员信息
+     */
+    @GetMapping("findSimpleById")
+    public SysOrgPerson findSimpleById(Long personId, String language) {
+        if (ObjectUtils.isEmpty(personId) || ObjectUtils.isEmpty(language)) {
+            throw new ParamValidateException("参数不能为空");
+        }
+        return orgPersonService.findById(personId, language);
+    }
+
+    /**
      * 根据人员ID查询人员信息(批量)
      *
      * @param personIdList 人员ID集合

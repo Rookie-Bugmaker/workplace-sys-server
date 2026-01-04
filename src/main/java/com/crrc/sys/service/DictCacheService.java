@@ -47,11 +47,11 @@ public interface DictCacheService {
     void cacheDict(DictVO dictVO);
     void cacheDictItem(String dictCode, DictItemVO itemVO);
 
-    String getUserRealNameInDictExtendsFromCache(Long userId, String userName);
+//    String getUserRealNameInDictExtendsFromCache(Long userId, String userName);
 
-    String getDeptNameNameInDictExtendsFromCache(Long deptId, String orgCode);
+//    String getDeptNameNameInDictExtendsFromCache(Long deptId, String orgCode);
 
-    void cacheUserRealInDictExtends(SysUser user);
+//    void cacheUserRealInDictExtends(SysUser user);
 
-    void cacheDeptNameInDictExtends(Dept dept);
+//    void cacheDeptNameInDictExtends(Dept dept);
 }

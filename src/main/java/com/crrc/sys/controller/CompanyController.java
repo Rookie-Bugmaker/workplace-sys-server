@@ -132,7 +132,7 @@ public class CompanyController {
     @Operation(summary = "获取公司信息page")
     public PaginationGrid<CompanyGetRespVO> getCompany(CompanyPageReqVO pageReqVO) {
         LambdaQueryWrapper<Company> wapper = new LambdaQueryWrapper<>();
-        wapper.eq(!StrUtil.isEmpty(pageReqVO.getCompanyName()), Company::getCompanyName, pageReqVO.getCompanyName());
+        wapper.like(!StrUtil.isEmpty(pageReqVO.getCompanyName()), Company::getCompanyName, pageReqVO.getCompanyName());
         wapper.eq(!Objects.isNull(pageReqVO.getCompanyId()), Company::getCompanyId, pageReqVO.getCompanyId());
         wapper.eq(!StrUtil.isEmpty(pageReqVO.getStatus()), Company::getStatus, pageReqVO.getStatus());
         // 剔除临时公司

@@ -388,93 +388,93 @@ public class DictCacheServiceImpl implements DictCacheService {
         });
     }
 
-    @Override
-    public String getUserRealNameInDictExtendsFromCache(Long userId, String userName) {
-        if (userId != null) {
-            // 按userId查询
-            String userKey = CacheKeyGenerator.getUserExtendKey(userId.toString());
-            Map<String, String> userMap = redisCache.getCacheMap(userKey);
-            if (userMap != null && !userMap.isEmpty()) {
-                return StringUtils.defaultIfBlank(userMap.get("nickName"), "");
-            }
-        }
+//    @Override
+//    public String getUserRealNameInDictExtendsFromCache(Long userId, String userName) {
+//        if (userId != null) {
+//            // 按userId查询
+//            String userKey = CacheKeyGenerator.getUserExtendKey(userId.toString());
+//            Map<String, String> userMap = redisCache.getCacheMap(userKey);
+//            if (userMap != null && !userMap.isEmpty()) {
+//                return StringUtils.defaultIfBlank(userMap.get("nickName"), "");
+//            }
+//        }
+//
+//        if (StringUtils.isNotBlank(userName)) {
+//            // 按userName查询（需要遍历所有用户缓存）
+//            String userPattern = CacheKeyGenerator.getUserExtendKey("*");
+//            Set<String> userKeys = Sets.newHashSet(redisCache.keys(userPattern));
+//
+//            for (String key : userKeys) {
+//                Map<String, String> userMap = redisCache.getCacheMap(key);
+//                if (userMap != null && userName.equals(userMap.get("userName"))) {
+//                    return StringUtils.defaultIfBlank(userMap.get("nickName"), "");
+//                }
+//            }
+//        }
+//
+//        return "";
+//    }
 
-        if (StringUtils.isNotBlank(userName)) {
-            // 按userName查询（需要遍历所有用户缓存）
-            String userPattern = CacheKeyGenerator.getUserExtendKey("*");
-            Set<String> userKeys = Sets.newHashSet(redisCache.keys(userPattern));
+//    @Override
+//    public String getDeptNameNameInDictExtendsFromCache(Long deptId, String orgCode) {
+//        if (deptId != null) {
+//            // 按deptId查询
+//            String deptKey = CacheKeyGenerator.getDeptExtendKey(deptId.toString());
+//            Map<String, String> deptMap = redisCache.getCacheMap(deptKey);
+//            if (deptMap != null && !deptMap.isEmpty()) {
+//                return StringUtils.defaultIfBlank(deptMap.get("departmentName"), "");
+//            }
+//        }
+//
+//        if (StringUtils.isNotBlank(orgCode)) {
+//            // 按orgCode查询（需要遍历所有部门缓存）
+//            String deptPattern = CacheKeyGenerator.getDeptExtendKey("*");
+//            Set<String> deptKeys = Sets.newHashSet(redisCache.keys(deptPattern));
+//
+//            for (String key : deptKeys) {
+//                Map<String, String> deptMap = redisCache.getCacheMap(key);
+//                if (deptMap != null && orgCode.equals(deptMap.get("orgCode"))) {
+//                    return StringUtils.defaultIfBlank(deptMap.get("departmentName"), "");
+//                }
+//            }
+//        }
+//
+//        return "";
+//    }
 
-            for (String key : userKeys) {
-                Map<String, String> userMap = redisCache.getCacheMap(key);
-                if (userMap != null && userName.equals(userMap.get("userName"))) {
-                    return StringUtils.defaultIfBlank(userMap.get("nickName"), "");
-                }
-            }
-        }
+//    @Override
+//    public void cacheUserRealInDictExtends(SysUser user) {
+//        if (user == null || user.getUserId() == null) {
+//            return;
+//        }
+//
+//        String userKey = CacheKeyGenerator.getUserExtendKey(user.getUserId().toString());
+//        String lockKey = CacheKeyGenerator.getLockKey(userKey);
+//
+//        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
+//            Map<String, String> userMap = new HashMap<>();
+//            userMap.put("userId", String.valueOf(user.getUserId()));
+//            userMap.put("userName", StringUtils.defaultIfBlank(user.getUserName(), ""));
+//            userMap.put("nickName", StringUtils.defaultIfBlank(user.getUserDescription(), ""));
+//            redisCache.setCacheMap(userKey, userMap);
+//        });
+//    }
 
-        return "";
-    }
-
-    @Override
-    public String getDeptNameNameInDictExtendsFromCache(Long deptId, String orgCode) {
-        if (deptId != null) {
-            // 按deptId查询
-            String deptKey = CacheKeyGenerator.getDeptExtendKey(deptId.toString());
-            Map<String, String> deptMap = redisCache.getCacheMap(deptKey);
-            if (deptMap != null && !deptMap.isEmpty()) {
-                return StringUtils.defaultIfBlank(deptMap.get("departmentName"), "");
-            }
-        }
-
-        if (StringUtils.isNotBlank(orgCode)) {
-            // 按orgCode查询（需要遍历所有部门缓存）
-            String deptPattern = CacheKeyGenerator.getDeptExtendKey("*");
-            Set<String> deptKeys = Sets.newHashSet(redisCache.keys(deptPattern));
-
-            for (String key : deptKeys) {
-                Map<String, String> deptMap = redisCache.getCacheMap(key);
-                if (deptMap != null && orgCode.equals(deptMap.get("orgCode"))) {
-                    return StringUtils.defaultIfBlank(deptMap.get("departmentName"), "");
-                }
-            }
-        }
-
-        return "";
-    }
-
-    @Override
-    public void cacheUserRealInDictExtends(SysUser user) {
-        if (user == null || user.getUserId() == null) {
-            return;
-        }
-
-        String userKey = CacheKeyGenerator.getUserExtendKey(user.getUserId().toString());
-        String lockKey = CacheKeyGenerator.getLockKey(userKey);
-
-        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
-            Map<String, String> userMap = new HashMap<>();
-            userMap.put("userId", String.valueOf(user.getUserId()));
-            userMap.put("userName", StringUtils.defaultIfBlank(user.getUserName(), ""));
-            userMap.put("nickName", StringUtils.defaultIfBlank(user.getUserDescription(), ""));
-            redisCache.setCacheMap(userKey, userMap);
-        });
-    }
-
-    @Override
-    public void cacheDeptNameInDictExtends(Dept dept) {
-        if (dept == null || dept.getId() == null) {
-            return;
-        }
-
-        String deptKey = CacheKeyGenerator.getDeptExtendKey(dept.getId().toString());
-        String lockKey = CacheKeyGenerator.getLockKey(deptKey);
-
-        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
-            Map<String, String> deptMap = new HashMap<>();
-            deptMap.put("deptId", String.valueOf(dept.getId()));
-            deptMap.put("orgCode", StringUtils.defaultIfBlank(dept.getOrgCode(), ""));
-            deptMap.put("departmentName", StringUtils.defaultIfBlank(dept.getDepartmentName(), ""));
-            redisCache.setCacheMap(deptKey, deptMap);
-        });
-    }
+//    @Override
+//    public void cacheDeptNameInDictExtends(Dept dept) {
+//        if (dept == null || dept.getId() == null) {
+//            return;
+//        }
+//
+//        String deptKey = CacheKeyGenerator.getDeptExtendKey(dept.getId().toString());
+//        String lockKey = CacheKeyGenerator.getLockKey(deptKey);
+//
+//        LockUtil.executeWithLock(RedissonManager.getRedissonClient(), lockKey, () -> {
+//            Map<String, String> deptMap = new HashMap<>();
+//            deptMap.put("deptId", String.valueOf(dept.getId()));
+//            deptMap.put("orgCode", StringUtils.defaultIfBlank(dept.getOrgCode(), ""));
+//            deptMap.put("departmentName", StringUtils.defaultIfBlank(dept.getDepartmentName(), ""));
+//            redisCache.setCacheMap(deptKey, deptMap);
+//        });
+//    }
 }

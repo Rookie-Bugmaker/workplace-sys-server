@@ -256,67 +256,67 @@ public class SysDictGlobalController {
         }
     }
 
-    @GetMapping("/getUserRealNameInDictExtends")
-    @Operation(summary = "字典转化拓展-获得对应员工名称")
-    public ResponseResult<String> getUserRealNameInDictExtends(
-            @RequestParam(value = "userId", required = false) Long userId,
-            @RequestParam(value = "userName", required = false) String userName) {
-        if(userId == null && StringUtils.isBlank(userName)) {
-            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "参数不能同时为空", null);
-        }
-        try {
-            // 1. 从缓存获取用户名称
-            String realName = dictCacheService.getUserRealNameInDictExtendsFromCache(userId, userName);
-            if (StringUtils.isNotBlank(realName)) {
-                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得用户名称成功", realName);
-            }
+//    @GetMapping("/getUserRealNameInDictExtends")
+//    @Operation(summary = "字典转化拓展-获得对应员工名称")
+//    public ResponseResult<String> getUserRealNameInDictExtends(
+//            @RequestParam(value = "userId", required = false) Long userId,
+//            @RequestParam(value = "userName", required = false) String userName) {
+//        if(userId == null && StringUtils.isBlank(userName)) {
+//            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "参数不能同时为空", null);
+//        }
+//        try {
+//            // 1. 从缓存获取用户名称
+//            String realName = dictCacheService.getUserRealNameInDictExtendsFromCache(userId, userName);
+//            if (StringUtils.isNotBlank(realName)) {
+//                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得用户名称成功", realName);
+//            }
+//
+//            // 2. 缓存不存在，从数据库加载
+//            SysUser user = dictService.getUserRealNameInDictExtends(userId, userName);
+//
+//            if (user == null) {
+//                return new ResponseResult<>(true, HttpStatus.OK.value(), "用户不存在", null);
+//            }
+//
+//            // 3. 缓存字典项信息
+//            dictCacheService.cacheUserRealInDictExtends(user);
+//            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得用户名称成功", user.getUserDescription());
+//        } catch (Exception e) {
+//            log.error("获取用户名称异常，userId: {}, userName: {}", userId, userName, e);
+//            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取用户名称失败", null);
+//        }
+//    }
 
-            // 2. 缓存不存在，从数据库加载
-            SysUser user = dictService.getUserRealNameInDictExtends(userId, userName);
-
-            if (user == null) {
-                return new ResponseResult<>(true, HttpStatus.OK.value(), "用户不存在", null);
-            }
-
-            // 3. 缓存字典项信息
-            dictCacheService.cacheUserRealInDictExtends(user);
-            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得用户名称成功", user.getUserDescription());
-        } catch (Exception e) {
-            log.error("获取用户名称异常，userId: {}, userName: {}", userId, userName, e);
-            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取用户名称失败", null);
-        }
-    }
-
-    @GetMapping("/getDeptNameNameInDictExtends")
-    @Operation(summary = "字典转化拓展-获得对应部门名称")
-    public ResponseResult<String> getDeptNameNameInDictExtends(
-            @RequestParam(value = "deptId", required = false) Long deptId,
-            @RequestParam(value = "orgCode", required = false) String orgCode) {
-        if(deptId == null && StringUtils.isBlank(orgCode)) {
-            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "参数不能同时为空", null);
-        }
-        try {
-            // 1. 从缓存获取部门名称
-            String realName = dictCacheService.getDeptNameNameInDictExtendsFromCache(deptId, orgCode);
-            if (StringUtils.isNotBlank(realName)) {
-                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得部门名称成功", realName);
-            }
-
-            // 2. 缓存不存在，从数据库加载
-            Dept dept = dictService.getDeptNameNameInDictExtends(deptId, orgCode);
-
-            if (dept == null) {
-                return new ResponseResult<>(false, HttpStatus.OK.value(), "部门不存在", null);
-            }
-
-            // 3. 缓存字典项信息
-            dictCacheService.cacheDeptNameInDictExtends(dept);
-            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得部门名称成功", dept.getDepartmentName());
-        } catch (Exception e) {
-            log.error("获取部门名称异常，deptId: {}, orgCode: {}", deptId, orgCode, e);
-            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取部门名称失败", null);
-        }
-    }
+//    @GetMapping("/getDeptNameNameInDictExtends")
+//    @Operation(summary = "字典转化拓展-获得对应部门名称")
+//    public ResponseResult<String> getDeptNameNameInDictExtends(
+//            @RequestParam(value = "deptId", required = false) Long deptId,
+//            @RequestParam(value = "orgCode", required = false) String orgCode) {
+//        if(deptId == null && StringUtils.isBlank(orgCode)) {
+//            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "参数不能同时为空", null);
+//        }
+//        try {
+//            // 1. 从缓存获取部门名称
+//            String realName = dictCacheService.getDeptNameNameInDictExtendsFromCache(deptId, orgCode);
+//            if (StringUtils.isNotBlank(realName)) {
+//                return new ResponseResult<>(true, HttpStatus.OK.value(), "获得部门名称成功", realName);
+//            }
+//
+//            // 2. 缓存不存在，从数据库加载
+//            Dept dept = dictService.getDeptNameNameInDictExtends(deptId, orgCode);
+//
+//            if (dept == null) {
+//                return new ResponseResult<>(false, HttpStatus.OK.value(), "部门不存在", null);
+//            }
+//
+//            // 3. 缓存字典项信息
+//            dictCacheService.cacheDeptNameInDictExtends(dept);
+//            return new ResponseResult<>(true, HttpStatus.OK.value(), "获得部门名称成功", dept.getDepartmentName());
+//        } catch (Exception e) {
+//            log.error("获取部门名称异常，deptId: {}, orgCode: {}", deptId, orgCode, e);
+//            return new ResponseResult<>(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "获取部门名称失败", null);
+//        }
+//    }
 
     // 转换方法
     private DictVO convertToDictVO(Dict dict) {

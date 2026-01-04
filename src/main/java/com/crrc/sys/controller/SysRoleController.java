@@ -457,6 +457,28 @@ public class SysRoleController {
     }
 
     /**
+     * 根据角色ID查询角色简单信息（去除权限、菜单、公司等信息，只有角色本身数据）
+     *
+     * @param roleId   角色ID
+     * @param language 语言
+     * @return 角色信息
+     */
+    @PostMapping("findSimpleById")
+    public SysRole findSimpleById(Long roleId, String language) {
+        if (ObjectUtils.isEmpty(roleId)) {
+            throw new ParamValidateException("roleId不能为空");
+        }
+        if (ObjectUtils.isEmpty(language)) {
+            throw new ParamValidateException("language不能为空");
+        }
+        SysRole sysRole = roleService.findByIdMin(roleId, language);
+        if (ObjectUtils.isEmpty(sysRole)) {
+            throw new BizException("角色不存在!");
+        }
+        return sysRole;
+    }
+
+    /**
      * 根据角色编码查询角色信息
      *
      * @param roleCode 角色编码

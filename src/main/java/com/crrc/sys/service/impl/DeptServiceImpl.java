@@ -198,4 +198,42 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
         queryWrapper.eq(Dept::getOrgCode, deptCode);
         return super.getOne(queryWrapper);
     }
+
+    @Override
+    public Map<Long, String> getSubdeptIdToCodeMap(Long deptId) {
+        Map<Long, String> result = new HashMap<>();
+        if (deptId == null) {
+            return result;
+        }
+        Dept dept = deptMapper.selectById(deptId);
+        if (Objects.isNull(dept)) {
+            return result;
+        }
+
+        // 使用队列来存储待查询的部门ID
+        Queue<String> queue = new LinkedList<>();
+        queue.offer(dept.getOrgCode());
+
+        while (!queue.isEmpty()) {
+            String currentOrgCode = queue.poll();
+
+            // 查询当前部门的子部门
+            LambdaQueryWrapper<Dept> wrapper = Wrappers.lambdaQuery(Dept.class)
+                    .select(Dept::getId, Dept::getOrgCode)
+                    .eq(Dept::getDeleted, 0)
+                    .eq(Dept::getParentOrgCode, currentOrgCode);
+
+            List<Dept> subDepts = deptMapper.selectList(wrapper);
+            // 将子部门的ID添加到结果列表中，并将子部门的ID加入队列以便继续查询下一级子部门
+            for (Dept subDept : subDepts) {
+                result.put(subDept.getId(), subDept.getOrgCode());
+                if (Strings.isEmpty(subDept.getOrgCode())) {
+                    continue;
+                }
+                queue.offer(subDept.getOrgCode());
+            }
+        }
+
+        return result;
+    }
 }

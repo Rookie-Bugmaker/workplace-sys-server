@@ -24,11 +24,11 @@ public class CacheKeyGenerator {
         return key + ":lock";
     }
 
-    public static String getUserExtendKey(String userId) {
-        return "sys:dict:extend:user:" + userId;
-    }
+//    public static String getUserExtendKey(String userId) {
+//        return "sys:dict:extend:user:" + userId;
+//    }
 
-    public static String getDeptExtendKey(String deptId) {
-        return "sys:dict:extend:dept:" + deptId;
-    }
+//    public static String getDeptExtendKey(String deptId) {
+//        return "sys:dict:extend:dept:" + deptId;
+//    }
 }
