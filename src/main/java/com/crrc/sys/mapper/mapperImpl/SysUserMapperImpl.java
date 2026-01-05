@@ -85,15 +85,26 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
             wrapper.like(SysUserDBEntity::getUserName, param.getUserName());
         } else if (StringUtils.isBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
-            wrapper.like(SysUserDBEntity::getUserDescription, param.getUserDescription());
+            wrapper.and(w -> w.like(SysUserDBEntity::getUserDescription, param.getUserDescription())
+                    .or()
+                    .like(SysOrgPersonTlDBEntity::getFullName, param.getUserDescription())
+            );
         } else if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
             if ("or".equals(param.getMontage())) {
                 wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
-                        .or()
-                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+                        .or(
+                                w1 -> w1.like(SysUserDBEntity::getUserDescription, param.getUserDescription())
+                                        .or()
+                                        .like(SysOrgPersonTlDBEntity::getFullName, param.getUserDescription())
+                        )
+                );
             } else {
                 wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
-                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+                        .and(w1 -> w1.like(SysUserDBEntity::getUserDescription, param.getUserDescription())
+                                .or()
+                                .like(SysOrgPersonTlDBEntity::getFullName, param.getUserDescription())
+                        )
+                );
             }
         }
 
@@ -126,15 +137,26 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isBlank(param.getUserDescription())) {
             wrapper.like(SysUserDBEntity::getUserName, param.getUserName());
         } else if (StringUtils.isBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
-            wrapper.like(SysUserDBEntity::getUserDescription, param.getUserDescription());
+            wrapper.and(w -> w.like(SysUserDBEntity::getUserDescription, param.getUserDescription())
+                    .or()
+                    .like(SysOrgPersonTlDBEntity::getFullName, param.getUserDescription())
+            );
         } else if (StringUtils.isNotBlank(param.getUserName()) && StringUtils.isNotBlank(param.getUserDescription())) {
             if ("or".equals(param.getMontage())) {
                 wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
-                        .or()
-                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+                        .or(
+                                w1 -> w1.like(SysUserDBEntity::getUserDescription, param.getUserDescription())
+                                        .or()
+                                        .like(SysOrgPersonTlDBEntity::getFullName, param.getUserDescription())
+                        )
+                );
             } else {
                 wrapper.and(w -> w.like(SysUserDBEntity::getUserName, param.getUserName())
-                        .like(SysUserDBEntity::getUserDescription, param.getUserDescription()));
+                        .and(w1 -> w1.like(SysUserDBEntity::getUserDescription, param.getUserDescription())
+                                .or()
+                                .like(SysOrgPersonTlDBEntity::getFullName, param.getUserDescription())
+                        )
+                );
             }
         }
 
