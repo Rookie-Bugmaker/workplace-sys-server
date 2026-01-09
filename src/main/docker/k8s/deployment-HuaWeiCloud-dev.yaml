@@ -34,7 +34,11 @@ spec:
             - name: vol-workplace-sys-server-config
               readOnly: true
               mountPath: /home/workplace/application.yml
-              subPath: application.yml
+              subPath: application-enc.yml
+            - name: vol-workplace-sys-server-config
+              readOnly: true
+              mountPath: /home/workplace/bootstrap.yml
+              subPath: bootstrap-enc.yml
           livenessProbe:
             tcpSocket:
               port: 11501
@@ -61,6 +65,12 @@ spec:
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: Always
+          env:
+            - name: ENCRYPT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workplace-sys-server-enc-secret
+                  key: ENCRYPT_KEY
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst

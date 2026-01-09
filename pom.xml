@@ -62,9 +62,19 @@
         <!-- 与Agent版本一致 -->
         <skywalking.version>8.9.0</skywalking.version>
         <workplace-log-client.version>v0.0.1</workplace-log-client.version>
+        <!--jasypt 参数加密-->
+        <jasypt.version>3.0.5</jasypt.version>
+        <!--bootstrap模式-->
+        <bootstrap.version>3.1.8</bootstrap.version>
     </properties>
 
     <dependencies>
+        <!-- jasypt 参数加密 -->
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+            <version>${jasypt.version}</version>
+        </dependency>
         <!--集成Spring Boot-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -239,7 +249,12 @@
             <artifactId>workplace-log-client</artifactId>
             <version>${workplace-log-client.version}</version>
         </dependency>
-
+        <!-- bootstrap -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+            <version>${bootstrap.version}</version>
+        </dependency>
     </dependencies>
 
     <!-- 环境部署配置 -->

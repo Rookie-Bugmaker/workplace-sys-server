@@ -17,8 +17,6 @@ server:
 spring:
   profiles:
     active: @env@
-  application:
-    name: sys-server
   main:
     allow-bean-definition-overriding: true
   mvc:
@@ -27,23 +25,6 @@ spring:
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
-  config:
-    import:
-      - optional:nacos:${spring.application.name}.${spring.cloud.nacos.config.file-extension}
-  cloud:
-    nacos:
-      config:
-        server-addr: @nacos.config.serverAddr@
-        file-extension: @nacos.config.fileExtension@
-        namespace: @nacos.config.namespace@
-        username: @nacos.username@
-        password: @nacos.password@
-      discovery:
-        server-addr: @nacos.discovery.server@
-        namespace: @nacos.discovery.namespace@
-        username: @nacos.username@
-        password: @nacos.password@
-        ip: @nacos.discovery.ip@
   redis:
     type: @spring.redis.type@ # 当前使用的redis类型(单机/哨兵)
     database: @spring.redis.database@ # Redis数据库索引（默认为0）
@@ -113,5 +94,5 @@ crrc:
     sys_service: true
   datasource:
     decrypt:
-      type: aes
-      key: lfJRbW42v1tqd8cpAMNLXj1eGUEP8d5DHt61vBH4oYw=
+      type: ENC(a3Isg7qyzfgyXtPsK8lFc5gM0+8V1jP3lOS81cqQyEjOwLYdJVNJz18jFwmbKxSM)
+      key: ENC(JQvAm8Fd0O38cxQauAm3GSbd43+f5F1HBNgArMFchgYnO0OCgdvIm9qF+3XxkpTSce2ijisO7kEMCmPLzMYk23SHGRB6h415LDWPzkkwkGc=)

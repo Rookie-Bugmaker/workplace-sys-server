@@ -1,0 +1,25 @@
+jasypt:
+  encryptor:
+    password: ${ENCRYPT_KEY}
+    algorithm: PBEWITHHMACSHA512ANDAES_256
+    iv-generator-classname: org.jasypt.iv.RandomIvGenerator
+spring:
+  application:
+    name: sys-server
+  cloud:
+    nacos:
+      config:
+        server-addr: @nacos.config.serverAddr@
+        file-extension: @nacos.config.fileExtension@
+        namespace: @nacos.config.namespace@
+        username: @nacos.username@
+        password: @nacos.password@
+        shared-configs:
+          - data-id: ${spring.application.name}.${spring.cloud.nacos.config.file-extension}
+            group: DEFAULT_GROUP
+      discovery:
+        server-addr: @nacos.discovery.server@
+        namespace: @nacos.discovery.namespace@
+        username: @nacos.username@
+        password: @nacos.password@
+        ip: @nacos.discovery.ip@
