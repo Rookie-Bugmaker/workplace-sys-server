@@ -414,6 +414,18 @@ public class SysOrgPersonController {
     }
 
     /**
+     * 根据用户ID查询人员信息,兼容框架
+     *
+     * @param userId   人员ID
+     * @param language 语言
+     * @return 结果
+     */
+    @PostMapping("findByUserIdFramework")
+    public SysOrgPersonDTO findByUserIdFramework(Long userId, String language) {
+        return findByUserId(userId, language);
+    }
+
+    /**
      * 根据人员ID查询人员信息
      *
      * @param personId 人员ID
