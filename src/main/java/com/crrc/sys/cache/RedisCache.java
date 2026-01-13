@@ -3,20 +3,25 @@ package com.crrc.sys.cache;
 import com.crrc.sys.config.redisson.RedissonManager;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Resource;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings(value = {"unchecked", "rawtypes"})
 @Component
 public class RedisCache {
-    
+
     private RedissonClient getRedissonClient(){
         return RedissonManager.getRedissonClient();
     }
+
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 缓存基本的对象，Integer、String、实体类等
@@ -237,6 +242,25 @@ public class RedisCache {
      * @return 对象列表
      */
     public Iterable<String> keys(final String pattern) {
-        return getRedissonClient().getKeys().getKeysByPattern(pattern);
+        // return getRedissonClient().getKeys().getKeysByPattern(pattern);
+        // 使用SCAN命令替代KEYS
+        ScanOptions options = ScanOptions.scanOptions().match(pattern).count(100).build();
+        Cursor<byte[]> cursor = redisTemplate.getConnectionFactory().getConnection().scan(options);
+
+        return () -> new Iterator<String>() {
+            @Override
+            public boolean hasNext() {
+                boolean hasNext = cursor.hasNext();
+                if (!hasNext) {
+                    cursor.close();
+                }
+                return hasNext;
+            }
+
+            @Override
+            public String next() {
+                return new String(cursor.next());
+            }
+        };
     }
 }
