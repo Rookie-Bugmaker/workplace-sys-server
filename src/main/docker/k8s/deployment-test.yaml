@@ -19,11 +19,33 @@ spec:
           resources:
             limits:
               memory: "2Gi"
-          imagePullPolicy: Always
+          livenessProbe:
+            tcpSocket:
+              port: 11501
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: 11501
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 30
           lifecycle:
             preStop:
               exec:
                 command: [ "/bin/sh", "-c", "sleep 60 && curl -X GET http://127.0.0.1:11501/deregister" ]
+          imagePullPolicy: Always
+          env:
+            - name: ENCRYPT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workplace-sys-server-enc-secret
+                  key: ENCRYPT_KEY
       terminationGracePeriodSeconds: 120
       imagePullSecrets:
         - name: harbor-login-registry
