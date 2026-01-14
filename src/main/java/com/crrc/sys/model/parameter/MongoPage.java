@@ -1,7 +1,7 @@
 package com.crrc.sys.model.parameter;
 
 public class MongoPage {
-    private int pageNum = 1;    // 当前页码，默认第1页
+    private int page = 1;    // 当前页码，默认第1页
     private int pageSize = 10;  // 每页显示条数，默认10条
     private String sortField;   // 排序字段
     private String sortOrder;   // 排序方式(asc/desc)
@@ -12,12 +12,12 @@ public class MongoPage {
 
     private String settingItemContent; // 新增：用于模糊查询settingItemContent
 
-    public int getPageNum() {
-        return pageNum;
+    public int getPage() {
+        return page;
     }
 
-    public void setPageNum(int pageNum) {
-        this.pageNum = pageNum;
+    public void setPage(int pageNum) {
+        this.page = pageNum;
     }
 
     public int getPageSize() {

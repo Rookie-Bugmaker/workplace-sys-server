@@ -128,7 +128,7 @@ public class GlobalSettingServiceImpl implements GlobalSettingService {
         }
 
         // 计算跳过数量
-        int skip = (pageRequest.getPageNum() - 1) * pageRequest.getPageSize();
+        int skip = (pageRequest.getPage() - 1) * pageRequest.getPageSize();
 
         // 设置分页
         query.skip(skip).limit(pageRequest.getPageSize());
@@ -162,7 +162,7 @@ public class GlobalSettingServiceImpl implements GlobalSettingService {
         long total = mongoTemplate.count(countQuery, GlobalSetting.class);
 
         // 构建分页结果
-        IPage<GlobalSetting> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
+        IPage<GlobalSetting> page = new Page<>(pageRequest.getPage(), pageRequest.getPageSize());
         page.setRecords(list);
         page.setTotal(total);
 

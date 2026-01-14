@@ -207,7 +207,7 @@ public class GlobalSettingValueServiceImpl implements GlobalSettingValueService 
         long total = mongoTemplate.count(baseQuery, GlobalSettingValue.class);
 
         // 3. 设置分页和排序
-        int skip = (pageRequest.getPageNum() - 1) * pageRequest.getPageSize();
+        int skip = (pageRequest.getPage() - 1) * pageRequest.getPageSize();
         dataQuery.skip(skip).limit(pageRequest.getPageSize());
 
         if (StringUtils.hasText(pageRequest.getSortField())) {
@@ -222,7 +222,7 @@ public class GlobalSettingValueServiceImpl implements GlobalSettingValueService 
         List<GlobalSettingValue> list = mongoTemplate.find(dataQuery, GlobalSettingValue.class);
 
         // 构建分页结果
-        IPage<GlobalSettingValue> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
+        IPage<GlobalSettingValue> page = new Page<>(pageRequest.getPage(), pageRequest.getPageSize());
         page.setRecords(list);
         page.setTotal(total);
 
