@@ -142,6 +142,20 @@ public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService,
         return convertFromDB(entities);
     }
 
+    public Boolean isExistedUserInRole(Long userId, Long roleId) {
+        LambdaQueryWrapper<SysUserRoleDBEntity> wrapper = new LambdaQueryWrapper<SysUserRoleDBEntity>()
+                .eq(SysUserRoleDBEntity::getUserId, userId)
+                .eq(SysUserRoleDBEntity::getRoleId, roleId);
+        return sysUserRoleMapperService.exists(wrapper);
+    }
+
+    public Integer deleteUsersInRole(List<Long> userIdList, Long roleId) {
+        LambdaUpdateWrapper<SysUserRoleDBEntity> wrapper = new LambdaUpdateWrapper<SysUserRoleDBEntity>()
+                .eq(SysUserRoleDBEntity::getRoleId, roleId)
+                .in(SysUserRoleDBEntity::getUserId, userIdList);
+        return sysUserRoleMapperService.delete(wrapper);
+    }
+
     private List<SysUserRoleDBEntity> convertToDB(List<SysUserRole> dataList) {
         List<SysUserRoleDBEntity> entityList = BeanUtils.toBean(dataList, SysUserRoleDBEntity.class);
         return entityList;

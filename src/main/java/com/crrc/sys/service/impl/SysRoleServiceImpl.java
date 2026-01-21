@@ -64,6 +64,9 @@ public class SysRoleServiceImpl implements SysRoleService {
     private SysRoleCompanyDeptService roleCompanyDeptService;
     @Autowired
     private SysUserRoleMapperImpl userRoleMapper;
+
+    @Autowired
+    private SysUserServiceImpl userMapper;
     @Resource
     private SysOnlineUserController onlineUserController;
     @Resource
@@ -521,25 +524,32 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean bindUser(long roleId, List<Long> userIdList) {
-        //查询用户绑定的角色列表
-        List<SysUserRolePO> userRoleList = userRoleMapper.findByUserIds(userIdList);
-        if (!CollectionUtils.isEmpty(userRoleList)) {
-            //查询已绑定该角色的用户，如果存在了就不用重复绑定了
-            List<Long> isBindUserIdList = userRoleList.stream().filter(o -> o.getRoleId().equals(roleId)).map(SysUserRolePO::getUserId).collect(Collectors.toList());
-            if (!CollectionUtils.isEmpty(isBindUserIdList)) {
-                userIdList.removeIf(isBindUserIdList::contains);
-            }
-        }
-        if (!CollectionUtils.isEmpty(userIdList)) {
+        // 查询已绑定该角色的用户
+        List<Long> isBindUserIdList = userRoleMapper.findUserIdByRoleId(roleId);
+        // 需要从当前角色下删除的用户列表（已绑定但不在新列表中的用户）
+        List<Long> unbindUserIdList = isBindUserIdList.stream()
+                .filter(id -> !userIdList.contains(id))
+                .collect(Collectors.toList());
+
+        // 新增到当前角色下用户列表（新列表中但未绑定的用户）
+        List<Long> newbindUserIdList = userIdList.stream()
+                .filter(id -> !isBindUserIdList.contains(id))
+                .collect(Collectors.toList());
+        // 不为空说明存在需要绑定的用户
+        if (!CollectionUtils.isEmpty(newbindUserIdList)) {
             ResultData<SysUser> resultData = authClient.currentUser();
             if (!resultData.getSuccess()) {
                 throw new BizException(resultData.getCode(), resultData.getMessage());
             }
             SysUser user = resultData.getResult();
-            List<SysUserRole> newUserRoleList = userIdList.stream().map(o -> {
+            List<SysUserRole> newUserRoleList = newbindUserIdList.parallelStream().map(newbindUserId -> {
+                if(userRoleMapper.isExistedUserInRole(newbindUserId, roleId)) {
+                    SysUser existedUser = userMapper.findById(newbindUserId, "zh-CN");
+                    throw new BizException("用户" + existedUser.getUserName() + "在当前角色中已经存在，新增错误");
+                }
                 SysUserRole userRole = new SysUserRole();
                 userRole.setId(idKeyGenerator.getId());
-                userRole.setUserId(o);
+                userRole.setUserId(newbindUserId);
                 userRole.setRoleId(roleId);
                 userRole.setCreateBy(user.getCreateBy());
                 userRole.setCreateDate(user.getCreateDate());
@@ -549,6 +559,13 @@ public class SysRoleServiceImpl implements SysRoleService {
             int result = userRoleMapper.insert(newUserRoleList);
             if (result <= 0) {
                 throw new BizException("保存失败，请重试...");
+            }
+        }
+        // 不为空说明存在需要解绑的用户
+        if(!CollectionUtils.isEmpty(unbindUserIdList)) {
+            int result = userRoleMapper.deleteUsersInRole(unbindUserIdList, roleId);
+            if (result <= 0) {
+                throw new BizException("删除失败，请重试...");
             }
         }
         return true;
