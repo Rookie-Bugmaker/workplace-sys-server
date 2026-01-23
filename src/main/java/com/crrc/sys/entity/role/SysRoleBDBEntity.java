@@ -24,4 +24,5 @@ public class SysRoleBDBEntity extends BaseEntityYunLing {
     private Long menuId;
     private String enableFlag;
     private Long projectId;
+    private String defaultFlag;
 }

@@ -570,4 +570,24 @@ public class SysRoleServiceImpl implements SysRoleService {
         }
         return true;
     }
+
+    /**
+     * 返回某个项目的默认角色ID
+     * @param projectId 项目编号
+     * @return
+     */
+    @Override
+    public Long findDefaultRoleIdInProject(Long projectId) {
+        return roleMapper.findDefaultRoleIdInProject(projectId);
+    }
+
+    /**
+     * 返回某个项目的所有角色ID
+     * @param projectId 项目编号
+     * @return
+     */
+    @Override
+    public List<Long> findRoleIdsInProject(Long projectId) {
+        return roleMapper.findRoleIdsInProject(projectId);
+    }
 }

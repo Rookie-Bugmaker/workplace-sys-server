@@ -44,6 +44,11 @@ public class SysRole extends BaseEntityYunLing {
      */
     private String language;
     /**
+     *
+     * 默认角色(Y/N:是/否)
+     */
+    private String defaultFlag;
+    /**
      * 角色菜单
      */
     private List<SysRoleMenu> roleMenuList;
@@ -218,5 +223,13 @@ public class SysRole extends BaseEntityYunLing {
 
     public void setProjectCode(String projectCode) {
         this.projectCode = projectCode;
+    }
+
+    public String getDefaultFlag() {
+        return defaultFlag;
+    }
+
+    public void setDefaultFlag(String defaultFlag) {
+        this.defaultFlag = defaultFlag;
     }
 }

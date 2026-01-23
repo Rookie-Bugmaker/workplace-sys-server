@@ -76,6 +76,10 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
             wrapper.eq(SysRoleBDBEntity::getProjectId, param.getProjectId());
         }
 
+        if (param.getDefaultFlag() != null && !param.getDefaultFlag().isEmpty()) {
+            wrapper.eq(SysRoleBDBEntity::getDefaultFlag, param.getDefaultFlag());
+        }
+
         wrapper.orderByAsc(SysRoleTlDBEntity::getRoleName);
 
         return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
@@ -119,6 +123,10 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
 
         if (param.getProjectId() != null) {
             wrapper.eq(SysRoleBDBEntity::getProjectId, param.getProjectId());
+        }
+
+        if (param.getDefaultFlag() != null && !param.getDefaultFlag().isEmpty()) {
+            wrapper.eq(SysRoleBDBEntity::getDefaultFlag, param.getDefaultFlag());
         }
 
         wrapper.orderByAsc(SysRoleTlDBEntity::getRoleName);
@@ -264,5 +272,22 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
 
     private SysRoleBDBEntity convertToDB(SysRole data) {
         return BeanUtils.toBean(data, SysRoleBDBEntity.class);
+    }
+
+    public Long findDefaultRoleIdInProject(Long projectId) {
+        LambdaQueryWrapper<SysRoleBDBEntity> wrapper = new LambdaQueryWrapper<SysRoleBDBEntity>()
+                .select(SysRoleBDBEntity::getRoleId)
+                .eq(SysRoleBDBEntity::getProjectId, projectId)
+                .eq(SysRoleBDBEntity::getDefaultFlag, "Y");
+        List<SysRoleBDBEntity> entities = sysRoleBMapperService.selectList(wrapper);
+        return entities != null && entities.size() > 0 ? entities.get(0).getRoleId() : null;
+    }
+
+    public List<Long> findRoleIdsInProject(Long projectId) {
+        LambdaQueryWrapper<SysRoleBDBEntity> wrapper = new LambdaQueryWrapper<SysRoleBDBEntity>()
+                .select(SysRoleBDBEntity::getRoleId)
+                .eq(SysRoleBDBEntity::getProjectId, projectId);
+        List<SysRoleBDBEntity> entities = sysRoleBMapperService.selectList(wrapper);
+        return entities.stream().map(SysRoleBDBEntity::getRoleId).collect(Collectors.toList());
     }
 }

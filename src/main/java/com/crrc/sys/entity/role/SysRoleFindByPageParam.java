@@ -45,6 +45,11 @@ public class SysRoleFindByPageParam {
      * 项目ID
      */
     private Long projectId;
+    /**
+     *
+     * 默认角色(Y/N:是/否)
+     */
+    private String defaultFlag;
 
     public Integer getPage() {
         return page;
@@ -116,5 +121,13 @@ public class SysRoleFindByPageParam {
 
     public void setProjectId(Long projectId) {
         this.projectId = projectId;
+    }
+
+    public String getDefaultFlag() {
+        return defaultFlag;
+    }
+
+    public void setDefaultFlag(String defaultFlag) {
+        this.defaultFlag = defaultFlag;
     }
 }

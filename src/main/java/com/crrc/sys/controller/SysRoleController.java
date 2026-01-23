@@ -150,6 +150,10 @@ public class SysRoleController {
         role.setCreateBy(currentUser.getUserId());
         //创建时间
         role.setCreateDate(Calendar.getInstance().getTime());
+        // 是否默认角色
+        if(StringUtils.isBlank(role.getDefaultFlag())) {
+            role.setDefaultFlag("N");
+        }
         //构建角色菜单数据(选中状态)
         List<SysRoleMenu> roleMenuList1 = role.getCheckedMenuIds().stream().map(o -> {
             SysRoleMenu roleMenu = new SysRoleMenu();
@@ -240,6 +244,10 @@ public class SysRoleController {
         role.setLastUpdateDate(Calendar.getInstance().getTime());
         //最后修改的登录信息ID
         role.setLastUpdateLogin(currentUser.getLastLoginInfoId());
+        // 是否默认角色
+        if(StringUtils.isBlank(role.getDefaultFlag())) {
+            role.setDefaultFlag("N");
+        }
         //构建角色菜单数据(选中状态)
         List<SysRoleMenu> roleMenuList1 = role.getCheckedMenuIds().stream().map(o -> {
             SysRoleMenu roleMenu = new SysRoleMenu();
@@ -390,6 +398,15 @@ public class SysRoleController {
         }
         if (!ObjectUtils.isEmpty(role.getRoleDescription()) && role.getRoleDescription().length() > 80) {
             throw new ParamValidateException("描述过长(最大80)!");
+        }
+
+        if(role.getProjectId() == null) {
+            throw new ParamValidateException("角色必须关联项目!");
+        } else {
+            Long defaultRoleId = roleService.findDefaultRoleIdInProject(role.getProjectId());
+            if("Y".equals(role.getDefaultFlag()) && defaultRoleId != null && role.getRoleId() != defaultRoleId) {
+                throw new ParamValidateException("当前项目已经存在默认角色!");
+            }
         }
     }
 
@@ -662,6 +679,7 @@ public class SysRoleController {
         role.setCreateBy(currentUserId);
         role.setCreateDate(nowDate);
         role.setLastUpdateLogin(lastLoginInfoId);
+        role.setDefaultFlag("N");
         int result = roleService.add(role);
         if (result <= 0) {
             throw new BizException("复制失败!");

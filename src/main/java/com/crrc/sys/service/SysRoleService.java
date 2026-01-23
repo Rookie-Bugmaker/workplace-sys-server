@@ -115,4 +115,18 @@ public interface SysRoleService {
      * @return true:成功、false:失败
      */
     boolean bindUser(long roleId, List<Long> userIdList);
+
+    /**
+     * 返回某个项目的默认角色ID
+     * @param projectId 项目编号
+     * @return
+     */
+    Long findDefaultRoleIdInProject(Long projectId);
+
+    /**
+     * 返回某个项目的所有角色ID
+     * @param projectId 项目编号
+     * @return
+     */
+    List<Long> findRoleIdsInProject(Long projectId);
 }

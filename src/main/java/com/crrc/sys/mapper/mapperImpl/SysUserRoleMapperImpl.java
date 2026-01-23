@@ -142,6 +142,22 @@ public class SysUserRoleMapperImpl extends ServiceImpl<SysUserRoleMapperService,
         return convertFromDB(entities);
     }
 
+    /**
+     * 查找对应项目下某个用户ID拥有的角色ID
+     * @param userId 用户ID
+     * @param projectId 项目ID
+     * @return
+     */
+    public List<Long> findRoleIdByUserIdInProject(long userId, long projectId) {
+        MPJLambdaWrapper<SysUserRoleDBEntity> wrapper = new MPJLambdaWrapper<SysUserRoleDBEntity>()
+                .select(SysRoleBDBEntity::getRoleId)
+                .innerJoin(SysRoleBDBEntity.class, SysRoleBDBEntity::getRoleId, SysUserRoleDBEntity::getRoleId)
+                .eq(SysUserRoleDBEntity::getUserId, userId)
+                .eq(SysRoleBDBEntity::getProjectId, projectId);
+
+        return sysUserRoleMapperService.selectJoinList(Long.class, wrapper);
+    }
+
     public Boolean isExistedUserInRole(Long userId, Long roleId) {
         LambdaQueryWrapper<SysUserRoleDBEntity> wrapper = new LambdaQueryWrapper<SysUserRoleDBEntity>()
                 .eq(SysUserRoleDBEntity::getUserId, userId)
