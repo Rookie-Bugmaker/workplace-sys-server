@@ -170,7 +170,8 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
                 .set(SysRoleBDBEntity::getProjectId, role.getProjectId())
                 .set(SysRoleBDBEntity::getLastUpdateBy, role.getLastUpdateBy())
                 .set(SysRoleBDBEntity::getLastUpdateDate, role.getLastUpdateDate())
-                .set(SysRoleBDBEntity::getLastUpdateLogin, role.getLastUpdateLogin());
+                .set(SysRoleBDBEntity::getLastUpdateLogin, role.getLastUpdateLogin())
+                .set(SysRoleBDBEntity::getDefaultFlag, role.getDefaultFlag());
 
         return sysRoleBMapperService.update(wrapper);
     }

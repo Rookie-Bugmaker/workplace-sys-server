@@ -4,7 +4,7 @@ metadata:
   name: workplace-sys-server
   namespace: product
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: workplace-sys-server
