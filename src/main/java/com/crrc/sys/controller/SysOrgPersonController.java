@@ -677,7 +677,6 @@ public class SysOrgPersonController {
                 // 获取公司部门和直属上级
                 Company company = getCompanyByCode(excelVO.getCompanyCode());
                 Dept dept = getDeptByCompanyIdAndCode(company.getId(), excelVO.getDeptCode());
-                SysOrgPerson parentPerson = orgPersonService.findByJobNo(excelVO.getParentPersonCode());
 
                 SysDeptPersonPO deptPerson = new SysDeptPersonPO();
                 deptPerson.setId(idKeyGenerator.getId());
@@ -685,7 +684,10 @@ public class SysOrgPersonController {
                 deptPerson.setDeptId(dept.getId());
                 deptPerson.setPersonId(jobNoToPersonIdMap.get(excelVO.getJobNo()));
                 deptPerson.setPosition(excelVO.getPosition());
-                deptPerson.setParentPersonId(parentPerson.getPersonId());
+                if(StringUtils.isNotBlank(excelVO.getParentPersonCode())) {
+                    SysOrgPerson parentPerson = orgPersonService.findByJobNo(excelVO.getParentPersonCode());
+                    deptPerson.setParentPersonId(parentPerson == null ? null : parentPerson.getPersonId());
+                }
                 deptPersonList.add(deptPerson);
             }
         });
