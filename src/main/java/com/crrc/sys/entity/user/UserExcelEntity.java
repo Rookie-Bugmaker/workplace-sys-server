@@ -69,7 +69,7 @@ public class UserExcelEntity extends BaseExcelEntity {
     /**
      * 角色授权
      */
-    @ExcelProperty(value = "角色授权", index = 6)
+    @ExcelProperty(value = "*角色授权", index = 6)
     private String roleAuth;
 
 

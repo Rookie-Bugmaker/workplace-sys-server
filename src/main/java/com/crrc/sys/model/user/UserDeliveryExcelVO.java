@@ -43,7 +43,7 @@ public class UserDeliveryExcelVO extends BaseExcelEntity {
     /**
      * 角色授权
      */
-    @ExcelProperty(value = "角色授权", index = 5)
+    @ExcelProperty(value = "*角色授权", index = 5)
     private String roleAuth;
 
 
