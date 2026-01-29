@@ -208,10 +208,10 @@ public class SysOrgPersonController {
                 throw new ParamValidateException("工号已存在");
             }
         }
-        if (OperationTypeEnum.UPDATE.getValue().equals(operation) && !byJobNo.getPersonId().equals(person.getPersonId())) {
-            if (!ObjectUtils.isEmpty(byJobNo)) {
+        if (OperationTypeEnum.UPDATE.getValue().equals(operation)
+                && !ObjectUtils.isEmpty(byJobNo)
+                && !byJobNo.getPersonId().equals(person.getPersonId())) {
                 throw new ParamValidateException("工号已存在");
-            }
         }
         if (ObjectUtils.isEmpty(person.getFullName())) {
             throw new ParamValidateException("姓名不能为空!");
