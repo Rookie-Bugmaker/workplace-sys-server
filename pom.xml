@@ -61,7 +61,7 @@
         <mybatis-typehandlers.version>1.0.2</mybatis-typehandlers.version>
         <!-- 与Agent版本一致 -->
         <skywalking.version>8.9.0</skywalking.version>
-        <workplace-log-client.version>v0.0.1</workplace-log-client.version>
+        <workplace-log-client.version>v0.0.2</workplace-log-client.version>
         <!--jasypt 参数加密-->
         <jasypt.version>3.0.5</jasypt.version>
         <!--bootstrap模式-->
