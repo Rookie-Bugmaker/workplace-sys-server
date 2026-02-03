@@ -17,6 +17,8 @@ server:
 spring:
   profiles:
     active: @env@
+  application:
+    name: sys-server
   main:
     allow-bean-definition-overriding: true
   mvc:
@@ -96,3 +98,11 @@ crrc:
     decrypt:
       type: ENC(a3Isg7qyzfgyXtPsK8lFc5gM0+8V1jP3lOS81cqQyEjOwLYdJVNJz18jFwmbKxSM)
       key: ENC(JQvAm8Fd0O38cxQauAm3GSbd43+f5F1HBNgArMFchgYnO0OCgdvIm9qF+3XxkpTSce2ijisO7kEMCmPLzMYk23SHGRB6h415LDWPzkkwkGc=)
+
+
+springdoc:
+  swagger-ui:
+    # url: /${spring.application.name}/v3/api-docs
+    url: /v3/api-docs
+knife4j:
+  enable: true

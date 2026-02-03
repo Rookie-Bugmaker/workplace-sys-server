@@ -79,8 +79,29 @@
         </filter>
     </appender>
 
-    <springProfile name="dev | test | product">
+<!--    打印日志等级调整，可根据需要调整不同环境下的日志等级，debug,info 如 level="info"-->
+<!--    dev | test 开发测试环境日志等级为debug-->
+    <springProfile name="dev">
         <logger name="com.crrc.sys" level="debug" />
+        <!-- 日志输出级别 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE_INFO_DEBUG" />
+            <appender-ref ref="FILE_ERROR" />
+        </root>
+    </springProfile>
+    <springProfile name="test">
+        <logger name="com.crrc.sys" level="info" />
+        <!-- 日志输出级别 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE_INFO_DEBUG" />
+            <appender-ref ref="FILE_ERROR" />
+        </root>
+    </springProfile>
+    <!--  product生产环境日志等级为info-->
+    <springProfile name="product">
+        <logger name="com.crrc.sys" level="info" />
         <!-- 日志输出级别 -->
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
