@@ -61,7 +61,7 @@ public class GlobalSettingController {
         return globalSettingService.getAll();
     }
 
-    @GetMapping("/template")
+    @GetMapping("/download/template")
     public void exportTemplate(HttpServletResponse response) {
         globalSettingService.exportTemplate(response);
     }
@@ -71,7 +71,7 @@ public class GlobalSettingController {
         return globalSettingService.importData(file);
     }
 
-    @GetMapping("/export")
+    @GetMapping("/download/export")
     public void exportData(HttpServletResponse response,@RequestParam String settingId) {
         globalSettingService.exportData(response, settingId);
     }
