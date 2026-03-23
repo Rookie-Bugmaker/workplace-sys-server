@@ -174,7 +174,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
                                 .eq(SysOrgPersonTlDBEntity::getLanguage, LanguageEnum.ZH_CN.getValue())
                 )
                 .eq(SysOrgPersonBDBEntity::getJobNo, jobNo);
-        SysOrgPersonBDBEntity entity = sysOrgPersonBMapperService.selectOne(wrapper);
+        SysOrgPersonBDBEntity entity = sysOrgPersonBMapperService.selectJoinOne(SysOrgPersonBDBEntity.class, wrapper);
         return convertFromDB(entity);
     }
 
@@ -190,7 +190,7 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         if (!CollectionUtils.isEmpty(jobNos)) {
             wrapper.in(SysOrgPersonBDBEntity::getJobNo, jobNos);
         }
-        List<SysOrgPersonBDBEntity> entities = sysOrgPersonBMapperService.selectList(wrapper);
+        List<SysOrgPersonBDBEntity> entities = sysOrgPersonBMapperService.selectJoinList(SysOrgPersonBDBEntity.class, wrapper);
         return convertFromDB(entities);
     }
 
