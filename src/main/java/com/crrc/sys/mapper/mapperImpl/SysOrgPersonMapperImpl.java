@@ -13,6 +13,7 @@ import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonBDBEntity;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.org.person.SysOrgPersonTlDBEntity;
+import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.SysOrgPersonMapper;
 import com.crrc.sys.mapper.mapperService.SysOrgPersonBMapperService;
 import com.github.yulichang.toolkit.JoinWrappers;
@@ -165,15 +166,27 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
 
 
     public SysOrgPerson findByJobNo(String jobNo) {
-        LambdaQueryWrapper<SysOrgPersonBDBEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysOrgPersonBDBEntity::getJobNo, jobNo);
+        MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class);
+        wrapper.selectAll(SysOrgPersonBDBEntity.class)
+                .select(SysOrgPersonTlDBEntity::getFullName)
+                .innerJoin(SysOrgPersonTlDBEntity.class,
+                        fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
+                                .eq(SysOrgPersonTlDBEntity::getLanguage, LanguageEnum.ZH_CN.getValue())
+                )
+                .eq(SysOrgPersonBDBEntity::getJobNo, jobNo);
         SysOrgPersonBDBEntity entity = sysOrgPersonBMapperService.selectOne(wrapper);
         return convertFromDB(entity);
     }
 
 
     public List<SysOrgPerson> findByJobNos(List<String> jobNos) {
-        LambdaQueryWrapper<SysOrgPersonBDBEntity> wrapper = new LambdaQueryWrapper<>();
+        MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class);
+        wrapper.selectAll(SysOrgPersonBDBEntity.class)
+                .select(SysOrgPersonTlDBEntity::getFullName)
+                .innerJoin(SysOrgPersonTlDBEntity.class,
+                        fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
+                                .eq(SysOrgPersonTlDBEntity::getLanguage, LanguageEnum.ZH_CN.getValue())
+                );
         if (!CollectionUtils.isEmpty(jobNos)) {
             wrapper.in(SysOrgPersonBDBEntity::getJobNo, jobNos);
         }
