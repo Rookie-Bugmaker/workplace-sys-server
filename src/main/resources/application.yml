@@ -106,3 +106,9 @@ springdoc:
     url: /v3/api-docs
 knife4j:
   enable: true
+
+# 服务地址配置（从 filters 配置文件读取）
+service:
+  address:
+    skywalking: @skywalking.url@
+    kibana: @kibana.url@
