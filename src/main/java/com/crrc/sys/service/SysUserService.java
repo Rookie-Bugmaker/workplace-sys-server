@@ -181,6 +181,14 @@ public interface SysUserService {
     boolean addList(List<SysUser> list);
 
     /**
+     * 用户批量新增（带角色和数据权限）
+     *
+     * @param users 用户信息列表
+     * @return 成功数量
+     */
+    int addBatch(List<SysUser> users);
+
+    /**
      * 查询角色ID绑定的用户列表
      *
      * @param roleId 角色ID

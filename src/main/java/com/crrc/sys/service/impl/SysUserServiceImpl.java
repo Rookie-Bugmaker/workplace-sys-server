@@ -542,4 +542,75 @@ public class SysUserServiceImpl implements SysUserService {
         page.setRows(midPage.getRecords());
         return page;
     }
+
+    /**
+     * 用户批量新增（带角色和数据权限）
+     *
+     * @param users 用户信息列表
+     * @return 成功数量
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int addBatch(List<SysUser> users) {
+        if (CollectionUtils.isEmpty(users)) {
+            return 0;
+        }
+
+        // 1. 批量插入用户
+        boolean result = userMapper.insertAll(users);
+        if (!result) {
+            throw new BizException("批量新增用户失败");
+        }
+
+        // 2. 收集所有角色绑定信息
+        List<SysUserRole> allUserRoles = new ArrayList<>();
+        for (SysUser user : users) {
+            List<SysRole> roleList = user.getRoleList();
+            if (!CollectionUtils.isEmpty(roleList)) {
+                List<SysUserRole> userRoleList = roleList.stream().map(o -> {
+                    SysUserRole userRole = new SysUserRole();
+                    userRole.setId(idKeyGenerator.getId());
+                    userRole.setUserId(user.getUserId());
+                    userRole.setRoleId(o.getRoleId());
+                    userRole.setCreateBy(user.getCreateBy());
+                    userRole.setCreateDate(user.getCreateDate());
+                    return userRole;
+                }).collect(Collectors.toList());
+                allUserRoles.addAll(userRoleList);
+            }
+        }
+
+        // 3. 批量插入用户角色
+        if (!CollectionUtils.isEmpty(allUserRoles)) {
+            userRoleMapper.insert(allUserRoles);
+        }
+
+        // 4. 收集所有数据权限信息
+        List<SysDataAuth> allDataAuths = new ArrayList<>();
+        List<SysDataAuthValue> allDataAuthValues = new ArrayList<>();
+        for (SysUser user : users) {
+            List<SysDataAuth> dataAuthList = user.getDataAuthList();
+            if (!CollectionUtils.isEmpty(dataAuthList)) {
+                allDataAuths.addAll(dataAuthList);
+                for (SysDataAuth dataAuth : dataAuthList) {
+                    List<SysDataAuthValue> valueList = dataAuth.getDataAuthValueList();
+                    if (!CollectionUtils.isEmpty(valueList)) {
+                        allDataAuthValues.addAll(valueList);
+                    }
+                }
+            }
+        }
+
+        // 5. 批量插入数据权限
+        if (!CollectionUtils.isEmpty(allDataAuths)) {
+            dataAuthMapper.insertList(allDataAuths);
+        }
+
+        // 6. 批量插入数据权限值
+        if (!CollectionUtils.isEmpty(allDataAuthValues)) {
+            dataAuthValueMapper.insertList(allDataAuthValues);
+        }
+
+        return users.size();
+    }
 }

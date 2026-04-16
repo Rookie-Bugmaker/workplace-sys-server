@@ -21,6 +21,7 @@ import com.crrc.sys.model.user.role.SysUserRolePO;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysRoleCompanyDeptService;
 import com.crrc.sys.service.SysRoleService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ValueOperations;
@@ -589,5 +590,13 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public List<Long> findRoleIdsInProject(Long projectId) {
         return roleMapper.findRoleIdsInProject(projectId);
+    }
+
+    @Override
+    public SysRole findDefaultRoleByProject(Long projectId, String projectName) {
+        if (projectId == null && StringUtils.isBlank(projectName)) {
+            throw new BizException("参数'项目ID'和'项目名称'至少需要一个才能获取结果");
+        }
+        return roleMapper.findDefaultRoleByProject(projectId, projectName);
     }
 }

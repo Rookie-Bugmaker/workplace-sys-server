@@ -1,6 +1,8 @@
 package com.crrc.sys.model.org.person;
 
 import com.crrc.sys.model.dept.DeptInfoDTO;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.util.Date;
@@ -18,6 +20,7 @@ public class SysOrgPersonDTO {
     /**
      * 人员ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long personId;
     /**
      * 姓名

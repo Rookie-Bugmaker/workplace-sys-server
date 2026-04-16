@@ -1,6 +1,7 @@
 package com.crrc.sys.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.LanguageEnum;
@@ -19,6 +20,7 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -250,5 +252,10 @@ public class SysOrgPersonServiceImpl implements SysOrgPersonService {
     @Override
     public List<SysOrgPerson> findByPhoneList(List<String> phoneList) {
         return personMapper.findByPhoneList(phoneList);
+    }
+
+    @Override
+    public Page<SysOrgPerson> findPersonPageWithoutCreatedUser(Long personId, String jobNo, String personType, Integer page, Integer pageSize) {
+        return personMapper.findPersonPageWithoutCreatedUser(personId, jobNo, personType, page, pageSize);
     }
 }

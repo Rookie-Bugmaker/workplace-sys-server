@@ -129,4 +129,13 @@ public interface SysRoleService {
      * @return
      */
     List<Long> findRoleIdsInProject(Long projectId);
+
+    /**
+     * 根据某个项目获取默认角色
+     *
+     * @param projectId 项目ID
+     * @param projectName 项目名称
+     * @return 结果
+     */
+    SysRole findDefaultRoleByProject(Long projectId, String projectName);
 }

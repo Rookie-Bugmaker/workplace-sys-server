@@ -1,6 +1,8 @@
 package com.crrc.sys.entity.org.person;
 
 import com.crrc.sys.entity.BaseEntityYunLing;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 import java.util.Date;
 
@@ -15,6 +17,7 @@ public class SysOrgPerson extends BaseEntityYunLing {
     /**
      * 人员ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long personId;
     /**
      * 姓名

@@ -1,5 +1,6 @@
 package com.crrc.sys.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
@@ -117,4 +118,6 @@ public interface SysOrgPersonService {
      * @return 已存在的手机号
      */
     List<SysOrgPerson> findByPhoneList(List<String> phoneList);
+
+    Page<SysOrgPerson> findPersonPageWithoutCreatedUser(Long personId, String jobNo, String personType, Integer page, Integer pageSize);
 }

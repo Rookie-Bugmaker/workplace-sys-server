@@ -6,6 +6,7 @@ import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.annotation.AuditLog;
 import com.crrc.enums.LogType;
 import com.crrc.enums.OperateType;
@@ -211,7 +212,7 @@ public class SysOrgPersonController {
         if (OperationTypeEnum.UPDATE.getValue().equals(operation)
                 && !ObjectUtils.isEmpty(byJobNo)
                 && !byJobNo.getPersonId().equals(person.getPersonId())) {
-                throw new ParamValidateException("工号已存在");
+            throw new ParamValidateException("工号已存在");
         }
         if (ObjectUtils.isEmpty(person.getFullName())) {
             throw new ParamValidateException("姓名不能为空!");
@@ -649,19 +650,31 @@ public class SysOrgPersonController {
                 new TypeReference<List<SysDeptPersonPO>>() {
                 });
 
-        if(personList != null && personList.size() > 0) {
+        if (personList != null && personList.size() > 0) {
             boolean result = orgPersonService.addList(personList);
             if (!result) {
                 throw new BizException("人员数据写入失败！");
             }
         }
 
-        if(deptPersonList != null && deptPersonList.size() > 0) {
+        if (deptPersonList != null && deptPersonList.size() > 0) {
             boolean result = deptPersonService.saveBatch(deptPersonList);
             if (!result) {
                 throw new BizException("人员部门关联关系写入失败！");
             }
         }
+    }
+
+    /**
+     * 查询没有创建用户的人员分页（可以根据人员ID、工号或类型过滤）
+     *
+     * @param param 人员参数
+     * @return 结果
+     */
+    @PostMapping("findPersonPageWithoutCreatedUser")
+    public Page<SysOrgPerson> findPersonPageWithoutCreatedUser(@RequestBody SysOrgPersonFindByPageParam param) {
+        return orgPersonService.findPersonPageWithoutCreatedUser(
+                param.getPersonId(), param.getJobNo(), param.getPersonType(), param.getPage(), param.getPageSize());
     }
 
     private List<SysDeptPersonPO> transExcelVOsToDeptPerson(Map<String, Long> jobNoToPersonIdMap, List<SysOrgPersonVerifyExcelDTO> excelVOs) {
@@ -684,7 +697,7 @@ public class SysOrgPersonController {
                 deptPerson.setDeptId(dept.getId());
                 deptPerson.setPersonId(jobNoToPersonIdMap.get(excelVO.getJobNo()));
                 deptPerson.setPosition(excelVO.getPosition());
-                if(StringUtils.isNotBlank(excelVO.getParentPersonCode())) {
+                if (StringUtils.isNotBlank(excelVO.getParentPersonCode())) {
                     SysOrgPerson parentPerson = orgPersonService.findByJobNo(excelVO.getParentPersonCode());
                     deptPerson.setParentPersonId(parentPerson == null ? null : parentPerson.getPersonId());
                 }
@@ -755,7 +768,7 @@ public class SysOrgPersonController {
                     repeatExcelVo.setPosition(relation.getPosition());
                     excelVOList.add(repeatExcelVo);
                 });
-            }else {
+            } else {
                 excelVOList.add(excelVO);
             }
         });
@@ -767,11 +780,11 @@ public class SysOrgPersonController {
         List<String> existedJobNo = new ArrayList<>();
         for (int i = 0; i < excelVOs.size(); i++) {
             SysOrgPersonVerifyExcelDTO excelVO = excelVOs.get(i);
-            if(StringUtils.isNotBlank(excelVO.getJobNo())){
+            if (StringUtils.isNotBlank(excelVO.getJobNo())) {
                 // 去除重复的人员数据
-                if(existedJobNo.contains(excelVO.getJobNo())){
+                if (existedJobNo.contains(excelVO.getJobNo())) {
                     continue;
-                }else {
+                } else {
                     existedJobNo.add(excelVO.getJobNo());
                 }
             }
@@ -791,7 +804,7 @@ public class SysOrgPersonController {
             person.setLanguage(LanguageEnum.ZH_CN.getValue());
             person.setCreateBy(resultData.getResult().getUserId());
             person.setCreateDate(Calendar.getInstance().getTime());
-            if(StringUtils.isNotBlank(excelVO.getPersonType())) {
+            if (StringUtils.isNotBlank(excelVO.getPersonType())) {
                 // 人员类型
                 PersonTypeEnum personTypeEnum = Arrays.stream(PersonTypeEnum.values())
                         .filter(x -> x.getText().equals(excelVO.getPersonType()))
@@ -799,7 +812,7 @@ public class SysOrgPersonController {
                         .orElse(null);
                 person.setPersonType(Long.valueOf(personTypeEnum.getValue()));
             }
-            if(StringUtils.isNotBlank(excelVO.getStatus())) {
+            if (StringUtils.isNotBlank(excelVO.getStatus())) {
                 // 人员状态
                 PersonStatusEnum statusEnum = Arrays.stream(PersonStatusEnum.values())
                         .filter(x -> x.getText().equals(excelVO.getStatus()))
@@ -807,7 +820,7 @@ public class SysOrgPersonController {
                         .orElse(null);
                 person.setStatus(Integer.valueOf(statusEnum.getValue()));
             }
-            if(StringUtils.isNotBlank(excelVO.getGender())) {
+            if (StringUtils.isNotBlank(excelVO.getGender())) {
                 // 性别
                 GenderEnum genderEnum = Arrays.stream(GenderEnum.values())
                         .filter(x -> x.getText().equals(excelVO.getGender()))

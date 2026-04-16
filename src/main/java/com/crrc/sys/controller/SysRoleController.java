@@ -837,6 +837,25 @@ public class SysRoleController {
     }
 
     /**
+     * 根据某个项目获取默认角色
+     *
+     * @param projectId 项目ID
+     * @param projectName 项目名称
+     * @return 结果
+     */
+    @PostMapping("findDefaultRoleByProject")
+    public SysRole findDefaultRoleByProject(@RequestParam(required = false) Long projectId,
+                                            @RequestParam(required = false) String projectName) {
+        if (ObjectUtils.isEmpty(projectId) && ObjectUtils.isEmpty(projectName)) {
+            throw new ParamValidateException("项目ID 和 项目名称号不能同时为空，请提供一个！");
+        }
+        if (!ObjectUtils.isEmpty(projectId) && !ObjectUtils.isEmpty(projectName)) {
+            throw new ParamValidateException("项目ID 和 项目名称不能同时提供，请只提供一个！");
+        }
+        return roleService.findDefaultRoleByProject(projectId, projectName);
+    }
+
+    /**
      * 绑定用户
      *
      * @param param 参数

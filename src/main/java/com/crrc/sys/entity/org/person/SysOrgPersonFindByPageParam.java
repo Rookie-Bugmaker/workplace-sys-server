@@ -17,6 +17,10 @@ public class SysOrgPersonFindByPageParam {
      */
     private Integer pageSize;
     /**
+     * 人员ID
+     */
+    private Long personId;
+    /**
      * 语言(zh-CN:中文、en-US:英文)，
      * 取值：LanguageEnum
      */
@@ -116,5 +120,13 @@ public class SysOrgPersonFindByPageParam {
 
     public void setPersonTypeList(List<Long> personTypeList) {
         this.personTypeList = personTypeList;
+    }
+
+    public Long getPersonId() {
+        return personId;
+    }
+
+    public void setPersonId(Long personId) {
+        this.personId = personId;
     }
 }

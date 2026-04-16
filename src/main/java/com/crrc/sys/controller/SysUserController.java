@@ -29,6 +29,7 @@ import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.*;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.entity.user.dto.SysUserRequestDTO;
+import com.crrc.sys.entity.user.dto.BatchAddResult;
 import com.crrc.sys.entity.user.dto.WorkflowUserPageDTO;
 import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
@@ -51,6 +52,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -229,6 +231,101 @@ public class SysUserController {
     }
 
     /**
+     * 用户批量新增
+     *
+     * @param users 用户信息列表
+     * @return 批量新增结果
+     */
+    @AutoIdempotent
+    @PostMapping("batchAdd")
+    @Operation(summary = "用户批量新增")
+    @Transactional
+    public ResponseResult<BatchAddResult> batchAdd(@RequestBody List<SysUser> users) {
+        // 1. 参数校验
+        if (CollectionUtils.isEmpty(users)) {
+            return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "用户列表不能为空!");
+        }
+
+        // 2. 获取当前用户
+        ResultData<SysUser> userResultData = authClient.currentUser();
+        if (!userResultData.getSuccess()) {
+            throw new BizException(userResultData.getCode(), userResultData.getMessage());
+        }
+        SysUser currentUser = userResultData.getResult();
+
+        // 3. 密码编码器
+        PasswordEncoder bcpe = new BCryptPasswordEncoder();
+        Date nowDate = Calendar.getInstance().getTime();
+
+        // 4. 预处理每个用户
+        for (int i = 0; i < users.size(); i++) {
+            SysUser user = users.get(i);
+            try {
+                // 4.1 基础校验
+                userValidService.verification(OperationTypeEnum.ADD.getValue(), user);
+
+                // 4.2 密码加密
+                user.setPassword(bcpe.encode(user.getPassword()));
+
+                // 4.3 设置角色信息
+                List<SysRole> roleList = user.getRoleIds().stream().map(o -> {
+                    SysRole role = new SysRole();
+                    role.setRoleId(o);
+                    return role;
+                }).collect(Collectors.toList());
+                user.setRoleList(roleList);
+
+                // 4.4 设置主键
+                user.setUserId(idKeyGenerator.getId());
+
+                // 4.5 设置创建人
+                user.setCreateBy(currentUser.getUserId());
+
+                // 4.6 设置创建时间
+                user.setCreateDate(nowDate);
+
+                // 4.7 处理用户数据权限
+                List<SysDataAuth> dataAuthList = user.getDataAuthList();
+                if (!CollectionUtils.isEmpty(dataAuthList)) {
+                    dataAuthList.forEach(o -> {
+                        // 主键
+                        o.setAuthId(idKeyGenerator.getId());
+                        // 权限类型：用户
+                        o.setAuthType(DataAuthTypeEnum.USER.getValue());
+                        // 用户 ID
+                        o.setObjectId(user.getUserId());
+                        // 设置创建人
+                        o.setCreateBy(currentUser.getUserId());
+                        // 设置创建时间
+                        o.setCreateDate(nowDate);
+                        o.getDataAuthValueList().forEach(data -> {
+                            data.setAuthId(o.getAuthId());
+                            data.setCreateBy(o.getCreateBy());
+                            data.setCreateDate(o.getCreateDate());
+                        });
+                    });
+                }
+            }
+            catch (ParamValidateException e) {
+                String username = user.getUserName() != null ? user.getUserName() : "未知";
+                String error = e.getErrorMsg() != null ? e.getErrorMsg() : "未知错误";
+                return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "批量新增失败(用户"+username+"):" + error);
+            } catch (Exception e) {
+                String username = user.getUserName() != null ? user.getUserName() : "未知";
+                String error = e.getMessage() != null ? e.getMessage() : "未知错误";
+                return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "批量新增失败(用户"+username+"):" + error);
+            }
+        }
+
+        // 5. 批量入库（事务保护，全部成功或全部失败）
+        int successCount = userService.addBatch(users);
+
+        // 6. 返回成功结果
+        BatchAddResult result = new BatchAddResult(users.size(), successCount, Collections.emptyList());
+        return ResponseResult.success(result);
+    }
+
+    /**
      * 用户修改
      *
      * @param user 用户信息
@@ -304,6 +401,88 @@ public class SysUserController {
             authClient.clear(user.getUserName());
         }
     }
+
+    /**
+     * 更新供应商用户密码（根据用户 ID 或工号）
+     *
+     * @param userId   用户 ID（可选，与 jobNo 二选一）
+     * @param jobNo    工号（可选，与 userId 二选一）
+     * @param password 新密码
+     */
+    @AutoIdempotent
+    @Transactional
+    @PostMapping("updateSupplierPassword")
+    public Boolean updateSupplierPassword(@RequestParam(required = false) Long userId,
+                                          @RequestParam(required = false) String jobNo,
+                                          @RequestParam(required = false) String password) {
+        // 1. 参数校验：userId 和 jobNo 必须提供一个且只能提供一个
+        if (ObjectUtils.isEmpty(userId) && ObjectUtils.isEmpty(jobNo)) {
+            throw new ParamValidateException("用户 ID 和工号不能同时为空，请提供一个！");
+        }
+        if (!ObjectUtils.isEmpty(userId) && !ObjectUtils.isEmpty(jobNo)) {
+            throw new ParamValidateException("用户 ID 和工号不能同时提供，请只提供一个！");
+        }
+        if (ObjectUtils.isEmpty(password)) {
+            throw new ParamValidateException("新密码不能为空！");
+        }
+
+        // 2. 密码强度校验
+        ResultData<SysUser> currentUserResultData = authClient.currentUser();
+        if (!currentUserResultData.getSuccess()) {
+            throw new BizException(currentUserResultData.getCode(), currentUserResultData.getMessage());
+        }
+        SysUser operator = currentUserResultData.getResult();
+        int strong = userValidService.checkStrong(password, operator.getUserName(), operator.getUserDescription());
+        if (strong < SysUserValidServiceImpl.PWD_STRONG) {
+            throw new ParamValidateException("密码强度太低！");
+        }
+
+        // 3. 根据工号或用户 ID 确定目标用户
+        SysUser targetUser;
+        if (!ObjectUtils.isEmpty(jobNo)) {
+            // 3.1 根据工号查询人员信息
+            SysOrgPerson person = sysOrgPersonService.findByJobNo(jobNo);
+            if (ObjectUtils.isEmpty(person)) {
+                throw new BizException("工号不存在！");
+            }
+            // 3.2 根据人员 ID 查询用户（必须唯一）
+            List<SysUser> users = userService.findByRelationIds(Collections.singletonList(person.getPersonId()));
+            if (CollectionUtils.isEmpty(users)) {
+                throw new BizException("该工号未绑定用户！");
+            }
+            if (users.size() > 1) {
+                throw new BizException("该工号绑定了多个用户，无法唯一确认！");
+            }
+            targetUser = users.get(0);
+        } else {
+            // 3.3 根据用户 ID 查询用户
+            targetUser = userService.findById(userId, LanguageEnum.ZH_CN.getValue());
+            if (ObjectUtils.isEmpty(targetUser)) {
+                throw new BizException("用户不存在！");
+            }
+        }
+
+        // 4. 校验用户类型必须是供应商
+        if (!UserTypeEnum.SUPPLIER.getValue().equals(targetUser.getUserType())) {
+            throw new BizException("只能更新供应商类型的用户密码，当前用户类型为：" + targetUser.getUserType());
+        }
+
+        // 5. 密码加密
+        PasswordEncoder bcpe = new BCryptPasswordEncoder();
+        String enPassword = bcpe.encode(password);
+        targetUser.setPassword(enPassword);
+        targetUser.setPasswordUpdateDate(Calendar.getInstance().getTime());
+
+        // 6. 更新密码
+        int result = userService.updatePassword(targetUser);
+        if (result <= 0) {
+            throw new BizException("密码更新失败！");
+        }
+        // 7. 清空该用户登录信息
+        authClient.clear(targetUser.getUserName());
+        return true;
+    }
+
 
     /**
      * 用户删除

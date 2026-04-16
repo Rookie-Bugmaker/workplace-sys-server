@@ -13,6 +13,8 @@ import com.crrc.sys.entity.org.person.SysOrgPerson;
 import com.crrc.sys.entity.org.person.SysOrgPersonBDBEntity;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.org.person.SysOrgPersonTlDBEntity;
+import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.entity.user.SysUserDBEntity;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.SysOrgPersonMapper;
 import com.crrc.sys.mapper.mapperService.SysOrgPersonBMapperService;
@@ -267,5 +269,28 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
     private List<SysOrgPerson> convertFromDB(List<SysOrgPersonBDBEntity> entityList) {
         List<SysOrgPerson> dataList = BeanUtils.toBean(entityList, SysOrgPerson.class);
         return dataList;
+    }
+
+    public Page<SysOrgPerson> findPersonPageWithoutCreatedUser(Long personId, String jobNo, String personType, Integer page, Integer pageSize) {
+        MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class);
+        wrapper.selectAll(SysOrgPersonBDBEntity.class)
+                .select(SysOrgPersonTlDBEntity::getFullName)
+                .innerJoin(SysOrgPersonTlDBEntity.class,
+                        fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
+                                .eq(SysOrgPersonTlDBEntity::getLanguage, LanguageEnum.ZH_CN.getValue())
+                )
+                .leftJoin(SysUserDBEntity.class, SysUserDBEntity::getUserRelationId, SysOrgPersonTlDBEntity::getPersonId)
+                .isNull(SysUserDBEntity::getUserId);
+        if (StringUtils.hasText(jobNo)) {
+            wrapper.like(SysOrgPersonBDBEntity::getJobNo, jobNo);
+        }
+        if (personId != null) {
+            wrapper.eq(SysOrgPersonBDBEntity::getPersonId, personId);
+        }
+        if (StringUtils.hasText(personType)) {
+            wrapper.eq(SysOrgPersonBDBEntity::getPersonType, personType);
+        }
+        wrapper.orderByDesc(SysOrgPersonBDBEntity::getPersonId);
+        return sysOrgPersonBMapperService.selectJoinPage(new Page<>(page, pageSize), SysOrgPerson.class, wrapper);
     }
 }

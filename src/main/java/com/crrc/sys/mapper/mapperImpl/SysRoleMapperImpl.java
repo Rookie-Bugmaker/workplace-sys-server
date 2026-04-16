@@ -7,13 +7,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.common.MyBatisUtil;
+import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.*;
 import com.crrc.sys.entity.user.SysUserRoleDBEntity;
+import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.SysRoleMapper;
 import com.crrc.sys.mapper.mapperService.SysRoleBMapperService;
 import com.crrc.sys.mapper.mapperService.SysRoleTlMapperService;
 import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -290,5 +293,26 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
                 .eq(SysRoleBDBEntity::getProjectId, projectId);
         List<SysRoleBDBEntity> entities = sysRoleBMapperService.selectList(wrapper);
         return entities.stream().map(SysRoleBDBEntity::getRoleId).collect(Collectors.toList());
+    }
+
+    public SysRole findDefaultRoleByProject(Long projectId, String projectName) {
+        MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
+                .selectAll(SysRoleBDBEntity.class)
+                .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
+                .innerJoin(SysRoleTlDBEntity.class, SysRoleTlDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                .leftJoin(ProjectEntity.class, ProjectEntity::getId, SysRoleBDBEntity::getProjectId)
+                .eq(SysRoleTlDBEntity::getLanguage, LanguageEnum.ZH_CN.getValue())
+                .eq(SysRoleBDBEntity::getDefaultFlag, "Y");
+        if(projectId != null) {
+            wrapper.eq(SysRoleBDBEntity::getProjectId, projectId);
+        }
+        if(StringUtils.isNotBlank(projectName)) {
+            wrapper.eq(ProjectEntity::getName, projectName);
+        }
+        List<SysRole> sysRoles = sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
+        if(sysRoles != null && sysRoles.size() > 0){
+            return sysRoles.get(0);
+        }
+        return null;
     }
 }
