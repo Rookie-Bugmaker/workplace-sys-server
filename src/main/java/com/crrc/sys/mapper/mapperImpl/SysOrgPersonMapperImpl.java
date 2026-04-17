@@ -275,12 +275,16 @@ public class SysOrgPersonMapperImpl extends ServiceImpl<SysOrgPersonBMapperServi
         MPJLambdaWrapper<SysOrgPersonBDBEntity> wrapper = JoinWrappers.lambda(SysOrgPersonBDBEntity.class);
         wrapper.selectAll(SysOrgPersonBDBEntity.class)
                 .select(SysOrgPersonTlDBEntity::getFullName)
-                .innerJoin(SysOrgPersonTlDBEntity.class,
-                        fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
+                .innerJoin(SysOrgPersonTlDBEntity.class, fn -> fn
+                                .eq(SysOrgPersonTlDBEntity::getPersonId, SysOrgPersonBDBEntity::getPersonId)
                                 .eq(SysOrgPersonTlDBEntity::getLanguage, LanguageEnum.ZH_CN.getValue())
                 )
-                .leftJoin(SysUserDBEntity.class, SysUserDBEntity::getUserRelationId, SysOrgPersonTlDBEntity::getPersonId)
-                .isNull(SysUserDBEntity::getUserId);
+                .leftJoin(SysUserDBEntity.class, SysUserDBEntity::getUserRelationId, SysOrgPersonBDBEntity::getPersonId)
+                .isNull(SysUserDBEntity::getUserId)
+                .notExists(SysUserDBEntity.class, w -> {
+                    return w.select(SysUserDBEntity::getUserName)
+                            .eq(SysUserDBEntity::getUserName, SysOrgPersonBDBEntity::getJobNo); //剔除工号与用户名相同的数据
+                });
         if (StringUtils.hasText(jobNo)) {
             wrapper.like(SysOrgPersonBDBEntity::getJobNo, jobNo);
         }
