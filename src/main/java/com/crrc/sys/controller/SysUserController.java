@@ -236,7 +236,6 @@ public class SysUserController {
      * @param users 用户信息列表
      * @return 批量新增结果
      */
-    @AutoIdempotent
     @PostMapping("batchAdd")
     @Operation(summary = "用户批量新增")
     @Transactional
@@ -247,11 +246,14 @@ public class SysUserController {
         }
 
         // 2. 获取当前用户
+        SysUser currentUser = null;
         ResultData<SysUser> userResultData = authClient.currentUser();
-        if (!userResultData.getSuccess()) {
-            throw new BizException(userResultData.getCode(), userResultData.getMessage());
+        if (userResultData != null && userResultData.getSuccess()) {
+            currentUser = userResultData.getResult();
+        } else {
+            currentUser = new SysUser();
+            currentUser.setUserId(-1L);
         }
-        SysUser currentUser = userResultData.getResult();
 
         // 3. 密码编码器
         PasswordEncoder bcpe = new BCryptPasswordEncoder();
@@ -287,6 +289,7 @@ public class SysUserController {
                 // 4.7 处理用户数据权限
                 List<SysDataAuth> dataAuthList = user.getDataAuthList();
                 if (!CollectionUtils.isEmpty(dataAuthList)) {
+                    SysUser finalCurrentUser = currentUser;
                     dataAuthList.forEach(o -> {
                         // 主键
                         o.setAuthId(idKeyGenerator.getId());
@@ -295,7 +298,7 @@ public class SysUserController {
                         // 用户 ID
                         o.setObjectId(user.getUserId());
                         // 设置创建人
-                        o.setCreateBy(currentUser.getUserId());
+                        o.setCreateBy(finalCurrentUser.getUserId());
                         // 设置创建时间
                         o.setCreateDate(nowDate);
                         o.getDataAuthValueList().forEach(data -> {
@@ -305,15 +308,18 @@ public class SysUserController {
                         });
                     });
                 }
-            }
-            catch (ParamValidateException e) {
+            } catch (ParamValidateException e) {
                 String username = user.getUserName() != null ? user.getUserName() : "未知";
                 String error = e.getErrorMsg() != null ? e.getErrorMsg() : "未知错误";
-                return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "批量新增失败(用户"+username+"):" + error);
+                return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "批量新增失败(用户" + username + "):" + error);
+            } catch (BizException e) {
+                String username = user.getUserName() != null ? user.getUserName() : "未知";
+                String error = e.getErrorMsg() != null ? e.getErrorMsg() : "未知错误";
+                return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "批量新增失败(用户" + username + "):" + error);
             } catch (Exception e) {
                 String username = user.getUserName() != null ? user.getUserName() : "未知";
                 String error = e.getMessage() != null ? e.getMessage() : "未知错误";
-                return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "批量新增失败(用户"+username+"):" + error);
+                return ResponseResult.fail(HttpStatus.BAD_REQUEST.value(), "批量新增失败(用户" + username + "):" + error);
             }
         }
 
@@ -1557,7 +1563,7 @@ public class SysUserController {
             UserDeliveryExcelVO excelVO = new UserDeliveryExcelVO();
             excelVO.setUserName(user.getUserName());
             excelVO.setUserDescription(user.getUserDescription());
-            if(UserTypeEnum.EMPLOYEE.getValue().equals(user.getUserType())) {
+            if (UserTypeEnum.EMPLOYEE.getValue().equals(user.getUserType())) {
                 excelVO.setUserType(UserTypeEnum.EMPLOYEE.getText());
             } else if (UserTypeEnum.SUPPLIER.getValue().equals(user.getUserType())) {
                 excelVO.setUserType(UserTypeEnum.SUPPLIER.getText());
@@ -1566,14 +1572,14 @@ public class SysUserController {
             } else {
                 excelVO.setUserType("未知");
             }
-            if(UserStatusEnum.N.getValue().equals(user.getDisableState())) {
+            if (UserStatusEnum.N.getValue().equals(user.getDisableState())) {
                 excelVO.setDisableState(UserStatusEnum.N.getText());
             } else if (UserStatusEnum.Y.getValue().equals(user.getDisableState())) {
                 excelVO.setDisableState(UserStatusEnum.Y.getText());
             } else {
                 excelVO.setDisableState("未知");
             }
-            if(user.getUserRelationId() != null) {
+            if (user.getUserRelationId() != null) {
                 String jobNo = personService.findById(user.getUserRelationId(), LanguageEnum.ZH_CN.getValue()).getJobNo();
                 excelVO.setUserRelation(jobNo);
             }
