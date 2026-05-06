@@ -223,6 +223,46 @@ public class SysDeptPersonController {
         return grid;
     }
 
+    /**
+     * 根据条件查询部门人员列表(分页)
+     * 查询条件：deptId、jobNo、personName、position（均为选填）
+     *
+     * @param param    查询条件
+     * @param page     页码
+     * @param pageSize 每页条数
+     * @return 部门人员列表
+     */
+    @PostMapping("findPageByCondition")
+    public PaginationGrid<SysDeptPersonDTO> findPageByCondition(@RequestBody SysDeptPersonDTO param,
+                                                                @RequestParam("page") Integer page,
+                                                                @RequestParam("pageSize") Integer pageSize) {
+        if (ObjectUtils.isEmpty(page) || page <= 0) {
+            throw new ParamValidateException("page不能为空且>0");
+        }
+        if (ObjectUtils.isEmpty(pageSize) || pageSize <= 0) {
+            throw new ParamValidateException("pageSize不能为空且>0");
+        }
+        // 根据personName和jobNo模糊查询人员ID
+        List<Long> personIdList = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(param.getPersonName()) || !ObjectUtils.isEmpty(param.getJobNo())) {
+            SysOrgPersonFindByPageParam personParam = new SysOrgPersonFindByPageParam();
+            personParam.setFullName(param.getPersonName());
+            personParam.setJobNo(param.getJobNo());
+            personParam.setLanguage("zh-CN");
+            personParam.setPageSize(0);
+            List<SysOrgPerson> matchedPersons = personService.findList(personParam);
+            if (!CollectionUtils.isEmpty(matchedPersons)) {
+                personIdList = matchedPersons.stream().map(SysOrgPerson::getPersonId).collect(Collectors.toList());
+            }
+        }
+        PaginationGrid<SysDeptPersonPO> paginationGrid = deptPersonService.findPageByCondition(page, pageSize, param, personIdList);
+        List<SysDeptPersonPO> rows = paginationGrid.getRows();
+        PaginationGrid<SysDeptPersonDTO> grid = new PaginationGrid<>(page, pageSize);
+        grid.setTotal(paginationGrid.getTotal());
+        grid.setRows(poToDto(rows));
+        return grid;
+    }
+
 
     /**
      * 批量新增
