@@ -66,4 +66,9 @@ public class ProjectEntity extends BaseEntity {
     @TableLogic(value = "0",delval = "id")
     @Schema(description = "删除" ,example = "false")
     private Integer deleted;
+
+    /**
+     * 微前端(Y/N)
+     */
+    private String microFlag;
 }

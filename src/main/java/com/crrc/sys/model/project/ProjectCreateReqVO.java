@@ -44,4 +44,8 @@ public class ProjectCreateReqVO {
      */
     @Schema(description = "归属分组" ,example = "1")
     private String ownershipGroup;
+    /**
+     * 微前端(Y/N)
+     */
+    private String microFlag;
 }
