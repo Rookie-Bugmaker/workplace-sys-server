@@ -404,7 +404,7 @@ public class SysRoleController {
             throw new ParamValidateException("角色必须关联项目!");
         } else {
             Long defaultRoleId = roleService.findDefaultRoleIdInProject(role.getProjectId());
-            if("Y".equals(role.getDefaultFlag()) && defaultRoleId != null && role.getRoleId() != defaultRoleId) {
+            if("Y".equals(role.getDefaultFlag()) && defaultRoleId != null && !role.getRoleId().equals(defaultRoleId)) {
                 throw new ParamValidateException("当前项目已经存在默认角色!");
             }
         }

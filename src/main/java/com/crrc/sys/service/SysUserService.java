@@ -6,6 +6,7 @@ import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
+import com.crrc.sys.model.user.AuthInformDTO;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
 import com.crrc.sys.model.user.SysOnlineUserVO;
 import com.crrc.sys.model.user.UserGetRespVO;
@@ -209,4 +210,8 @@ public interface SysUserService {
     UserGetRespVO getUserWithRolesByUsername(String username);
 
     PaginationGrid<SysUser> getUserPageWithPersonInform(SysOrgPersonParamOfUserPageDTO param);
+
+    List<SysUser> getUserWithAuthenticationInform(List<String> roleCodeList, AuthInformDTO authInform);
+
+    List<SysUser> findUsersByDataAuth(AuthInformDTO authInform);
 }

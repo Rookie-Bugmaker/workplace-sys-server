@@ -403,7 +403,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         return convertFromDB(entities);
     }
 
-
+    //
     public List<SysUser> findUsersByRoleCode(List<String> roleCode) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)

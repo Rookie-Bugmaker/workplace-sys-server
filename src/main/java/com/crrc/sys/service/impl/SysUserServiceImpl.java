@@ -1,25 +1,33 @@
 package com.crrc.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.entity.auth.SysDataAuth;
+import com.crrc.sys.entity.auth.SysDataAuthDBEntity;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
+import com.crrc.sys.entity.auth.SysDataAuthValueDBEntity;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
+import com.crrc.sys.entity.profile.SysProfileBDBEntity;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
+import com.crrc.sys.enums.DataAuthTypeEnum;
+import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.mapperImpl.*;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
+import com.crrc.sys.model.user.AuthInformDTO;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
 import com.crrc.sys.model.user.SysOnlineUserVO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
-import com.crrc.sys.model.user.role.SysUserRolePO;
+import com.crrc.sys.service.SysDataAuthService;
+import com.crrc.sys.service.SysProfileService;
 import com.crrc.sys.service.SysUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +39,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -56,9 +61,19 @@ public class SysUserServiceImpl implements SysUserService {
     private SysDataAuthMapperImpl dataAuthMapper;
     @Autowired
     private SysDataAuthValueMapperImpl dataAuthValueMapper;
+    @Autowired
+    private SysProfileMapperImpl profileMapper;
+    @Autowired
+    private SysRoleMapperImpl roleMapper;
 
     @Autowired
     private SysOrgPersonMapperImpl personMapper;
+
+    @Resource
+    private SysDataAuthService sysDataAuthService;
+
+    @Resource
+    private SysProfileService profileService;
 
     @Resource
     private AuthClient authClient;
@@ -543,6 +558,133 @@ public class SysUserServiceImpl implements SysUserService {
         return page;
     }
 
+    @Override
+    public List<SysUser> getUserWithAuthenticationInform(List<String> roleCodeList, AuthInformDTO authInform) {
+        List<SysUser> validUserList = new ArrayList<>();
+        // 1.根据角色编码查询对应角色的数据权限，如果对应角色有存在于dataAuthCodeToValueMap的数据权限，则该角色下人员需要获取
+        List<String> validRoleCodeList = new ArrayList<>();
+        List<String> invalidRoleCodeList = new ArrayList<>();
+        if(roleCodeList.isEmpty() || authInform == null || authInform.getData().isEmpty()){
+            return validUserList;
+        }
+        // 查找对应角色信息
+        List<SysRole> roleList = roleMapper.findByCodes(roleCodeList, LanguageEnum.ZH_CN.getValue());
+        roleList.forEach(role -> {
+            // 过滤数据权限与给定的权限符合的角色
+            Map<String, List<String>> dataAuthCodeToValueMapByRole =
+                    sysDataAuthService.findDataAuthsByObjectId(role.getRoleId(), DataAuthTypeEnum.ROLE.getValue());
+            Boolean existedAllAuthValue = judgeAuthValueReturnExisted(dataAuthCodeToValueMapByRole, authInform);
+            if (existedAllAuthValue) {
+                validRoleCodeList.add(role.getRoleCode());
+            } else {
+                invalidRoleCodeList.add(role.getRoleCode());
+            }
+        });
+        if (!validRoleCodeList.isEmpty()) {
+            validUserList.addAll(this.findUsersByRoleCode(validRoleCodeList));
+        }
+        // 2.如果对应角色在dataAuthCodeToValueMap下没有角色拥有的数据权限，则在当前角色（缺省角色）下查询人员，判断人员是否有对应数据权限。有则返回
+        if (!CollectionUtils.isEmpty(invalidRoleCodeList)) {
+            List<SysUser> userList = this.findUsersByRoleCode(invalidRoleCodeList);
+            List<SysUser> finalValidUserList = validUserList;
+            userList.forEach(user -> {
+                // 过滤数据权限与给定的权限符合的人员
+                Map<String, List<String>> dataAuthCodeToValueMapByUser =
+                        sysDataAuthService.findDataAuthsByObjectId(user.getUserId(), DataAuthTypeEnum.USER.getValue());
+                Boolean existedAllAuthValue = judgeAuthValueReturnExisted(dataAuthCodeToValueMapByUser, authInform);
+                if (existedAllAuthValue) {
+                    finalValidUserList.add(user);
+                }
+            });
+        }
+        // 3.合并去重1、2下获取的人员进行返回
+        if (!validUserList.isEmpty()) {
+            validUserList = validUserList.stream()
+                    .collect(Collectors.collectingAndThen(
+                            Collectors.toMap(
+                                    SysUser::getUserId,  // 以userId作为去重key
+                                    user -> user,        // 保留用户对象
+                                    (existing, replacement) -> existing  // 重复时保留已存在的记录
+                            ),
+                            map -> new ArrayList<>(map.values())  // 转换回List
+                    ));
+        }
+        return validUserList;
+    }
+
+    @Override
+    public List<SysUser> findUsersByDataAuth(AuthInformDTO authInform) {
+        List<SysUser> validUserList = new ArrayList<>();
+        Set<String> profileCodes = authInform.getData().keySet();
+        // 根据编码从配置进行查询
+        LambdaQueryWrapper<SysProfileBDBEntity> profileWrapper = new LambdaQueryWrapper<>();
+        profileWrapper.select(SysProfileBDBEntity::getProfileCode, SysProfileBDBEntity::getProfileId)
+                .in(SysProfileBDBEntity::getProfileCode, profileCodes);
+        List<SysProfileBDBEntity> profileList = profileMapper.list(profileWrapper);
+        Map<Long, String> profileIdToDataAuthCodeMap = profileList.stream()
+                .collect(Collectors.toMap(SysProfileBDBEntity::getProfileId, SysProfileBDBEntity::getProfileCode,
+                        (existing, replacement) -> existing));
+        // 查询拥有当前配置（权限编码）的用户ID
+        LambdaQueryWrapper<SysDataAuthDBEntity> dataAuthWrapper = new LambdaQueryWrapper<>();
+        dataAuthWrapper.select(SysDataAuthDBEntity::getAuthId, SysDataAuthDBEntity::getProfileId, SysDataAuthDBEntity::getObjectId)
+                .in(SysDataAuthDBEntity::getProfileId, profileIdToDataAuthCodeMap.keySet())
+                .eq(SysDataAuthDBEntity::getAuthType, DataAuthTypeEnum.USER.getValue());
+        List<SysDataAuthDBEntity> dataAuthAllList = dataAuthMapper.list(dataAuthWrapper);
+        // 根据用户ID进行分类
+        Map<Long, List<SysDataAuthDBEntity>> groupedByObjectId = dataAuthAllList.stream()
+                .collect(Collectors.groupingBy(
+                        SysDataAuthDBEntity::getObjectId  // 假设objectId是Long类型
+                ));
+        List<SysUser> finalValidUserList = validUserList;
+        groupedByObjectId.entrySet().forEach(entry1 -> {
+            Long userId = entry1.getKey();
+            List<SysDataAuthDBEntity> dataAuthList = entry1.getValue();
+            Map<Long, Long> authIdToProfileIdMap = dataAuthList.stream()
+                    .collect(Collectors.toMap(SysDataAuthDBEntity::getAuthId, SysDataAuthDBEntity::getProfileId,
+                            (existing, replacement) -> existing));
+            // 查询得到的用户是否有给定的权限对应的所有权限值
+            LambdaQueryWrapper<SysDataAuthValueDBEntity> dataAuthValueWrapper = new LambdaQueryWrapper<>();
+            dataAuthValueWrapper.select(SysDataAuthValueDBEntity::getAuthId, SysDataAuthValueDBEntity::getAuthValue)
+                    .in(SysDataAuthValueDBEntity::getAuthId, authIdToProfileIdMap.keySet());
+            List<SysDataAuthValueDBEntity> dataAuthValueList = dataAuthValueMapper.list(dataAuthValueWrapper);
+            Map<Long, List<String>> dataAuthIdToValueMap = dataAuthValueList.stream()
+                    .collect(Collectors.groupingBy(
+                            SysDataAuthValueDBEntity::getAuthId,
+                            Collectors.mapping(
+                                    SysDataAuthValueDBEntity::getAuthValue,
+                                    Collectors.toList()
+                            )
+                    ));
+            Map<String, List<String>> dataAuthCodeToValueMapInDB = authIdToProfileIdMap.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            // Key映射：通过authId找到profileId，再通过profileId找到dataAuthCode
+                            entry2 -> profileIdToDataAuthCodeMap.get(entry2.getValue()),
+                            // Value映射：直接从dataAuthIdToValueMap获取对应的value列表
+                            entry2 -> dataAuthIdToValueMap.get(entry2.getKey()),
+                            // 合并策略：如果遇到重复key（相同的dataAuthCode），保留已存在的value
+                            (existing, replacement) -> existing,
+                            // 指定返回的Map实现类
+                            HashMap::new
+                    ));
+            boolean existed = judgeAuthValueReturnExisted(dataAuthCodeToValueMapInDB, authInform);
+            if (existed) {
+                finalValidUserList.add(userMapper.findById(userId));
+            }
+        });
+        if (!validUserList.isEmpty()) {
+            validUserList = validUserList.stream()
+                    .collect(Collectors.collectingAndThen(
+                            Collectors.toMap(
+                                    SysUser::getUserId,  // 以userId作为去重key
+                                    user -> user,        // 保留用户对象
+                                    (existing, replacement) -> existing  // 重复时保留已存在的记录
+                            ),
+                            map -> new ArrayList<>(map.values())  // 转换回List
+                    ));
+        }
+        return validUserList;
+    }
+
     /**
      * 用户批量新增（带角色和数据权限）
      *
@@ -612,5 +754,56 @@ public class SysUserServiceImpl implements SysUserService {
         }
 
         return users.size();
+    }
+
+    /**
+     * 检查originMap中的所有entry是否都能在targetMap中找到完全匹配的对应项
+     *
+     * @param targetMap 目标Map，查找的基准
+     * @param authInform 原始鉴权信息，用于遍历查找
+     * @return 如果originMap中的所有entry都能在targetMap中找到key相同且value列表完全包含的对应项，则返回true，否则返回false
+     */
+    public boolean judgeAuthValueReturnExisted(Map<String, List<String>> targetMap,
+                                               AuthInformDTO authInform) {
+        // 获取用户权限数据和逻辑判断方式
+        Map<String, List<String>> authData = authInform.getData();
+        boolean isOr = authInform.getIsOr() == null || Boolean.TRUE.equals(authInform.getIsOr());
+
+        // 遍历用户提供的所有权限编码
+        for (Map.Entry<String, List<String>> entry : authData.entrySet()) {
+            String authCode = entry.getKey();
+            List<String> authValues = entry.getValue();
+
+            // 检查目标映射中是否包含当前权限编码
+            if (!targetMap.containsKey(authCode)) {
+                return false;
+            }
+
+            List<String> targetValues = targetMap.get(authCode);
+
+            if (isOr) {
+                // OR逻辑：只要有一个权限值匹配就继续检查下一个权限编码
+                boolean anyMatch = false;
+                for (String userValue : authValues) {
+                    if (targetValues.contains(userValue)) {
+                        anyMatch = true;
+                        break;
+                    }
+                }
+                if (!anyMatch) {
+                    return false;
+                }
+            } else {
+                // AND逻辑：所有权限值都必须匹配
+                for (String userValue : authValues) {
+                    if (!targetValues.contains(userValue)) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // 所有检查都通过
+        return true;
     }
 }

@@ -1,6 +1,5 @@
 package com.crrc.sys.controller;
 
-import cn.hutool.core.collection.CollUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
@@ -18,12 +17,10 @@ import com.crrc.sys.common.response.ResponseResult;
 import com.crrc.sys.config.exception.BizException;
 import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
-import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.excel.ExcelParams;
 import com.crrc.sys.entity.excel.ExcelResultData;
 import com.crrc.sys.entity.org.person.SysOrgPerson;
-import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.user.*;
@@ -35,16 +32,11 @@ import com.crrc.sys.enums.*;
 import com.crrc.sys.excel.ExcelExport;
 import com.crrc.sys.excel.ExcelImport;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
-import com.crrc.sys.model.org.person.SysOrgPersonDeliveryExcelVO;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
-import com.crrc.sys.model.user.SysUserCompatibilityDTO;
-import com.crrc.sys.model.user.SysUserParamDTO;
-import com.crrc.sys.model.user.UserDeliveryExcelVO;
-import com.crrc.sys.model.user.UserGetRespVO;
+import com.crrc.sys.model.user.*;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.*;
-import com.crrc.sys.service.impl.SysUserServiceImpl;
 import com.crrc.sys.service.impl.SysUserValidServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.BeanUtils;
@@ -57,7 +49,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -69,12 +60,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * 用户管理-控制器
@@ -1421,6 +1408,35 @@ public class SysUserController {
         resultPage.setTotal(minPage.getTotal());
         resultPage.setRecords(setUserAndDMRProperties(rows));
         return resultPage;
+    }
+
+    /**
+     * 通过鉴权信息获取其下存在的用户
+     * 角色列表不为空且数据权限映射为空，则查找拥有角色的用户
+     * 角色列表为空且数据权限映射不为空，则查找拥有数据权限的用户（只查找设置在用户上的数据权限）
+     * 角色列表不为空且数据权限映射不为空，则在给定角色下查找拥有数据权限的人员（设置在用户和角色上的权限都查找）
+     *
+     * @param param
+     * @return
+     */
+    @PostMapping("/get_user_with_authentication_inform")
+    public List<UserGetRespVO> getUserWithAuthenticationInform(@RequestBody SysUserAuthDTO param) {
+        param = param == null ? new SysUserAuthDTO() : param;
+        List<String> roleCodeList = param.getRoleCodeList();
+        AuthInformDTO authInform = param.getAuthInform();
+        Boolean isEmptyRole = roleCodeList == null || roleCodeList.isEmpty();
+        Boolean isEmptyAuth = authInform == null || authInform.getData().isEmpty();
+        if (!isEmptyRole && isEmptyAuth) {
+            // 角色列表不为空且数据权限映射为空，则查找拥有角色的用户
+            return setUserAndDMRProperties(userService.findUsersByRoleCode(roleCodeList));
+        } else if (isEmptyRole && !isEmptyAuth) {
+            // 角色列表为空且数据权限映射不为空，则查找拥有数据权限的用户（只查找设置在用户上的数据权限）
+            return setUserAndDMRProperties(userService.findUsersByDataAuth(authInform));
+        } else if (!isEmptyRole && !isEmptyAuth) {
+            // 角色列表不为空且数据权限映射不为空，则在给定角色下查找拥有数据权限的人员（设置在用户和角色上的权限都查找）
+            return setUserAndDMRProperties(userService.getUserWithAuthenticationInform(roleCodeList, authInform));
+        }
+        return Collections.emptyList();
     }
 
     /**
