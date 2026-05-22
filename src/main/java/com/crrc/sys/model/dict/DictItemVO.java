@@ -14,4 +14,7 @@ public class DictItemVO {
 
     @Schema(description = "序列")
     private String sorted;
+
+    @Schema(description = "备注", example = "demo")
+    private String remark;
 }

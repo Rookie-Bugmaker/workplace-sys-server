@@ -70,7 +70,8 @@ public class DictCacheServiceImpl implements DictCacheService {
         // 比较字典项各字段是否变化
         return !StringUtils.equals(cachedItem.get("itemCode"), dictItem.getItemCode()) ||
                 !StringUtils.equals(cachedItem.get("itemName"), dictItem.getItemName()) ||
-                !StringUtils.equals(cachedItem.get("sorted"), dictItem.getSorted());
+                !StringUtils.equals(cachedItem.get("sorted"), dictItem.getSorted()) ||
+                !StringUtils.equals(cachedItem.get("remark"), dictItem.getRemark());
     }
 
     @Override
@@ -231,6 +232,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         itemMap.put("itemCode", StringUtils.defaultIfBlank(dictItem.getItemCode(), ""));
         itemMap.put("itemName", StringUtils.defaultIfBlank(dictItem.getItemName(), ""));
         itemMap.put("sorted", StringUtils.defaultIfBlank(dictItem.getSorted(), "0"));
+        itemMap.put("remark", StringUtils.defaultIfBlank(dictItem.getRemark(), ""));
         return itemMap;
     }
     
@@ -269,6 +271,7 @@ public class DictCacheServiceImpl implements DictCacheService {
                 itemVO.setItemCode(itemMap.get("itemCode"));
                 itemVO.setItemName(itemMap.get("itemName"));
                 itemVO.setSorted(itemMap.get("sorted"));
+                itemVO.setRemark(itemMap.get("remark"));
                 dictVO.getItems().add(itemVO);
             }
         }
@@ -319,6 +322,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         itemVO.setItemCode(itemMap.get("itemCode"));
         itemVO.setItemName(itemMap.get("itemName"));
         itemVO.setSorted(itemMap.get("sorted"));
+        itemVO.setRemark(itemMap.get("remark"));
         return itemVO;
     }
 
@@ -383,7 +387,8 @@ public class DictCacheServiceImpl implements DictCacheService {
             Map<String, String> itemMap = new HashMap<>();
             itemMap.put("itemCode", StringUtils.defaultIfBlank(itemVO.getItemCode(),""));
             itemMap.put("itemName", StringUtils.defaultIfBlank(itemVO.getItemName(),""));
-            itemMap.put("sorted", StringUtils.defaultIfBlank(itemVO.getSorted(),""));
+            itemMap.put("sorted", StringUtils.defaultIfBlank(itemVO.getSorted(),"0"));
+            itemMap.put("remark", StringUtils.defaultIfBlank(itemVO.getRemark(),""));
             redisCache.setCacheMap(itemKey, itemMap);
         });
     }
