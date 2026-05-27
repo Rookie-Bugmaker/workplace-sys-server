@@ -341,8 +341,44 @@ public class SysDictGlobalController {
     private void sortDictItems(DictVO dictVO) {
         dictVO.setItems(
                 dictVO.getItems().stream()
-                        .sorted(Comparator.comparing(DictItemVO::getSorted))
+                        .sorted(this::compareDictItem)
                         .collect(Collectors.toList())
         );
+    }
+
+    private int compareDictItem(DictItemVO o1, DictItemVO o2) {
+        String s1 = o1.getSorted();
+        String s2 = o2.getSorted();
+
+        // null 值排在最后
+        if (s1 == null && s2 == null) return 0;
+        if (s1 == null) return 1;
+        if (s2 == null) return -1;
+
+        boolean isNum1 = isInteger(s1);
+        boolean isNum2 = isInteger(s2);
+
+        if (isNum1 && isNum2) {
+            // 都是数字，按数值比较
+            return Integer.compare(Integer.parseInt(s1), Integer.parseInt(s2));
+        } else if (isNum1) {
+            // 只有前者是数字，数字排前面
+            return -1;
+        } else if (isNum2) {
+            // 只有后者是数字，数字排前面
+            return 1;
+        } else {
+            // 都不是数字，按字符串字典序（ASCII码）
+            return s1.compareTo(s2);
+        }
+    }
+
+    // 判断字符串是否可以安全解析为整数（非负整数）
+    private boolean isInteger(String str) {
+        if (str == null || str.isEmpty()) return false;
+        for (char c : str.toCharArray()) {
+            if (c < '0' || c > '9') return false;
+        }
+        return true;
     }
 }
