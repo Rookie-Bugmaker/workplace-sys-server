@@ -236,4 +236,15 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
 
         return result;
     }
+
+    @Override
+    public List<Dept> getDeptByOrgCodeList(List<String> orgCodes) {
+        LambdaQueryWrapper<Dept> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(Dept::getOrgCode, orgCodes);
+        List<Dept> depts = deptMapper.selectList(wrapper);
+        if(depts != null && depts.size() > 0){
+            return depts;
+        }
+        return new ArrayList<>();
+    }
 }

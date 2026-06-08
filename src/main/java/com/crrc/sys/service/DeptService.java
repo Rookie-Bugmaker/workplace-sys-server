@@ -45,4 +45,6 @@ public interface DeptService extends IService<Dept> {
     Dept findByCode(String deptCode);
 
     Map<Long, String> getSubdeptIdToCodeMap(Long id);
+
+    List<Dept> getDeptByOrgCodeList(List<String> orgCodes);
 }
