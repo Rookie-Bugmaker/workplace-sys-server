@@ -13,6 +13,7 @@ import com.crrc.sys.entity.role.SysRoleMenuDBEntity;
 import com.crrc.sys.mapper.SysMenuMapper;
 import com.crrc.sys.mapper.mapperService.SysMenuBMapperService;
 import com.crrc.sys.mapper.mapperService.SysMenuTlMapperService;
+import com.crrc.sys.service.SysDataAuthService;
 import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +43,9 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
 
     @Autowired
     private SysMenuBMapperImpl sysMenuBMapper;
+
+    @Resource
+    private SysDataAuthService dataAuthService;
 
 
     public List<SysMenu> findByFuzzy(SysMenuFindByPageParam param) {
@@ -60,6 +67,24 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
     }
 
     public IPage<SysMenu> findByFuzzyPage(SysMenuFindByPageParam param) {
+        // 获取数据权限映射，键通常为资源标识，值为具有该资源权限的用户或角色列表
+        Map<String, List<String>> dataAuthMap = dataAuthService.getDataAuth();
+
+        // 收集所有有权限的项目ID
+        Set<Long> allowedProjectIds = new HashSet<>();
+        for (Map.Entry<String, List<String>> entry : dataAuthMap.entrySet()) {
+            String dataSourceKey = entry.getKey(); // 当前资源键
+            List<String> dataSourceValue = entry.getValue(); // 当前资源对应的权限列表
+            dataSourceValue.forEach(value -> {
+                try {
+                    Long pid =  Long.valueOf(value);
+                    allowedProjectIds.add(pid);
+                } catch (Throwable e) {
+                    log.error("[SysFunctionMapperImpl][findByFuzzyPage] 数据权限转换异常 " +value );
+                }
+            });
+        }
+
         MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
                 .selectAll(SysMenuBDBEntity.class)
                 .select(SysMenuTlDBEntity::getMenuName)
@@ -70,6 +95,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
                 )
                 .isNull(SysMenuBDBEntity::getParentId)
                 .eq(param.getProjectId() != null, SysMenuBDBEntity::getProjectId, param.getProjectId())
+                .in(allowedProjectIds!= null && !allowedProjectIds.isEmpty(), SysMenuBDBEntity::getProjectId, allowedProjectIds)
                 .like(StringUtils.isNotBlank(param.getMenuCode()), SysMenuBDBEntity::getMenuCode, param.getMenuCode())
                 .like(StringUtils.isNotBlank(param.getMenuName()), SysMenuTlDBEntity::getMenuName, param.getMenuName())
                 .like(StringUtils.isNotBlank(param.getMenuDescription()), SysMenuTlDBEntity::getMenuDescription, param.getMenuDescription())

@@ -14,11 +14,11 @@ import com.crrc.sys.entity.project.ProjectEntity;
 import com.crrc.sys.entity.role.SysRole;
 import com.crrc.sys.entity.role.SysRoleFunctionColumn;
 import com.crrc.sys.enums.LanguageEnum;
-import com.crrc.sys.mapper.*;
 import com.crrc.sys.mapper.mapperImpl.*;
 import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysFunctionColumnService;
 import com.crrc.sys.service.SysMenuService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
  * @date 2022-09-21
  */
 @Service
+@Slf4j
 public class SysMenuServiceImpl implements SysMenuService {
 
     @Autowired
