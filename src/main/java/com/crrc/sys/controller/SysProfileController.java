@@ -268,8 +268,12 @@ public class SysProfileController {
                     }
                 }
                 break;
+            case "fixed":
+                List<ValueSet> valueSetList = bodyHandlerList(search, search.getSql());
+                paginationGrid.setRows(valueSetList);
+                break;
             default:
-                throw new BizException("该接口不查询[值来源类型=固定值]的配置文件!");
+                throw new BizException("该接口不查询[值来源类型]错误");
         }
         return paginationGrid;
     }
@@ -310,8 +314,14 @@ public class SysProfileController {
         if (ObjectUtils.isEmpty(rowsJson)) {
             return valueSetList;
         }
-        List<Map<String, String>> rows = JSON.parseObject(rowsJson, new TypeReference<List<Map<String, String>>>() {
-        });
+        List<Map<String, String>> rows;
+        try {
+            rows = JSON.parseObject(rowsJson, new TypeReference<List<Map<String, String>>>() {
+            });
+        } catch (Exception e) {
+            throw new BizException("json值返回错误： "+ rowsJson + " 示例值： [{值列:\"1\",编码列:\"qqq\",描述列:\"描述\",父级列:\"\"}]");
+        }
+
         if (CollectionUtils.isEmpty(rows)) {
             return valueSetList;
         }

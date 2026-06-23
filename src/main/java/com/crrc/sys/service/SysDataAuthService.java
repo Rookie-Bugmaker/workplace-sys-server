@@ -20,4 +20,6 @@ public interface SysDataAuthService {
 	List<SysDataAuth> findByObjectId(long objectId);
 
     Map<String, List<String>> findDataAuthsByObjectId(Long userId, String value);
+
+	Map<String, List<String>> getDataAuth();
 }
