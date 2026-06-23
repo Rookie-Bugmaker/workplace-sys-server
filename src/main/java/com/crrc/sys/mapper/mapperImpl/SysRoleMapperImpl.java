@@ -21,6 +21,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -88,7 +89,7 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
         return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
     }
 
-    public IPage<SysRole> findByFuzzyPage(SysRoleFindByPageParam param) {
+    public IPage<SysRole> findByFuzzyPage(SysRoleFindByPageParam param, Set<Long> allowedProjectIds) {
         MPJLambdaWrapper<SysRoleBDBEntity> wrapper = JoinWrappers.lambda(SysRoleBDBEntity.class)
                 .selectAll(SysRoleBDBEntity.class)
                 .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
@@ -126,6 +127,10 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
 
         if (param.getProjectId() != null) {
             wrapper.eq(SysRoleBDBEntity::getProjectId, param.getProjectId());
+        }
+
+        if(allowedProjectIds != null && !allowedProjectIds.isEmpty()) {
+            wrapper.in(SysRoleBDBEntity::getProjectId, allowedProjectIds);
         }
 
         if (param.getDefaultFlag() != null && !param.getDefaultFlag().isEmpty()) {

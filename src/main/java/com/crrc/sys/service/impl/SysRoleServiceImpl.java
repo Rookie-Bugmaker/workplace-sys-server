@@ -85,26 +85,9 @@ public class SysRoleServiceImpl implements SysRoleService {
      */
     @Override
     public PaginationGrid<SysRole> findByPage(SysRoleFindByPageParam param) {
-//        PageHelper.startPage(param.getPage(), param.getPageSize());
-        IPage<SysRole> midPage = roleMapper.findByFuzzyPage(param);
-        List<SysRole> rows = midPage.getRecords();
-        if (!CollectionUtils.isEmpty(rows)) {
-            List<Long> projectIdList = rows.stream().map(SysRole::getProjectId).distinct().collect(Collectors.toList());
-            if (!CollectionUtils.isEmpty(projectIdList)) {
-                List<ProjectEntity> projectList = projectService.listByIds(projectIdList);
-                if (!CollectionUtils.isEmpty(projectList)) {
-                    rows.forEach(o -> {
-                        ProjectEntity projectEntity = projectList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
-                        o.setProjectName(ObjectUtils.isEmpty(projectEntity) ? null : projectEntity.getNameCn());
-                    });
-                }
-            }
-        }
-
         // 获取数据权限映射，键通常为资源标识，值为具有该资源权限的用户或角色列表
         Map<String, List<String>> dataAuthMap = dataAuthService.getDataAuth();
-
-// 遍历Map中的每一个键值对进行判断
+        // 遍历Map中的每一个键值对进行判断
         // 收集所有有权限的项目ID
         Set<Long> allowedProjectIds = new HashSet<>();
         for (Map.Entry<String, List<String>> entry : dataAuthMap.entrySet()) {
@@ -123,11 +106,19 @@ public class SysRoleServiceImpl implements SysRoleService {
             }
         }
 
-        // 根据数据权限过滤角色：只保留projectId在有权限项目列表中的角色
-        if (!allowedProjectIds.isEmpty()) {
-            rows = rows.stream()
-                    .filter(role -> role.getProjectId() != null && allowedProjectIds.contains(role.getProjectId()))
-                    .collect(Collectors.toList());
+        IPage<SysRole> midPage = roleMapper.findByFuzzyPage(param, allowedProjectIds);
+        List<SysRole> rows = midPage.getRecords();
+        if (!CollectionUtils.isEmpty(rows)) {
+            List<Long> projectIdList = rows.stream().map(SysRole::getProjectId).distinct().collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(projectIdList)) {
+                List<ProjectEntity> projectList = projectService.listByIds(projectIdList);
+                if (!CollectionUtils.isEmpty(projectList)) {
+                    rows.forEach(o -> {
+                        ProjectEntity projectEntity = projectList.stream().filter(p -> p.getId().equals(o.getProjectId())).findFirst().orElse(null);
+                        o.setProjectName(ObjectUtils.isEmpty(projectEntity) ? null : projectEntity.getNameCn());
+                    });
+                }
+            }
         }
 
 
