@@ -41,6 +41,16 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, ProjectEntity
     }
 
     @Override
+    public List<ProjectEntity> findByCodeList(List<String> projectCode) {
+        if (projectCode != null && projectCode.size() > 0) {
+            LambdaQueryWrapper<ProjectEntity> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.in(ProjectEntity::getName, projectCode);
+            return super.list(queryWrapper);
+        }
+        return new ArrayList<>();
+    }
+
+    @Override
     public Long findCountByCode(String projectCode) {
         LambdaQueryWrapper<ProjectEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.select(ProjectEntity::getId).eq(ProjectEntity::getName, projectCode);

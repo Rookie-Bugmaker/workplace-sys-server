@@ -90,9 +90,6 @@ public class SysRoleController {
     @Resource
     private ProjectService projectService;
 
-    @Resource
-    private SysDataAuthService dataAuthService;
-
     @Autowired
     private SysUserRoleMapperImpl userRoleMapper;
 
@@ -128,8 +125,6 @@ public class SysRoleController {
         if (!ObjectUtils.isEmpty(param.getEnableFlag()) && !EnableFlagEnum.contains(param.getEnableFlag())) {
             throw new ParamValidateException("enableFlag参数错误");
         }
-
-        dataAuthService.getDataAuth();
 
         return roleService.findByPage(param);
     }

@@ -18,4 +18,6 @@ public interface ProjectService extends IService<ProjectEntity> {
     Long findCountByCode(String projectCode);
 
     List<String> findGroup();
+
+    List<ProjectEntity> findByCodeList(List<String> projectCode);
 }

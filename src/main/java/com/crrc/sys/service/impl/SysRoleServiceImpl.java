@@ -19,6 +19,7 @@ import com.crrc.sys.mapper.mapperImpl.*;
 import com.crrc.sys.model.role.SysRoleCompanyDeptDTO;
 import com.crrc.sys.model.user.role.SysUserRolePO;
 import com.crrc.sys.service.ProjectService;
+import com.crrc.sys.service.SysDataAuthService;
 import com.crrc.sys.service.SysRoleCompanyDeptService;
 import com.crrc.sys.service.SysRoleService;
 import org.apache.commons.lang3.StringUtils;
@@ -73,6 +74,9 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Resource
     private ValueOperations<String, Object> valueOperations;
 
+    @Resource
+    private SysDataAuthService dataAuthService;
+
     /**
      * 角色信息分页查询
      *
@@ -96,6 +100,37 @@ public class SysRoleServiceImpl implements SysRoleService {
                 }
             }
         }
+
+        // 获取数据权限映射，键通常为资源标识，值为具有该资源权限的用户或角色列表
+        Map<String, List<String>> dataAuthMap = dataAuthService.getDataAuth();
+
+// 遍历Map中的每一个键值对进行判断
+        // 收集所有有权限的项目ID
+        Set<Long> allowedProjectIds = new HashSet<>();
+        for (Map.Entry<String, List<String>> entry : dataAuthMap.entrySet()) {
+            String dataSourceKey = entry.getKey(); // 当前资源键
+            List<String> dataSourceValue = entry.getValue(); // 当前资源对应的权限列表
+
+            // 示例判断1：检查键是否有效（非空且非空白）
+            if (StringUtils.isNotBlank(dataSourceKey)) {
+                // 示例判断2：检查值列表是否非空且包含特定元素（例如当前用户）
+                if (dataSourceValue != null && !dataSourceValue.isEmpty()) {
+                    List<ProjectEntity> projectEntities = projectService.findByCodeList(dataSourceValue);
+                    if (!CollectionUtils.isEmpty(projectEntities)) {
+                        projectEntities.forEach(p -> allowedProjectIds.add(p.getId()));
+                    }
+                }
+            }
+        }
+
+        // 根据数据权限过滤角色：只保留projectId在有权限项目列表中的角色
+        if (!allowedProjectIds.isEmpty()) {
+            rows = rows.stream()
+                    .filter(role -> role.getProjectId() != null && allowedProjectIds.contains(role.getProjectId()))
+                    .collect(Collectors.toList());
+        }
+
+
         PaginationGrid<SysRole> page = new PaginationGrid<>(
                 Math.toIntExact(midPage.getCurrent()), Math.toIntExact(midPage.getSize()));
         page.setTotal(midPage.getTotal());
