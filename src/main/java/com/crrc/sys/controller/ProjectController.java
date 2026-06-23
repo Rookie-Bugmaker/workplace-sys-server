@@ -51,6 +51,26 @@ public class ProjectController {
     @Resource
     private SysRoleService roleService;
 
+    /**
+     * 获取项目下拉列表
+     *
+     * @return 项目简略列表（数据权限用）
+     */
+    @GetMapping("/get_project_list")
+    @Operation(summary = "获取项目下拉列表")
+    public List<ProjectSimpleRespVO> getProjectist() {
+        List<ProjectEntity> list = projectService.list();
+        if (CollectionUtils.isEmpty(list)) {
+            return new ArrayList<>();
+        }
+        return list.stream().map(project -> {
+            ProjectSimpleRespVO vo = new ProjectSimpleRespVO();
+            vo.setId(project.getId());
+            vo.setCode(project.getName());
+            vo.setName(project.getNameCn());
+            return vo;
+        }).collect(Collectors.toList());
+    }
 
     @GetMapping("/get")
     @Operation(summary = "根据项目ID查询项目信息")
