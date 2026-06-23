@@ -22,6 +22,7 @@ import com.crrc.sys.service.ProjectService;
 import com.crrc.sys.service.SysDataAuthService;
 import com.crrc.sys.service.SysRoleCompanyDeptService;
 import com.crrc.sys.service.SysRoleService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
  * @date 2022-09-07
  */
 @Service
+@Slf4j
 public class SysRoleServiceImpl implements SysRoleService {
 
     @Resource
@@ -93,17 +95,17 @@ public class SysRoleServiceImpl implements SysRoleService {
         for (Map.Entry<String, List<String>> entry : dataAuthMap.entrySet()) {
             String dataSourceKey = entry.getKey(); // 当前资源键
             List<String> dataSourceValue = entry.getValue(); // 当前资源对应的权限列表
-
-            // 示例判断1：检查键是否有效（非空且非空白）
-            if (StringUtils.isNotBlank(dataSourceKey)) {
-                // 示例判断2：检查值列表是否非空且包含特定元素（例如当前用户）
-                if (dataSourceValue != null && !dataSourceValue.isEmpty()) {
-                    List<ProjectEntity> projectEntities = projectService.findByCodeList(dataSourceValue);
-                    if (!CollectionUtils.isEmpty(projectEntities)) {
-                        projectEntities.forEach(p -> allowedProjectIds.add(p.getId()));
-                    }
+            dataSourceValue.forEach(value -> {
+                try {
+                   Long pid =  Long.valueOf(value);
+                    allowedProjectIds.add(pid);
+                } catch (Throwable e) {
+                    log.error("[SysRoleServiceImpl][findByPage] 数据权限转换异常  value: {}", value);
                 }
-            }
+
+            });
+
+
         }
 
         IPage<SysRole> midPage = roleMapper.findByFuzzyPage(param, allowedProjectIds);
