@@ -160,7 +160,7 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
             List<SysProfile> profileList = profileService.findByIds(profileIdList, LanguageEnum.ZH_CN.getValue());
             //如果配置文件都不存在，则说明数据权限失效了
             if (CollectionUtils.isEmpty(profileList)) {
-                return null;
+                return new HashMap<>();
             }
             for (SysDataAuth sysDataAuth : dataAuthList) {
                 //查找与数据权限ID相匹配的配置文件
@@ -176,7 +176,7 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
             }
         }
         if (CollectionUtils.isEmpty(dataAuthList)) {
-            return null;
+            return new HashMap<>();
         }
         Map<String, List<String>> dataAuthMap = new HashMap<>(dataAuthList.size());
         for (SysDataAuth dataAuth : dataAuthList) {
