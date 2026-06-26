@@ -3,6 +3,8 @@ package com.crrc.sys.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.crrc.sys.cache.CacheKeyGenerator;
+import com.crrc.sys.cache.RedisCache;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.*;
 import com.crrc.sys.enums.OperationTypeEnum;
@@ -31,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +55,8 @@ public class SysApiController {
     private SysApiService apiService;
     @Resource
     private RedisUtils redisUtils;
+    @Resource
+    private RedisCache redisCache;
 
     /**
      * API信息分页查询
@@ -235,6 +240,8 @@ public class SysApiController {
 
     /**
      * 校验当前用户是否拥有该API权限
+     * 先检查请求的URI是否在系统API缓存中，如果不在则查数据库并回写缓存（含空值防穿透）
+     * 如果在，则检查用户权限列表中是否包含该URI
      *
      * @param method 请求方式
      * @param uri    URI
@@ -248,19 +255,38 @@ public class SysApiController {
         if (ObjectUtils.isEmpty(uri)) {
             throw new ParamValidateException("uri不能为空!");
         }
+        // 检查该URI是否在系统API缓存中
+        String uriKey = CacheKeyGenerator.getSysApiByUriKey(uri);
+        String cachedApi = redisCache.getCacheObject(uriKey);
+        // 缓存未命中，查数据库并回写缓存，防止缓存穿透
+        if (ObjectUtils.isEmpty(cachedApi)) {
+            SysApi sysApi = apiService.findByUri(uri);
+            if (sysApi == null) {
+                // 数据库中也不存在，缓存空值标识并设置过期时间，防止缓存穿透
+                redisCache.setCacheObject(uriKey, "none", 30, TimeUnit.MINUTES);
+                return true;
+            }
+            // 数据库中存在，回写缓存
+            redisCache.setCacheObject(uriKey, sysApi.getApiUri());
+            cachedApi = sysApi.getApiUri();
+        }
+        // 空值标识，说明该API在系统中未注册，放行
+        if ("none".equals(cachedApi)) {
+            return true;
+        }
+        // 缓存中存在该URI，需要检查用户是否有该权限
         ResultData<SysUser> userResultData = authClient.currentUser();
-        Map<String, List<String>> methodUriMap = new HashMap<>();
         if (!userResultData.getSuccess()) {
             throw new BizException(userResultData.getCode(), userResultData.getMessage());
         }
         SysUser currentUser = userResultData.getResult();
         String key = "api_auth:" + currentUser.getCurrentRoleId();
-        //此处从缓存中获取的API权限集合来源于首页菜单查询
+        // 此处从缓存中获取的API权限集合来源于首页菜单查询
         Object value = redisUtils.get(key);
         if (ObjectUtils.isEmpty(value)) {
             return false;
         }
-        methodUriMap = (Map<String, List<String>>) value;
+        Map<String, List<String>> methodUriMap = (Map<String, List<String>>) value;
         List<String> uriList = methodUriMap.get(method.toLowerCase());
         if (CollectionUtils.isEmpty(uriList)) {
             return false;

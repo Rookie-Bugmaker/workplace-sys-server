@@ -7,6 +7,9 @@ public class CacheKeyGenerator {
     private static final String DICT_DATA_PREFIX = "sys:dict:data:";
     // 字典项缓存前缀
     private static final String DICT_ITEM_PREFIX = ":items:";
+    // API缓存前缀
+    private static final String SYS_API_PREFIX = "sys:api:list";
+    private static final String SYS_API_BY_URI_PREFIX = "sys:api:uri:";
 
     public static String getDictIndexKey() {
         return DICT_INDEX_PREFIX;
@@ -22,6 +25,14 @@ public class CacheKeyGenerator {
 
     public static String getLockKey(String key) {
         return key + ":lock";
+    }
+
+    public static String getSysApiListKey() {
+        return SYS_API_PREFIX;
+    }
+
+    public static String getSysApiByUriKey(String apiUri) {
+        return SYS_API_BY_URI_PREFIX + apiUri;
     }
 
 //    public static String getUserExtendKey(String userId) {
