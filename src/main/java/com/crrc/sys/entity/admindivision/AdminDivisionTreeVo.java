@@ -8,6 +8,7 @@ import java.util.List;
 @Data
 public class AdminDivisionTreeVo {
 
+    private Long id;
     /**
      * country / division
      */

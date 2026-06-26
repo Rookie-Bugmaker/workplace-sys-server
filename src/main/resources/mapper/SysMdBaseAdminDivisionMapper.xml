@@ -6,6 +6,7 @@
     <select id="selectCountryTreeList"
             resultType="com.crrc.sys.entity.admindivision.AdminDivisionTreeVo">
         SELECT
+        id AS id,
         'country' AS node_type,
         country_number AS number,
         country_name AS name,
@@ -14,6 +15,10 @@
         NULL AS division_level
         FROM sys_md_base_country
         WHERE deleted = 0
+
+        <if test="vo != null and vo.countryNumber != null and vo.countryNumber != ''">
+            AND id = #{vo.id}
+        </if>
 
         <if test="vo != null and vo.countryNumber != null and vo.countryNumber != ''">
             AND country_number LIKE CONCAT('%', #{vo.countryNumber}, '%')
@@ -29,6 +34,7 @@
     <select id="selectDivisionTreeList"
             resultType="com.crrc.sys.entity.admindivision.AdminDivisionTreeVo">
         SELECT
+            id AS id,
             'division' AS node_type,
             division_number AS number,
             division_name AS name,
