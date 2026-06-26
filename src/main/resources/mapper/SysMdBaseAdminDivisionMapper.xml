@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crrc.sys.mapper.SysMdBaseAdminDivisionMapper">
+
+    <select id="selectCountryTreeList"
+            resultType="com.crrc.sys.entity.admindivision.AdminDivisionTreeVo">
+        SELECT
+        'country' AS node_type,
+        country_number AS number,
+        country_name AS name,
+        country_number AS country_number,
+        NULL AS parent_number,
+        NULL AS division_level
+        FROM sys_md_base_country
+        WHERE deleted = 0
+
+        <if test="vo != null and vo.countryNumber != null and vo.countryNumber != ''">
+            AND country_number LIKE CONCAT('%', #{vo.countryNumber}, '%')
+        </if>
+
+        <if test="vo != null and vo.countryName != null and vo.countryName != ''">
+            AND country_name LIKE CONCAT('%', #{vo.countryName}, '%')
+        </if>
+
+        ORDER BY country_number
+    </select>
+
+    <select id="selectDivisionTreeList"
+            resultType="com.crrc.sys.entity.admindivision.AdminDivisionTreeVo">
+        SELECT
+            'division' AS node_type,
+            division_number AS number,
+            division_name AS name,
+            country_number AS country_number,
+            parent_number AS parent_number,
+            division_level AS division_level
+        FROM sys_md_base_admin_division
+        WHERE deleted = 0
+        ORDER BY country_number, division_number
+    </select>
+
+    <select id="selectChildDivisionNumbers" resultType="java.lang.String">
+        SELECT
+            division_number
+        FROM sys_md_base_admin_division
+        WHERE deleted = 0
+          AND parent_number = #{parentNumber}
+    </select>
+
+    <select id="pageAdminDivision"
+            resultType="com.crrc.sys.entity.admindivision.AdminDivisionListVo">
+        SELECT
+        a.id AS id,
+        a.create_by AS create_by,
+        a.create_time AS create_time,
+        a.update_by AS update_by,
+        a.update_time AS update_time,
+        a.deleted AS deleted,
+
+        c.country_name AS country_name,
+        a.country_number AS country_number,
+
+        a.division_number AS division_number,
+        a.division_name AS division_name,
+        a.parent_number AS parent_number,
+        p.division_name AS parent_name,
+        a.division_level AS division_level,
+
+        a.full_spell AS full_spell,
+        a.simple_spell AS simple_spell,
+        a.description AS description,
+        a.city_number AS city_number,
+        a.time_zone AS time_zone,
+        a.city_flag AS city_flag,
+        a.area_code AS area_code,
+        a.enable_flag AS enable_flag
+        FROM sys_md_base_admin_division a
+        LEFT JOIN sys_md_base_country c
+        ON a.country_number = c.country_number
+        AND c.deleted = 0
+        LEFT JOIN sys_md_base_admin_division p
+        ON a.parent_number = p.division_number
+        AND p.deleted = 0
+        WHERE a.deleted = 0
+
+        <if test="vo.treeCountryNumber != null and vo.treeCountryNumber != ''">
+            AND a.country_number = #{vo.treeCountryNumber}
+        </if>
+
+        <if test="divisionNumbers != null and divisionNumbers.size() > 0">
+            AND a.division_number IN
+            <foreach collection="divisionNumbers" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+
+        <if test="vo.countryNumber != null and vo.countryNumber != ''">
+            AND a.country_number LIKE CONCAT('%', #{vo.countryNumber}, '%')
+        </if>
+
+        <if test="vo.countryName != null and vo.countryName != ''">
+            AND c.country_name LIKE CONCAT('%', #{vo.countryName}, '%')
+        </if>
+
+        <if test="vo.divisionNumber != null and vo.divisionNumber != ''">
+            AND a.division_number LIKE CONCAT('%', #{vo.divisionNumber}, '%')
+        </if>
+
+        <if test="vo.divisionName != null and vo.divisionName != ''">
+            AND a.division_name LIKE CONCAT('%', #{vo.divisionName}, '%')
+        </if>
+
+        <if test="vo.parentNumber != null and vo.parentNumber != ''">
+            AND a.parent_number LIKE CONCAT('%', #{vo.parentNumber}, '%')
+        </if>
+
+        <if test="vo.parentName != null and vo.parentName != ''">
+            AND p.division_name LIKE CONCAT('%', #{vo.parentName}, '%')
+        </if>
+
+        <if test="vo.divisionLevel != null and vo.divisionLevel != ''">
+            AND a.division_level = #{vo.divisionLevel}
+        </if>
+
+        <if test="vo.fullSpell != null and vo.fullSpell != ''">
+            AND a.full_spell LIKE CONCAT('%', #{vo.fullSpell}, '%')
+        </if>
+
+        <if test="vo.simpleSpell != null and vo.simpleSpell != ''">
+            AND a.simple_spell LIKE CONCAT('%', #{vo.simpleSpell}, '%')
+        </if>
+
+        <if test="vo.description != null and vo.description != ''">
+            AND a.description LIKE CONCAT('%', #{vo.description}, '%')
+        </if>
+
+        <if test="vo.cityNumber != null and vo.cityNumber != ''">
+            AND a.city_number LIKE CONCAT('%', #{vo.cityNumber}, '%')
+        </if>
+
+        <if test="vo.timeZone != null and vo.timeZone != ''">
+            AND a.time_zone LIKE CONCAT('%', #{vo.timeZone}, '%')
+        </if>
+
+        <if test="vo.cityFlag != null and vo.cityFlag != ''">
+            AND a.city_flag = #{vo.cityFlag}
+        </if>
+
+        <if test="vo.areaCode != null and vo.areaCode != ''">
+            AND a.area_code LIKE CONCAT('%', #{vo.areaCode}, '%')
+        </if>
+
+        <if test="vo.enableFlag != null and vo.enableFlag != ''">
+            AND a.enable_flag = #{vo.enableFlag}
+        </if>
+
+        ORDER BY a.country_number, a.division_number
+    </select>
+
+    <select id="detail"
+            resultType="com.crrc.sys.entity.admindivision.AdminDivisionListVo">
+        SELECT
+            a.id AS id,
+            a.create_by AS create_by,
+            a.create_time AS create_time,
+            a.update_by AS update_by,
+            a.update_time AS update_time,
+            a.deleted AS deleted,
+
+            c.country_name AS country_name,
+            a.country_number AS country_number,
+
+            a.division_number AS division_number,
+            a.division_name AS division_name,
+            a.parent_number AS parent_number,
+            p.division_name AS parent_name,
+            a.division_level AS division_level,
+
+            a.full_spell AS full_spell,
+            a.simple_spell AS simple_spell,
+            a.description AS description,
+            a.city_number AS city_number,
+            a.time_zone AS time_zone,
+            a.city_flag AS city_flag,
+            a.area_code AS area_code,
+            a.enable_flag AS enable_flag
+        FROM sys_md_base_admin_division a
+                 LEFT JOIN sys_md_base_country c
+                           ON a.country_number = c.country_number
+                               AND c.deleted = 0
+                 LEFT JOIN sys_md_base_admin_division p
+                           ON a.parent_number = p.division_number
+                               AND p.deleted = 0
+        WHERE a.deleted = 0
+          AND a.division_number = #{divisionNumber}
+    </select>
+
+</mapper>
