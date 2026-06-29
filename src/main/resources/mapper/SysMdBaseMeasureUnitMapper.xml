@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crrc.sys.mapper.SysMdBaseMeasureUnitMapper">
+
+    <select id="pageMeasureUnit"
+            resultType="com.crrc.sys.entity.measureunit.MeasureUnitListVo">
+
+        SELECT
+        id,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+
+        unit_number,
+        unit_name,
+        unit_desc_cn,
+        unit_desc_en,
+        mdm_use_flag,
+        unit_type,
+        enable_flag
+
+        FROM sys_md_base_measure_unit
+
+        WHERE deleted = 0
+
+        <if test="vo.unitNumber != null and vo.unitNumber != ''">
+            AND unit_number LIKE CONCAT('%',#{vo.unitNumber},'%')
+        </if>
+
+        <if test="vo.unitName != null and vo.unitName != ''">
+            AND unit_name LIKE CONCAT('%',#{vo.unitName},'%')
+        </if>
+
+        <if test="vo.unitDescCn != null and vo.unitDescCn != ''">
+            AND unit_desc_cn LIKE CONCAT('%',#{vo.unitDescCn},'%')
+        </if>
+
+        <if test="vo.unitDescEn != null and vo.unitDescEn != ''">
+            AND unit_desc_en LIKE CONCAT('%',#{vo.unitDescEn},'%')
+        </if>
+
+        <if test="vo.mdmUseFlag != null and vo.mdmUseFlag != ''">
+            AND mdm_use_flag = #{vo.mdmUseFlag}
+        </if>
+
+        <if test="vo.unitType != null and vo.unitType != ''">
+            AND unit_type LIKE CONCAT('%',#{vo.unitType},'%')
+        </if>
+
+        <if test="vo.enableFlag != null and vo.enableFlag != ''">
+            AND enable_flag = #{vo.enableFlag}
+        </if>
+
+        ORDER BY update_time DESC
+
+    </select>
+
+</mapper>
