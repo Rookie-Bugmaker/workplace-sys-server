@@ -1,164 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--该日志将日志级别不同的log信息保存到不同的文件中 -->
 <configuration>
-    <!-- 1. TraceID转换规则（必须放在最前） -->
-    <conversionRule conversionWord="tid"
-                    converterClass="org.apache.skywalking.apm.toolkit.log.logback.v1.x.LogbackPatternConverter"/>
 
     <include resource="org/springframework/boot/logging/logback/defaults.xml" />
 
-    <springProperty scope="context" name="name" source="spring.application.name" />
-    <springProperty scope="context" name="host" source="spring.cloud.client.ipAddress" />
-    <springProperty scope="context" name="port" source="server.port" />
-    <springProperty scope="context" name="level" source="${root.log.level}" />
-    <conversionRule conversionWord="ip" converterClass="com.crrc.sys.common.LogIpConfig" />
+    <!-- 配置属性 -->
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="sys-server"/>
+    <property name="log.dir" value="/alidata1/admin/${appName}"/>
+    <property name="MONITOR_PATTERN" value="%d [%thread] %-5p [%c] [%F:%L] [trace=%X{trace_id},span=%X{span_id}] - %msg%n"/>
 
-    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
-<!--    <property name="LOG_HOME" value="${BUILD_FOLDER:-build}/${name}" />-->
-    <springProperty scope="context" name="SERVICE_NAME" source="spring.application.name"/>
-    <property name="LOG_HOME" value="/var/log/workplace-new"/>
+    <!-- 控制台带颜色高亮 -->
+    <property name="CONSOLE_PATTERN"
+              value="%yellow(%d) [%thread] %highlight(%-5p) %green([%c]) [%F:%L] [trace=%X{trace_id},span=%X{span_id}] - %msg%n"/>
 
-    <!-- 控制台专用带颜色版本 -->
-    <property name="CONSOLE_LOG_PATTERN"
-              value="%yellow(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%blue(%tid)] [%magenta(${SERVICE_NAME})] [%thread] %highlight(%-5level) %green(%logger{30}) - %msg%n%ex{5}"/>
-
-    <!-- 文件输出简洁版本 -->
-    <property name="FILE_LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%tid] [${SERVICE_NAME}] [%thread] %-5level %logger{30} - %msg%n%ex{5}"/>
-
-    <!-- 控制台输出 -->
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- 日志输出编码 -->
+    <!-- 控制台 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <pattern>${CONSOLE_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <!-- ALL级别的文件输出(ZIP归档) -->
-    <appender name="FILE_INFO_DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_HOME}/${SERVICE_NAME}.log</file>
-        <!-- 定义归档 -->
-        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/${SERVICE_NAME}-%d{yyyy-MM-dd}-%i.log.zip</fileNamePattern>
-            <minIndex>1</minIndex>
-            <maxIndex>12</maxIndex>
+    <!-- INFO 日志 -->
+    <appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_info_%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
         </rollingPolicy>
-        <!-- 定义文件大小 -->
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>50MB</maxFileSize>
-        </triggeringPolicy>
-        <!-- 格式化输出 -->
         <encoder>
-            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <pattern>${MONITOR_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
-    </appender>
-
-    <!-- ERROR级别的文件输出(ZIP归档) -->
-    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_HOME}/${SERVICE_NAME}-error.log</file>
-        <!-- 定义归档 -->
-        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/${SERVICE_NAME}-error-%d{yyyy-MM-dd}-%i.log.zip</fileNamePattern>
-            <minIndex>1</minIndex>
-            <maxIndex>12</maxIndex>
-        </rollingPolicy>
-        <!-- 定义文件大小 -->
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>50MB</maxFileSize>
-        </triggeringPolicy>
-        <!-- 格式化输出 -->
-        <encoder>
-            <pattern>${FILE_LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-        <!-- 临界值过滤器，过滤掉低于指定临界值的日志。当日志级别等于或高于临界值时，过滤器返回NEUTRAL；当日志级别低于临界值时，日志会被拒绝,OFF>ERROR>WARN>INFO>DEBUG>TRACE>ALL -->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>INFO</level>
         </filter>
     </appender>
 
-<!--    打印日志等级调整，可根据需要调整不同环境下的日志等级，debug,info 如 level="info"-->
-<!--    dev | test 开发测试环境日志等级为debug-->
-    <springProfile name="dev">
-        <logger name="com.crrc.sys" level="debug" />
-        <!-- 日志输出级别 -->
-        <root level="INFO">
-            <appender-ref ref="CONSOLE" />
-            <appender-ref ref="FILE_INFO_DEBUG" />
-            <appender-ref ref="FILE_ERROR" />
-        </root>
-    </springProfile>
-    <springProfile name="test">
-        <logger name="com.crrc.sys" level="info" />
-        <!-- 日志输出级别 -->
-        <root level="INFO">
-            <appender-ref ref="CONSOLE" />
-            <appender-ref ref="FILE_INFO_DEBUG" />
-            <appender-ref ref="FILE_ERROR" />
-        </root>
-    </springProfile>
-    <!--  product生产环境日志等级为info-->
-    <springProfile name="product">
-        <logger name="com.crrc.sys" level="info" />
-        <!-- 日志输出级别 -->
-        <root level="INFO">
-            <appender-ref ref="CONSOLE" />
-            <appender-ref ref="FILE_INFO_DEBUG" />
-            <appender-ref ref="FILE_ERROR" />
-        </root>
-    </springProfile>
+    <!-- WARN/ERROR 日志 -->
+    <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_error_%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${MONITOR_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+    </appender>
 
-    <springProfile name="product1">
-        <logger name="com.crrc.sys" level="debug" />
-        <!-- logstash 设置 -->
-        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-            <param name="Encoding" value="UTF-8"/>
-            <!-- logstash 服务器 ip -->
-            <remoteHost>@logstash.host@</remoteHost>
-            <!-- logstash tcp 端口-->
-            <port>@logstash.port@</port>
-            <!-- encoder is required -->
-            <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-                <providers>
-                    <timestamp>
-                        <timeZone>UTC</timeZone>
-                    </timestamp>
-                    <pattern>
-                        <pattern>
-                            {
-                            "host": "%ip",
-                            "projectName": "v5",
-                            "profile": "@env@",
-                            "serviceName": "${name}",
-                            "level": "%level",
-                            "message": "%message",
-                            "stack_trace": "%exception{5}",
-                            "pid": "${PID:-}",
-                            "thread": "%thread",
-                            "class": "%logger"
-                            }
-                        </pattern>
-                    </pattern>
-                </providers>
-            </encoder>
-            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-                <level>@logstash.log.level@</level>
-            </filter>
-        </appender>
+    <logger name="org.springframework" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
 
-        <!--异步发送日志-->
-        <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
-            <appender-ref ref="LOGSTASH" />
-        </appender>
-
-        <!-- 日志输出级别 -->
-        <root level="INFO">
-            <appender-ref ref="CONSOLE" />
-            <appender-ref ref="FILE_INFO_DEBUG" />
-            <appender-ref ref="FILE_ERROR" />
-            <appender-ref ref="ASYNC" />
-        </root>
-    </springProfile>
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="infoAppender"/>
+        <appender-ref ref="errorAppender"/>
+    </root>
 </configuration>
