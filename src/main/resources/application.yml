@@ -1,3 +1,41 @@
+# ======================== 六翼天使监控 - JVM性能指标(Metrics)接入 ========================
+# 参考文档: docs/六翼天使监控接入手册.docx 第4.1节
+# 作用: 通过Spring Boot Actuator暴露Prometheus格式的JVM指标, 供Prometheus拉取后转发至六翼天使平台
+management:
+  # --- 指标导出配置: 启用Prometheus指标导出 ---
+  metrics:
+    export:
+      prometheus:
+        enabled: true          # 启用Prometheus指标导出，Prometheus可通过/prometheus端点拉取JVM指标
+    tags:
+      monitor-type: jvm        # 自定义标签，标识指标类型为JVM，便于六翼天使平台分类筛选
+  # --- 端点暴露配置: 控制哪些Actuator端点对外可见 ---
+  endpoints:
+    enabled-by-default: true   # 开启所有监控端点
+    web:
+      exposure:
+        include: ["prometheus", "health"]  # 暴露prometheus监控端点和health健康检查端点
+      base-path: /              # 设置端点基础路径为/，使Prometheus端点地址为 /prometheus（而非默认的 /actuator/prometheus）
+  # --- 各端点启用配置 ---
+  endpoint:
+    health:
+      show-details: always
+      enabled: true             # 启用健康检查端点 /health，供K8s或DevCube健康探测使用
+    info:
+      enabled: true             # 启用信息端点 /info
+    metrics:
+      enabled: true             # 启用metrics端点，提供指标数据查询能力
+    prometheus:
+      enabled: true             # 启用prometheus端点，输出Prometheus格式的指标数据
+
+
+# ======================== 日志级别配置 ========================
+# 只打印业务日志：请求入口 + SQL语句，框架/中间件保持INFO不打扰
+logging:
+  level:
+    com.crrc.sys: DEBUG          # 业务代码（Controller/Service）
+    com.crrc.sys.mapper: DEBUG   # MyBatis SQL语句+参数+返回行数
+
 server:
   # 端口
   port: 11501
@@ -14,6 +52,9 @@ server:
       min-spare: 50
       #最大的线程数
       max: 400
+    # --- 六翼天使监控: 启用Tomcat MBean注册，使JMX能采集到Tomcat连接池/线程池等指标 ---
+    mbeanregistry:
+      enabled: true
 spring:
   profiles:
     active: @env@
