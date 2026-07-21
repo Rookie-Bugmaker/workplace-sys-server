@@ -33,6 +33,16 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -46,7 +56,7 @@
         <pagehelper.version>1.4.7</pagehelper.version>
         <!--logstash分布式日志 -->
         <logstash.version>6.4</logstash.version>
-        <fastjson.version>1.2.75</fastjson.version>
+        <fastjson.version>2.0.53</fastjson.version>
         <!--EasyExcel-->
         <easy.excel.version>3.3.4</easy.excel.version>
         <!--hutool工具类-->
@@ -75,6 +85,13 @@
             <artifactId>jasypt-spring-boot-starter</artifactId>
             <version>${jasypt.version}</version>
         </dependency>
+
+        <!-- fastjson 2.x 兼容包（基于 fastjson2 内核，保持 com.alibaba.fastjson.* 包名） -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+        </dependency>
+
         <!--集成Spring Boot-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -149,11 +166,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
         </dependency>
         <!--集成easy-excel-->
         <dependency>
