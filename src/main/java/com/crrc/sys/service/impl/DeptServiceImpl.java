@@ -79,7 +79,11 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
     public List<Dept> getDeptListByCompanyId(Long companyId) {
         LambdaQueryWrapper<Dept> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Dept::getCompanyId, companyId);
-        return deptMapper.selectList(wrapper);
+
+        List<Dept> deptList = deptMapper.selectList(wrapper);
+        // 剔除临时部门
+        deptList.removeIf(o -> o.getCompanyId() == 0 || o.getOrgCode().equals("-".concat(String.valueOf(o.getCompanyId()))));
+        return deptList;
     }
 
     @Override
