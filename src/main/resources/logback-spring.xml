@@ -12,7 +12,7 @@
     <property name="CONSOLE_PATTERN"
               value="%yellow(%d) [%thread] %highlight(%-5p) %green([%c]) [%F:%L] [trace=%X{trace_id},span=%X{span_id}] - %msg%n"/>
 
-    <!-- 控制台 -->
+    <!-- 控制台（生产环境建议通过 profile 控制是否输出） -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${CONSOLE_PATTERN}</pattern>
@@ -20,35 +20,43 @@
         </encoder>
     </appender>
 
-    <!-- INFO 日志 -->
+    <!-- INFO 日志 - 按大小+时间滚动，带压缩和总容量保护 -->
     <appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_info.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_info_%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_info_%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${MONITOR_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>DEBUG</level>
+            <level>INFO</level>
         </filter>
     </appender>
 
-    <!-- WARN/ERROR 日志 -->
+    <!-- WARN/ERROR 日志 - 按大小+时间滚动，带压缩和总容量保护 -->
     <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_error.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_error_%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/logs/${HOSTNAME}_app_${appName}_lt_error_%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${MONITOR_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>WARN</level>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
         </filter>
     </appender>
 
