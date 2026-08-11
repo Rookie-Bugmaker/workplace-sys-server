@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.model.dept.DeptListRespVO;
 import com.crrc.sys.model.dept.DeptOfUserDTO;
+import com.crrc.sys.model.dept.DeptByCompanyCodeReqVO;
 
 import java.util.List;
 import java.util.Map;
@@ -47,4 +48,12 @@ public interface DeptService extends IService<Dept> {
     Map<Long, String> getSubdeptIdToCodeMap(Long id);
 
     List<Dept> getDeptByOrgCodeList(List<String> orgCodes);
+
+    /**
+     * 根据公司编码查询部门列表
+     *
+     * @param reqVO 公司编码及是否树形结构参数
+     * @return 部门列表（树形或扁平化）
+     */
+    List<DeptListRespVO> getDeptsByCompanyCode(DeptByCompanyCodeReqVO reqVO);
 }
