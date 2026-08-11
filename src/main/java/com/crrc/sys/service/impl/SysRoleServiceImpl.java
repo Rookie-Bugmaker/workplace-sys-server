@@ -601,6 +601,20 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
+     * 从角色中解绑单个用户
+     *
+     * @param roleId 角色ID
+     * @param userId 用户ID
+     * @return true:成功、false:失败
+     */
+    @Override
+    public boolean unbindSingleUser(long roleId, long userId) {
+        List<Long> userIdList = Collections.singletonList(userId);
+        int result = userRoleMapper.deleteUsersInRole(userIdList, roleId);
+        return result >= 0;
+    }
+
+    /**
      * 返回某个项目的默认角色ID
      * @param projectId 项目编号
      * @return

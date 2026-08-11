@@ -875,6 +875,26 @@ public class SysRoleController {
         }
     }
 
+    /**
+     * 从角色中解绑单个用户
+     *
+     * @param roleId 角色ID
+     * @param userId 用户ID
+     */
+    @PostMapping("unbindSingleUser")
+    public void unbindSingleUser(@RequestParam Long roleId, @RequestParam Long userId) {
+        if (ObjectUtils.isEmpty(roleId)) {
+            throw new ParamValidateException("角色ID不能为空!");
+        }
+        if (ObjectUtils.isEmpty(userId)) {
+            throw new ParamValidateException("用户ID不能为空!");
+        }
+        boolean result = roleService.unbindSingleUser(roleId, userId);
+        if (!result) {
+            throw new BizException("解绑失败!");
+        }
+    }
+
     @GetMapping("/export/bind")
     @AuditLog(value = "导出角色绑定人员信息", logType =LogType.TYPE_OPERATE, operateType = OperateType.TYPE_EXPORT)
     @Operation(summary = "导出角色绑定人员信息")

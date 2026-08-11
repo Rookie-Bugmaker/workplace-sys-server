@@ -117,6 +117,15 @@ public interface SysRoleService {
     boolean bindUser(long roleId, List<Long> userIdList);
 
     /**
+     * 从角色中解绑单个用户
+     *
+     * @param roleId 角色ID
+     * @param userId 用户ID
+     * @return true:成功、false:失败
+     */
+    boolean unbindSingleUser(long roleId, long userId);
+
+    /**
      * 返回某个项目的默认角色ID
      * @param projectId 项目编号
      * @return
