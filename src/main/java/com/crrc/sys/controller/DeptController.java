@@ -284,6 +284,12 @@ public class DeptController {
         return deptService.getDeptByOrgCodeList(orgCodes);
     }
 
+    @PostMapping("/get_depts_by_company_code")
+    @Operation(summary = "根据公司编码查询部门 - OpenFeign接口")
+    public List<DeptListRespVO> getDeptsByCompanyCode(@RequestBody DeptByCompanyCodeReqVO reqVO) {
+        return deptService.getDeptsByCompanyCode(reqVO);
+    }
+
     @GetMapping("/get_dept_and_subDepts_by_orgCode")
     @Operation(summary = "通过用户编码查询部门 - OpenFegin接口")
     public List<Dept> getDeptAndSubDeptsByOrgCode(@RequestParam String orgCode) {

@@ -4,10 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
+import com.crrc.sys.entity.company.Company;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.mapper.DeptMapper;
+import com.crrc.sys.model.dept.DeptByCompanyCodeReqVO;
 import com.crrc.sys.model.dept.DeptListRespVO;
 import com.crrc.sys.model.dept.DeptOfUserDTO;
+import com.crrc.sys.service.CompanyService;
 import com.crrc.sys.service.DeptService;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,8 @@ import java.util.stream.Collectors;
 public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements DeptService {
     @Autowired
     DeptMapper deptMapper;
+    @Autowired
+    private CompanyService companyService;
     /*@Autowired
     UserDeptMapper userDeptMapper;*/
 
@@ -250,5 +255,26 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
             return depts;
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public List<DeptListRespVO> getDeptsByCompanyCode(DeptByCompanyCodeReqVO reqVO) {
+        Company company = companyService.getOne(
+                new LambdaQueryWrapper<Company>()
+                        .eq(Company::getOrgCode, reqVO.getCompanyCode()));
+        if (company == null) {
+            return new ArrayList<>();
+        }
+
+        List<Dept> deptList = getDeptListByCompanyId(company.getId());
+        if (deptList == null || deptList.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        if (Boolean.TRUE.equals(reqVO.getIsTree())) {
+            return getDeptListResp(deptList);
+        } else {
+            return BeanUtils.toBean(deptList, DeptListRespVO.class);
+        }
     }
 }
