@@ -336,8 +336,8 @@ public class SysRoleController {
         if (ObjectUtils.isEmpty(role.getRoleCode())) {
             throw new ParamValidateException("角色编码不能为空!");
         }
-        if (role.getRoleCode().length() > 30) {
-            throw new ParamValidateException("角色编码过长(最大30)!");
+        if (role.getRoleCode().length() > 60) {
+            throw new ParamValidateException("角色编码过长(最大60)!");
         }
         //根据角色编码查询角色信息
         SysRole resultData = roleService.findByCode(role.getRoleCode(), LanguageEnum.ZH_CN.getValue());
