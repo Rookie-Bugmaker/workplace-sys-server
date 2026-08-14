@@ -36,30 +36,23 @@ logging:
     com.crrc.sys: DEBUG          # 业务代码（Controller/Service）
     com.crrc.sys.mapper: DEBUG   # MyBatis SQL语句+参数+返回行数
 
+
 server:
-  # 端口
   port: 11501
-  # 增加请求头大小
   max-http-header-size: 10485760
   tomcat:
     uri-encoding: UTF-8
-    #最大链接数
     max-connections: 10000
-    #最大等待队列长度
     accept-count: 500
     threads:
-      #最小线程数
       min-spare: 50
-      #最大的线程数
       max: 400
     # --- 六翼天使监控: 启用Tomcat MBean注册，使JMX能采集到Tomcat连接池/线程池等指标 ---
     mbeanregistry:
       enabled: true
 spring:
   profiles:
-    active: @env@
-  application:
-    name: sys-server
+    active: product
   main:
     allow-bean-definition-overriding: true
   mvc:
@@ -69,11 +62,16 @@ spring:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
   redis:
-    type: @spring.redis.type@ # 当前使用的redis类型(单机/哨兵)
-    database: @spring.redis.database@ # Redis数据库索引（默认为0）
-    host: @spring.redis.host@
-    port: @spring.redis.port@
-    password: @spring.redis.password@ # Redis服务器连接密码（默认为空）
+    type: standalone # 当前使用的redis类型(单机/哨兵)
+    database: 0 # Redis数据库索引（默认为0）
+    host: 10.151.255.43
+    port: 6379
+    password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
+
+    #type: sentinel # 当前使用的redis类型(单机/哨兵)
+    #database: 0 # Redis数据库索引（默认为0）
+    #password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
+
     timeout: 10000ms # 连接超时时间（毫秒）默认是2000ms
     lettuce:
       pool:
@@ -82,51 +80,41 @@ spring:
         max-wait: -1ms # 连接池最大阻塞等待时间（使用负值表示没有限制）
         min-idle: 200 # 连接池中的最小空闲连接
     sentinel:
-      master: @spring.redis.sentinel.master@
-      nodes: @spring.redis.sentinel.nodes@
-      password: @spring.redis.sentinel.password@
+      master: mymaster
+      nodes: 10.151.255.41:32379,10.151.255.36:32379,10.151.255.156:32379
+      password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
   data:
     mongodb:
-      host: @spring.data.mongodb.host@
-      port: @spring.data.mongodb.port@
-      database: @spring.data.mongodb.database@
-      username: @spring.data.mongodb.username@
-      password: @spring.data.mongodb.password@
-      authentication-database: @spring.data.mongodb.authenticationDatabase@ # 验证数据库，一般不修改
-      connectTimeoutMS: @spring.data.mongodb.connectTimeoutMS@ # 等待连接最大超时时间
+      host: 10.151.255.233
+      port: 27017
+      database: workplace_core
+      username: mongoAdmin
+      password: ENC(uPJKjBbcZfv8R18k19Jl7awNzBG+Z518O2iU0GBtzdUCnL7TJlgVsuVs3CtbfpixhgNayTquXQKjUwitcBDJ6A==)
+      authentication-database: admin
+      connectTimeoutMS: 50000
 mybatis:
-  #实体扫描
   type-aliases-package: com.crrc.sys.entity
-  #指向mapper的xml文件位置
   mapper-locations: classpath:mapper/**/*.xml
-  #mybatis配置
   configLocation: classpath:mybatis-spring.xml
 pagehelper:
   offsetAsPageNum: true
   rowBoundsWithCount: true
   reasonable: true
-  #通过设置pageSize=0或RowBounds.limit=0就会查询出全部的结果。
   pageSizeZero: true
 mybatis-plus:
-  #实体扫描
   type-aliases-package: com.crrc.sys.entity
-  #指向mapper的xml文件位置
   mapper-locations: classpath:mapper/**/*.xml
-  # 对应之前使用mybatis中mybatis-spring.xml中的配置
   configuration:
     call-setters-on-nulls: true
     cache-enabled: false
-    local-cache-scope: statement  # 分布式项目,将默认的一级缓存的SQL_SESSION调整为STATEMENT级别
+    local-cache-scope: statement
     jdbc-type-for-null: 'null'
 feign:
   client:
     config:
       default:
-        # openFeign日志：NONE、BASIC、HEADERS、FULL
         logger-level: BASIC
-        # 连接超时时间(ms)，默认2s
         connect-timeout: 60000
-        # 请求处理超时时间(ms)，默认5s
         read-timeout: 60000
   sentinel:
     enabled: true
@@ -137,19 +125,10 @@ crrc:
     sys_service: true
   datasource:
     decrypt:
-      type: ENC(a3Isg7qyzfgyXtPsK8lFc5gM0+8V1jP3lOS81cqQyEjOwLYdJVNJz18jFwmbKxSM)
+      type: aes
       key: ENC(JQvAm8Fd0O38cxQauAm3GSbd43+f5F1HBNgArMFchgYnO0OCgdvIm9qF+3XxkpTSce2ijisO7kEMCmPLzMYk23SHGRB6h415LDWPzkkwkGc=)
-
-
-springdoc:
-  swagger-ui:
-    # url: /${spring.application.name}/v3/api-docs
-    url: /v3/api-docs
-knife4j:
-  enable: true
-
 # 服务地址配置（从 filters 配置文件读取）
 service:
   address:
-    skywalking: @skywalking.url@
-    kibana: @kibana.url@
+    skywalking: http://10.151.255.43:28080/
+    kibana: http://10.151.255.43:5601/login

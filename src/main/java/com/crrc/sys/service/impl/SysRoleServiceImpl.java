@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -568,7 +569,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (!CollectionUtils.isEmpty(newbindUserIdList)) {
             // 判断当前请求是否携带了 Authorization token
             // 有 token = 用户请求（从前端发起），无 token = 服务间调用（Kafka/定时任务/Feign 无上下文调用）
-            boolean hasToken = checkRequestToken();
+            boolean hasToken = hasRequestToken();
             Long createBy;
             if (hasToken) {
                 // 有 token，从当前用户获取创建人
@@ -610,6 +611,19 @@ public class SysRoleServiceImpl implements SysRoleService {
             }
         }
         return true;
+    }
+
+    /**
+     * 检查当前请求是否携带了有效的 Authorization token
+     * @return true=有token，false=无token（服务间调用/定时任务/ERP同步等）
+     */
+    private boolean hasRequestToken() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        if (attributes != null) {
+            String token = attributes.getRequest().getHeader(org.springframework.http.HttpHeaders.AUTHORIZATION);
+            return !ObjectUtils.isEmpty(token) && !"{{token_type}} {{access_token}}".equals(token);
+        }
+        return false;
     }
 
     /**
