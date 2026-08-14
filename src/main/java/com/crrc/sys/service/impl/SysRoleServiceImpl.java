@@ -566,11 +566,22 @@ public class SysRoleServiceImpl implements SysRoleService {
                 .collect(Collectors.toList());
         // 不为空说明存在需要绑定的用户
         if (!CollectionUtils.isEmpty(newbindUserIdList)) {
-            ResultData<SysUser> resultData = authClient.currentUser();
-            if (!resultData.getSuccess()) {
-                throw new BizException(resultData.getCode(), resultData.getMessage());
+            // 判断是否有 HTTP 请求上下文（用户请求 vs 服务间调用/Kafka）
+            boolean hasRequestContext = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes() != null;
+            Long createBy;
+            if (hasRequestContext) {
+                // 有请求上下文，从当前用户获取创建人
+                ResultData<SysUser> resultData = authClient.currentUser();
+                if (!resultData.getSuccess()) {
+                    throw new BizException(resultData.getCode(), resultData.getMessage());
+                }
+                createBy = resultData.getResult().getUserId();
+            } else {
+                // 服务间调用（Kafka/定时任务等），使用系统用户ID
+                createBy = 0L;
+                log.info("[bindUser] 服务间调用，使用系统用户ID作为创建人，roleId={}", roleId);
             }
-            SysUser user = resultData.getResult();
+            Date nowDate = Calendar.getInstance().getTime();
             List<SysUserRole> newUserRoleList = newbindUserIdList.parallelStream().map(newbindUserId -> {
                 if(userRoleMapper.isExistedUserInRole(newbindUserId, roleId)) {
                     SysUser existedUser = userMapper.findById(newbindUserId, "zh-CN");
@@ -580,8 +591,8 @@ public class SysRoleServiceImpl implements SysRoleService {
                 userRole.setId(idKeyGenerator.getId());
                 userRole.setUserId(newbindUserId);
                 userRole.setRoleId(roleId);
-                userRole.setCreateBy(user.getCreateBy());
-                userRole.setCreateDate(user.getCreateDate());
+                userRole.setCreateBy(createBy);
+                userRole.setCreateDate(nowDate);
                 return userRole;
             }).collect(Collectors.toList());
             //绑定角色
