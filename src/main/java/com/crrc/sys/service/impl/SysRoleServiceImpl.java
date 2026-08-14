@@ -566,20 +566,21 @@ public class SysRoleServiceImpl implements SysRoleService {
                 .collect(Collectors.toList());
         // 不为空说明存在需要绑定的用户
         if (!CollectionUtils.isEmpty(newbindUserIdList)) {
-            // 判断是否有 HTTP 请求上下文（用户请求 vs 服务间调用/Kafka）
-            boolean hasRequestContext = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes() != null;
+            // 判断当前请求是否携带了 Authorization token
+            // 有 token = 用户请求（从前端发起），无 token = 服务间调用（Kafka/定时任务/Feign 无上下文调用）
+            boolean hasToken = checkRequestToken();
             Long createBy;
-            if (hasRequestContext) {
-                // 有请求上下文，从当前用户获取创建人
+            if (hasToken) {
+                // 有 token，从当前用户获取创建人
                 ResultData<SysUser> resultData = authClient.currentUser();
                 if (!resultData.getSuccess()) {
                     throw new BizException(resultData.getCode(), resultData.getMessage());
                 }
                 createBy = resultData.getResult().getUserId();
             } else {
-                // 服务间调用（Kafka/定时任务等），使用系统用户ID
-                createBy = 0L;
-                log.info("[bindUser] 服务间调用，使用系统用户ID作为创建人，roleId={}", roleId);
+                // 无 token（服务间调用），使用系统用户ID
+                createBy = -1L;
+                log.info("[bindUser] 无token请求（服务间调用），使用系统用户ID作为创建人，roleId={}", roleId);
             }
             Date nowDate = Calendar.getInstance().getTime();
             List<SysUserRole> newUserRoleList = newbindUserIdList.parallelStream().map(newbindUserId -> {
