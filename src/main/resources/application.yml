@@ -36,7 +36,6 @@ logging:
     com.crrc.sys: DEBUG          # 业务代码（Controller/Service）
     com.crrc.sys.mapper: DEBUG   # MyBatis SQL语句+参数+返回行数
 
-
 server:
   port: 11501
   max-http-header-size: 10485760
@@ -52,7 +51,7 @@ server:
       enabled: true
 spring:
   profiles:
-    active: product
+    active: dev
   main:
     allow-bean-definition-overriding: true
   mvc:
@@ -62,15 +61,15 @@ spring:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
   redis:
-    type: standalone # 当前使用的redis类型(单机/哨兵)
-    database: 0 # Redis数据库索引（默认为0）
-    host: 10.151.255.43
-    port: 6379
-    password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
-
-    #type: sentinel # 当前使用的redis类型(单机/哨兵)
-    #database: 0 # Redis数据库索引（默认为0）
+    #type: standalone # 当前使用的redis类型(单机/哨兵)
+    #database: 3 # Redis数据库索引（默认为0）
+    #host: 10.151.255.167
+    #port: 6379
     #password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
+
+    type: sentinel # 当前使用的redis类型(单机/哨兵)
+    database: 3 # Redis数据库索引（默认为0）
+    password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
 
     timeout: 10000ms # 连接超时时间（毫秒）默认是2000ms
     lettuce:
@@ -81,15 +80,15 @@ spring:
         min-idle: 200 # 连接池中的最小空闲连接
     sentinel:
       master: mymaster
-      nodes: 10.151.255.41:32379,10.151.255.36:32379,10.151.255.156:32379
+      nodes: 10.151.255.94:32379,10.151.255.107:32379,10.151.255.56:32379
       password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
   data:
     mongodb:
-      host: 10.151.255.233
+      host: 10.151.255.173
       port: 27017
       database: workplace_core
       username: mongoAdmin
-      password: ENC(uPJKjBbcZfv8R18k19Jl7awNzBG+Z518O2iU0GBtzdUCnL7TJlgVsuVs3CtbfpixhgNayTquXQKjUwitcBDJ6A==)
+      password: ENC(7iRhoNymjKfU4nINjkrBssvCtADB36bc25uXTZYTcUXqG3j1BKkNAgrndoEF2LknDhO2BMiUgGzA+RCUp7O0Uw==)
       authentication-database: admin
       connectTimeoutMS: 50000
 mybatis:
@@ -127,8 +126,10 @@ crrc:
     decrypt:
       type: aes
       key: ENC(JQvAm8Fd0O38cxQauAm3GSbd43+f5F1HBNgArMFchgYnO0OCgdvIm9qF+3XxkpTSce2ijisO7kEMCmPLzMYk23SHGRB6h415LDWPzkkwkGc=)
+
+
 # 服务地址配置（从 filters 配置文件读取）
 service:
   address:
-    skywalking: http://10.151.255.43:28080/
-    kibana: http://10.151.255.43:5601/login
+    skywalking: http://10.151.255.79:28080/
+    kibana: http://10.151.255.79:5601/app/home#/

@@ -9,17 +9,17 @@ spring:
   cloud:
     nacos:
       config:
-        server-addr: 10.151.255.43:8848
+        server-addr: 10.151.255.79:8848
         file-extension: yaml
-        namespace: 9dbac047-f76b-4c2c-9d2c-bc5a04bda50a
+        namespace: e5bc724e-56e9-4229-a973-deafae174407
         username: ENC(C/mqFrGMIxUak/FT7ls/4I2YXLpVMVLNbQeFY9d0VA/KK2JDFv+jy6JuePGHVkSr)
         password: ENC(iJwO8WxoMVht7x0IwJOssK6UU0Ied8gdLQczTpn+Pf+x3oZoL4wVVyi3ROtUN7KH)
         config:
           - data-id: ${spring.application.name}.${spring.cloud.nacos.config.file-extension}
             group: DEFAULT_GROUP
       discovery:
-        server-addr: 10.151.255.43:8848
-        namespace: 9dbac047-f76b-4c2c-9d2c-bc5a04bda50a
+        server-addr: 10.151.255.79:8848
+        namespace: e5bc724e-56e9-4229-a973-deafae174407
         username: ENC(C/mqFrGMIxUak/FT7ls/4I2YXLpVMVLNbQeFY9d0VA/KK2JDFv+jy6JuePGHVkSr)
         password: ENC(iJwO8WxoMVht7x0IwJOssK6UU0Ied8gdLQczTpn+Pf+x3oZoL4wVVyi3ROtUN7KH)
-        ip: 10.151.255.43
+        ip: 10.151.255.79
