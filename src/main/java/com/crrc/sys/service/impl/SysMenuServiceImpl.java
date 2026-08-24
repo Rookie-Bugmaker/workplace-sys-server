@@ -559,6 +559,84 @@ public class SysMenuServiceImpl implements SysMenuService {
         return new ArrayList<>(set);
     }
 
+    @Override
+    public SysMenu findTreeByProjectCodeAndCurrentUser(String projectCode,Long userId, String language) {
+        ProjectEntity project = projectService.findByCode(projectCode);
+        if(ObjectUtils.isEmpty(project)){
+            return null;
+        }
+        List<Long> roleIds = roleMapper.listRoleIdsByProjectAndUser(project.getId(),userId);
+
+        final SysRole sysRole = roleMapper.findById(roleIds.get(0), language);
+        if (ObjectUtils.isEmpty(sysRole)) {
+            throw new BizException("角色ID不存在[" + roleIds.get(0) + "]");
+        }
+
+        CompletableFuture<SysMenu> completableFuture = CompletableFuture.supplyAsync(() -> {
+
+            //查找根菜单
+            SysMenu rootMenu = menuMapper.findById(sysRole.getMenuId(), language);
+
+
+            //查询角色拥有的菜单集合
+            List<SysMenu> menuAll = menuMapper.listByRoleIds(roleIds, language);
+            if (CollectionUtils.isEmpty(menuAll)) {
+                return null;
+            }
+
+            //递归设置子菜单
+            setChildrenMenu(rootMenu, menuAll);
+            return rootMenu;
+        }).thenCombine(CompletableFuture.supplyAsync(() -> {
+            //查询角色拥有的功能
+            List<SysFunction> functionAll = functionMapper.listByRoleIds(roleIds, language);
+            if (CollectionUtils.isEmpty(functionAll)) {
+                return new ArrayList<SysFunction>();
+            }
+            //设置功能已绑定的API权限
+            functionAll = this.setFunctionApiList(functionAll);
+            List<Long> functionIdList = functionAll.stream().map(SysFunction::getFunctionId).distinct().collect(Collectors.toList());
+            //查询功能绑定的块权限
+            List<SysFunctionColumn> functionColumnList = functionColumnService.findByFunctionIds(functionIdList, language);
+            //查询角色拥有的列权限
+            List<SysRoleFunctionColumn> rfcList = roleFunctionColumnMapper.findByRoleIds(roleIds);
+            if (!CollectionUtils.isEmpty(rfcList)) {
+                functionColumnList.forEach(o -> {
+                    //块下面的所有列权限
+                    List<SysFunctionColumn> columnList = o.getChildren();
+                    if (!CollectionUtils.isEmpty(columnList)) {
+                        //遍历所有的列权限
+                        for (SysFunctionColumn functionColumn : columnList) {
+                            //遍历拥有的列权限
+                            for (SysRoleFunctionColumn hasColumn : rfcList) {
+                                if (functionColumn.getFcId().equals(hasColumn.getFcId())) {
+                                    //设置实际编辑编辑的值
+                                    functionColumn.setEditableFlag(hasColumn.getFcEditableFlag());
+                                    //修改隐藏列为false
+                                    functionColumn.setHideColumn(false);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            //设置列权限
+            for (SysFunction function : functionAll) {
+                //搜索功能对应的块权限
+                List<SysFunctionColumn> blockList = functionColumnList.stream().filter(o -> o.getFunctionId().equals(function.getFunctionId())).collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(blockList)) {
+                    function.setBlockList(blockList);
+                }
+            }
+            return functionAll;
+        }), (rootMenu, functionAll) -> {
+            //查询并设置功能
+            setChildrenFunction(rootMenu, functionAll);
+            return rootMenu;
+        });
+        return completableFuture.join();
+    }
+
     /**
      * 根据菜单(树结构)查询功能ID集合
      *

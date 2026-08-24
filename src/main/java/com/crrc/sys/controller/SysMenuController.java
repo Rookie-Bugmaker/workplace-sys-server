@@ -433,4 +433,45 @@ public class SysMenuController {
         }
         return apiList;
     }
+
+
+    @GetMapping("findTreeByProjectCodeAndCurrentUser")
+    public SysMenu findTreeByProjectCodeAndCurrentUser(@RequestParam(required = false) String language,
+                                                  @RequestParam String projectCode) {
+        if (ObjectUtils.isEmpty(language)) {
+            language = "zh-CN";
+        }
+        if (!LanguageEnum.contains(language)) {
+            throw new ParamValidateException("language参数错误!");
+        }
+        //获取当前用户
+        ResultData<SysUser> userResultData = authClient.currentUser();
+        if (!userResultData.getSuccess()) {
+            throw new BizException(userResultData.getCode(), userResultData.getMessage());
+        }
+        //当前用户
+        SysUser currentUser = userResultData.getResult();
+
+        //查询当前角色拥有的菜单(树结构)
+        SysMenu sysMenu = menuService.findTreeByProjectCodeAndCurrentUser(projectCode,currentUser.getUserId(),language);
+        CompletableFuture.runAsync(() -> {
+            List<SysApi> apiList = findApi(Collections.singletonList(sysMenu));
+            if (CollectionUtils.isEmpty(apiList)) {
+                return;
+            }
+            //根据method分组
+            Map<String, List<SysApi>> listMap = apiList.stream().collect(Collectors.groupingBy(SysApi::getApiMethod));
+            Map<String, List<String>> resultMap = new HashMap<>();
+            //获取API的uri
+            for (Map.Entry<String, List<SysApi>> entry : listMap.entrySet()) {
+                List<SysApi> sysApiList = entry.getValue();
+                Set<String> apiSet = sysApiList.stream().map(SysApi::getApiUri).collect(Collectors.toSet());
+                resultMap.put(entry.getKey().toLowerCase(), new ArrayList<>(apiSet));
+            }
+            String key = "api_auth:" + currentUser.getCurrentRoleId();
+            //保存用户API权限到缓存，后续校验API权限的时候会使用
+            redisUtils.set(key, resultMap);
+        });
+        return sysMenu;
+    }
 }

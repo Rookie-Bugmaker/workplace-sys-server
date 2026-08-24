@@ -114,4 +114,12 @@ public interface SysRoleMapper {
      * @return 角色ID集合
      */
     List<Long> findRoleIdList();
+
+    /**
+     * 根据项目和用户，查询该用户该项目下所有角色id列表
+     * @param projectId 项目id
+     * @param userId 用户id
+     * @return
+     */
+    List<Long> listRoleIdsByProjectAndUser(@Param("projectId")Long projectId,@Param("userId")Long userId);
 }

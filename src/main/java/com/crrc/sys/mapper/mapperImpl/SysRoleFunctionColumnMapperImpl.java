@@ -55,4 +55,11 @@ public class SysRoleFunctionColumnMapperImpl extends ServiceImpl<SysRoleFunction
         List<SysRoleFunctionColumn> dataList = BeanUtils.toBean(entityList, SysRoleFunctionColumn.class);
         return dataList;
     }
+
+    public List<SysRoleFunctionColumn> findByRoleIds(List<Long> roleIds) {
+        LambdaQueryWrapper<SysRoleFunctionColumnDBEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(SysRoleFunctionColumnDBEntity::getRoleId, roleIds);
+        List<SysRoleFunctionColumnDBEntity> sysRoleFunctionColumnDBEntities = sysRoleFunctionColumnMapperService.selectList(wrapper);
+        return convertFromDB(sysRoleFunctionColumnDBEntities);
+    }
 }

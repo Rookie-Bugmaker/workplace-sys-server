@@ -7,10 +7,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.common.MyBatisUtil;
-import com.crrc.sys.entity.function.SysFunction;
 import com.crrc.sys.entity.menu.*;
 import com.crrc.sys.entity.role.SysRoleMenuDBEntity;
-import com.crrc.sys.mapper.SysMenuMapper;
 import com.crrc.sys.mapper.mapperService.SysMenuBMapperService;
 import com.crrc.sys.mapper.mapperService.SysMenuTlMapperService;
 import com.crrc.sys.service.SysDataAuthService;
@@ -435,5 +433,70 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
     private List<SysMenuTl> convertFromDBTl(List<SysMenuTlDBEntity> entityList) {
         List<SysMenuTl> dataList = BeanUtils.toBean(entityList, SysMenuTl.class);
         return dataList;
+    }
+
+    public List<SysMenu> listByRoleIds(List<Long> roleIds, String language) {
+        MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
+                .select(SysMenuBDBEntity::getMenuId)
+                .select(SysMenuBDBEntity::getMenuCode)
+                .select(SysMenuBDBEntity::getFunctionId)
+                .select(SysMenuBDBEntity::getMenuIcon)
+                .select(SysMenuBDBEntity::getParentId)
+                .select(SysMenuBDBEntity::getChildId)
+                .select(SysMenuBDBEntity::getMenuSort)
+                .select(SysMenuBDBEntity::getProjectId)
+                .select(SysMenuTlDBEntity::getMenuName)
+                .select(SysMenuTlDBEntity::getMenuDescription)
+                .innerJoin(SysMenuTlDBEntity.class,
+                        fn -> fn.eq(SysMenuTlDBEntity::getMenuId, SysMenuBDBEntity::getMenuId)
+                                .eq(SysMenuTlDBEntity::getLanguage, language)
+                )
+                .innerJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysMenuBDBEntity::getMenuId)
+                .in(SysRoleMenuDBEntity::getRoleId, roleIds)
+                .orderByAsc(SysMenuBDBEntity::getMenuSort);
+        return sysMenuBMapperService.selectJoinList( SysMenu.class, wrapper);
+    }
+
+    public List<SysMenu> listRootMenuByRoleIds(List<Long> roleIds, String language) {
+        LambdaQueryWrapper<SysMenuBDBEntity> aaa = new LambdaQueryWrapper<>();
+        aaa.eq(SysMenuBDBEntity::getMenuId,"538037107522695168");
+        SysMenuBDBEntity a1 = sysMenuBMapperService.selectOne(aaa);
+        SysMenuBDBEntity a2 = sysMenuBMapperService.selectById("538037107522695168");
+
+        MPJLambdaWrapper<SysMenuBDBEntity> testWrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
+          .select(SysMenuTlDBEntity::getMenuName)
+                .select(SysMenuBDBEntity::getParentId)
+                .select(SysMenuBDBEntity::getMenuCode)
+                .select(SysMenuBDBEntity::getMenuId)
+                .select(SysMenuBDBEntity::getChildId)
+                .select(SysMenuTlDBEntity::getMenuDescription)
+                .innerJoin(SysMenuTlDBEntity.class,
+                        fn -> fn.eq(SysMenuTlDBEntity::getMenuId, SysMenuBDBEntity::getMenuId)
+                                .eq(SysMenuTlDBEntity::getLanguage, language)
+                )
+        .eq(SysMenuBDBEntity::getProjectId,55);
+        List<SysMenu> list =sysMenuBMapperService.selectJoinList( SysMenu.class, testWrapper);
+        System.out.println(list);
+
+        MPJLambdaWrapper<SysMenuBDBEntity> wrapper = JoinWrappers.lambda(SysMenuBDBEntity.class)
+                .select(SysMenuBDBEntity::getMenuId)
+                .select(SysMenuBDBEntity::getMenuCode)
+                .select(SysMenuBDBEntity::getFunctionId)
+                .select(SysMenuBDBEntity::getMenuIcon)
+                .select(SysMenuBDBEntity::getParentId)
+                .select(SysMenuBDBEntity::getChildId)
+                .select(SysMenuBDBEntity::getMenuSort)
+                .select(SysMenuBDBEntity::getProjectId)
+                .select(SysMenuTlDBEntity::getMenuName)
+                .select(SysMenuTlDBEntity::getMenuDescription)
+                .innerJoin(SysMenuTlDBEntity.class,
+                        fn -> fn.eq(SysMenuTlDBEntity::getMenuId, SysMenuBDBEntity::getMenuId)
+                                .eq(SysMenuTlDBEntity::getLanguage, language)
+                )
+                .innerJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysMenuBDBEntity::getMenuId)
+                .in(SysRoleMenuDBEntity::getRoleId, roleIds)
+                .isNull(SysMenuBDBEntity::getParentId)
+                .orderByAsc(SysMenuBDBEntity::getMenuSort);
+        return sysMenuBMapperService.selectJoinList( SysMenu.class, wrapper);
     }
 }

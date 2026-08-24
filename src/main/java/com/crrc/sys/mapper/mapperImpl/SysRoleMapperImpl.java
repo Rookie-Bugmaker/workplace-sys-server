@@ -39,6 +39,9 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
     @Resource
     private SysRoleBMapperService sysRoleBMapperService;
 
+    @Resource
+    private SysRoleMapper sysRoleMapper;
+
 
     public List<SysRole> findByFuzzy(SysRoleFindByPageParam param) {
         MPJLambdaWrapper<SysRoleBDBEntity> wrapper = JoinWrappers.lambda(SysRoleBDBEntity.class)
@@ -319,5 +322,9 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
             return sysRoles.get(0);
         }
         return null;
+    }
+
+    public List<Long> listRoleIdsByProjectAndUser(Long projectId,Long userId){
+        return sysRoleMapper.listRoleIdsByProjectAndUser(projectId,userId);
     }
 }

@@ -153,4 +153,12 @@
     <select id="findRoleIdList" resultType="java.lang.Long">
         select role_id from sys_role_b order by role_id
     </select>
+
+    <select id="listRoleIdsByProjectAndUser" resultType="java.lang.Long">
+        SELECT role_id FROM `sys_role_b`
+        WHERE project_id=#{projectId}
+          AND role_id IN (
+            SELECT role_id FROM `sys_user_role` WHERE user_id=#{userId}
+        )
+    </select>
 </mapper>

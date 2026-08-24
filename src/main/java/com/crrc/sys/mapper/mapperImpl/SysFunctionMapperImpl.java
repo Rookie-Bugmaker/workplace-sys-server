@@ -419,4 +419,19 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
         SysFunction data = BeanUtils.toBean(entity, SysFunction.class);
         return data;
     }
+
+    public List<SysFunction> listByRoleIds(List<Long> roleIds, String language) {
+        MPJLambdaWrapper<SysFunctionBDBEntity> wrapper = JoinWrappers.lambda(SysFunctionBDBEntity.class)
+                .selectAll(SysFunctionBDBEntity.class)
+                .select(SysFunctionTlDBEntity::getFunctionName)
+                .select(SysFunctionTlDBEntity::getFunctionDescription)
+                .innerJoin(SysFunctionTlDBEntity.class,
+                        fn -> fn.eq(SysFunctionTlDBEntity::getFunctionId, SysFunctionBDBEntity::getFunctionId)
+                                .eq(SysFunctionTlDBEntity::getLanguage, language)
+                )
+                .innerJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysFunctionBDBEntity::getFunctionId)
+                .in(SysRoleMenuDBEntity::getRoleId, roleIds)
+                .orderByAsc(SysFunctionBDBEntity::getFunctionId);
+        return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
+    }
 }
