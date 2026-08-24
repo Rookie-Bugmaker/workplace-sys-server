@@ -5,6 +5,7 @@ import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
+import com.crrc.sys.entity.user.dto.SysUserRequestDTO;
 import com.crrc.sys.model.org.person.SysOrgPersonParamOfUserPageDTO;
 import com.crrc.sys.model.user.AuthInformDTO;
 import com.crrc.sys.model.user.SysOnlineUserParamDTO;
@@ -50,6 +51,11 @@ public interface SysUserService {
     List<SysUserDTO> findUserByRoleCodeAndCompanyId(String roleCode, Long companyId);
 
     List<SysUserDTO> findUserByRoleCode(String roleCode, Long companyId, Long deptId);
+
+    /**
+     * 根据公司/部门/角色（均可多个）及模糊关键字查询用户（服务端分页）
+     */
+    PaginationGrid<SysUserDTO> findUsersByMultiCondition(SysUserRequestDTO param);
 
     /**
      * 根据用户全名查询用户信息列表

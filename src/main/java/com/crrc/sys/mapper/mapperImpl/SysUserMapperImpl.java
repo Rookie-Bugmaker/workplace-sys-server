@@ -478,6 +478,84 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
     }
 
 
+    /**
+     * 根据公司/部门/角色（均可多个）及模糊关键字查询启用用户（服务端分页）
+     * 公司、部门、角色之间为AND关系；用户名、用户描述、工号各自独立模糊（分别传入，传哪个查哪个）
+     * 公司/部门/角色/工号均按需动态join，无对应条件时不关联相关表；人员表(SysOrgPersonB)总是关联以返回 jobNo
+     *
+     * @param page          分页对象
+     * @param companyIdList 公司ID集合（sys_dept_person.company_id，即Company.id）
+     * @param deptIdList    部门ID集合（sys_dept_person.dept_id，即Dept.id）
+     * @param roleCodes     角色编码集合
+     * @param userName      用户名模糊关键字
+     * @param userDescription 用户描述模糊关键字
+     * @param jobNo         工号模糊关键字
+     * @return 分页用户信息
+     */
+    public IPage<SysUserDTO> findUsersByMultiCondition(Page<SysUserDTO> page,
+                                                       @Param("companyIdList") List<Long> companyIdList,
+                                                       @Param("deptIdList") List<Long> deptIdList,
+                                                       @Param("roleCodes") List<String> roleCodes,
+                                                       @Param("userName") String userName,
+                                                       @Param("userDescription") String userDescription,
+                                                       @Param("jobNo") String jobNo) {
+        boolean needDeptPerson = !CollectionUtils.isEmpty(companyIdList) || !CollectionUtils.isEmpty(deptIdList);
+        boolean needRole = !CollectionUtils.isEmpty(roleCodes);
+        boolean needJobNo = StringUtils.isNotBlank(jobNo);
+        boolean needUserName = StringUtils.isNotBlank(userName);
+        boolean needUserDesc = StringUtils.isNotBlank(userDescription);
+
+        MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
+                .selectAll(SysUserDBEntity.class)
+                .select(SysOrgPersonTlDBEntity::getFullName,SysOrgPersonTlDBEntity::getPersonId);
+        // 取fullName（姓名）
+        wrapper.innerJoin(SysOrgPersonTlDBEntity.class,
+                fn -> fn.eq(SysOrgPersonTlDBEntity::getPersonId, SysUserDBEntity::getUserRelationId)
+                        .eq(SysOrgPersonTlDBEntity::getLanguage, "zh-CN"));
+        // 总是关联人员表，以便返回 jobNo 字段（前端用户表固定展示 jobNo 列）
+        wrapper.select(SysOrgPersonBDBEntity::getJobNo);
+        wrapper.innerJoin(SysOrgPersonBDBEntity.class, SysOrgPersonBDBEntity::getPersonId, SysUserDBEntity::getUserRelationId);
+        // 公司/部门过滤：关联部门人员表
+        if (needDeptPerson) {
+            wrapper.select(SysDeptPersonPO::getCompanyId)
+                    .select(SysDeptPersonPO::getDeptId);
+            wrapper.innerJoin(SysDeptPersonPO.class, SysDeptPersonPO::getPersonId, SysUserDBEntity::getUserRelationId);
+            if (!CollectionUtils.isEmpty(companyIdList)) {
+                wrapper.in(SysDeptPersonPO::getCompanyId, companyIdList);
+            }
+            if (!CollectionUtils.isEmpty(deptIdList)) {
+                wrapper.in(SysDeptPersonPO::getDeptId, deptIdList);
+            }
+        }
+        // 角色过滤：关联用户角色表+角色表
+        if (needRole) {
+            wrapper.select(SysRoleBDBEntity::getRoleCode);
+            wrapper.innerJoin(SysUserRoleDBEntity.class, SysUserRoleDBEntity::getUserId, SysUserDBEntity::getUserId)
+                    .innerJoin(SysRoleBDBEntity.class, SysRoleBDBEntity::getRoleId, SysUserRoleDBEntity::getRoleId)
+                    .in(SysRoleBDBEntity::getRoleCode, roleCodes);
+        }
+        // 启用用户
+        wrapper.eq(SysUserDBEntity::getDisableState, "N");
+        // 用户名模糊
+        if (needUserName) {
+            wrapper.like(SysUserDBEntity::getUserName, userName.trim());
+        }
+        // 用户描述模糊
+        if (needUserDesc) {
+            wrapper.like(SysUserDBEntity::getUserDescription, userDescription.trim());
+        }
+        // 工号模糊
+        if (needJobNo) {
+            wrapper.like(SysOrgPersonBDBEntity::getJobNo, jobNo.trim());
+        }
+        // 按用户ID去重，避免角色/部门一对多导致重复
+        wrapper.groupBy(SysUserDBEntity::getUserId)
+                .orderByDesc(SysUserDBEntity::getCreateDate);
+
+        return sysUserMapperService.selectJoinPage(page, SysUserDTO.class, wrapper);
+    }
+
+
     public List<SysUserDTO> findUsersByfullName(String fullName, Long companyId) {
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)

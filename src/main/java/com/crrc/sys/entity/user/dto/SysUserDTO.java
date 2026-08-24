@@ -21,6 +21,10 @@ public class SysUserDTO {
      */
     private String userName;
     /**
+     * 用户描述
+     */
+    private String userDescription;
+    /**
      * 姓名
      */
     private String fullName;
@@ -43,6 +47,16 @@ public class SysUserDTO {
      * 角色编码
      */
     private String roleCode;
+
+    /**
+     * 工号
+     */
+    private String jobNo;
+
+    /**
+     * 人员id
+     */
+    private String personId;
 
 
 

@@ -708,6 +708,25 @@ public class SysUserController {
         return userService.findUserByRoleCode(roleCode, companyId, deptId);
     }
 
+    /**
+     * 根据公司/部门/角色（均可多个）查询用户，支持用户名/用户描述/工号模糊查询（服务端分页）
+     * 公司/部门/角色至少一个必填
+     * @param sysUserRequestDTO 查询条件
+     * @return 分页用户信息
+     */
+    @PostMapping("findUsersByMultiCondition")
+    public PaginationGrid<SysUserDTO> findUsersByMultiCondition(@RequestBody SysUserRequestDTO sysUserRequestDTO) {
+        boolean companyEmpty = CollectionUtils.isEmpty(sysUserRequestDTO.getCompanyIds())
+                && CollectionUtils.isEmpty(sysUserRequestDTO.getCompanyOrgCodes());
+        boolean deptEmpty = CollectionUtils.isEmpty(sysUserRequestDTO.getDeptIds())
+                && CollectionUtils.isEmpty(sysUserRequestDTO.getDeptOrgCodes());
+        boolean roleEmpty = CollectionUtils.isEmpty(sysUserRequestDTO.getRoleCodes());
+        if (companyEmpty && deptEmpty && roleEmpty) {
+            throw new ParamValidateException("公司/部门/角色编码至少填写一个!");
+        }
+        return userService.findUsersByMultiCondition(sysUserRequestDTO);
+    }
+
 
     @PostMapping("findUserByRoleCodeAndCompanyId")
     public List<SysUserDTO> findUserByRoleCodeAndCompanyId(@RequestBody SysUserRequestDTO sysUserRequestDTO) {

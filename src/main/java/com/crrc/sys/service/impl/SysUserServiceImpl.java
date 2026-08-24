@@ -2,6 +2,7 @@ package com.crrc.sys.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.client.AuthClient;
 import com.crrc.sys.common.IdKeyGenerator;
 import com.crrc.sys.common.PaginationGrid;
@@ -10,6 +11,8 @@ import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthDBEntity;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.auth.SysDataAuthValueDBEntity;
+import com.crrc.sys.entity.company.Company;
+import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.org.person.SysOrgPersonFindByPageParam;
 import com.crrc.sys.entity.profile.SysProfileBDBEntity;
 import com.crrc.sys.entity.role.SysRole;
@@ -17,6 +20,7 @@ import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.entity.user.SysUserFindByPageParam;
 import com.crrc.sys.entity.user.SysUserRole;
 import com.crrc.sys.entity.user.dto.SysUserDTO;
+import com.crrc.sys.entity.user.dto.SysUserRequestDTO;
 import com.crrc.sys.enums.DataAuthTypeEnum;
 import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.mapperImpl.*;
@@ -29,6 +33,9 @@ import com.crrc.sys.model.user.role.SysUserRoleDTO;
 import com.crrc.sys.service.SysDataAuthService;
 import com.crrc.sys.service.SysProfileService;
 import com.crrc.sys.service.SysUserService;
+import com.crrc.sys.service.CompanyService;
+import com.crrc.sys.service.DeptService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,6 +56,7 @@ import java.util.stream.Collectors;
  * @date 2022-09-02
  */
 @Service
+@Slf4j
 public class SysUserServiceImpl implements SysUserService {
 
     @Resource
@@ -68,6 +76,12 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Autowired
     private SysOrgPersonMapperImpl personMapper;
+
+    @Autowired
+    private CompanyService companyService;
+
+    @Autowired
+    private DeptService deptService;
 
     @Resource
     private SysDataAuthService sysDataAuthService;
@@ -125,6 +139,56 @@ public class SysUserServiceImpl implements SysUserService {
             return null;
         }
         return userMapper.findUserByRoleCode(roleCode, companyId, deptId);
+    }
+
+    @Override
+    public PaginationGrid<SysUserDTO> findUsersByMultiCondition(SysUserRequestDTO param) {
+        List<Long> companyIds = param.getCompanyIds();
+        List<String> companyOrgCodes = param.getCompanyOrgCodes();
+        List<Long> deptIds = param.getDeptIds();
+        List<String> deptOrgCodes = param.getDeptOrgCodes();
+        List<String> roleCodes = param.getRoleCodes();
+        String userName = param.getUserName();
+        String userDescription = param.getUserDescription();
+        String jobNo = param.getJobNo();
+
+        // 分页参数：默认 page=1, pageSize=50
+        int page = param.getPage() != null && param.getPage() > 0 ? param.getPage() : 1;
+        int pageSize = param.getPageSize() != null && param.getPageSize() > 0 ? param.getPageSize() : 50;
+
+        // 归一化公司：ID直接用，orgCode批量转ID（取Company.id，对应sys_dept_person.company_id）
+        List<Long> companyIdList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(companyIds)) {
+            companyIdList.addAll(companyIds);
+        }
+        if (!CollectionUtils.isEmpty(companyOrgCodes)) {
+            List<Company> companyList = companyService.list(
+                    new LambdaQueryWrapper<Company>().in(Company::getOrgCode, companyOrgCodes));
+            if (CollectionUtils.isEmpty(companyList)) {
+                log.warn("findUsersByMultiCondition: companyOrgCodes 未命中任何公司, 短路返回空: {}", companyOrgCodes);
+                return new PaginationGrid<>(page, pageSize);
+            }
+            companyList.forEach(c -> companyIdList.add(c.getId()));
+        }
+
+        // 归一化部门：ID直接用，orgCode批量转ID（取Dept.id，对应sys_dept_person.dept_id）
+        List<Long> deptIdList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(deptIds)) {
+            deptIdList.addAll(deptIds);
+        }
+        if (!CollectionUtils.isEmpty(deptOrgCodes)) {
+            List<Dept> deptList = deptService.getDeptByOrgCodeList(deptOrgCodes);
+            if (CollectionUtils.isEmpty(deptList)) {
+                log.warn("findUsersByMultiCondition: deptOrgCodes 未命中任何部门, 短路返回空: {}", deptOrgCodes);
+                return new PaginationGrid<>(page, pageSize);
+            }
+            deptList.forEach(d -> deptIdList.add(d.getId()));
+        }
+
+        Page<SysUserDTO> pageObj = new Page<>(page, pageSize);
+        IPage<SysUserDTO> result = userMapper.findUsersByMultiCondition(
+                pageObj, companyIdList, deptIdList, roleCodes, userName, userDescription, jobNo);
+        return PaginationGrid.success(result);
     }
 
     @Override
