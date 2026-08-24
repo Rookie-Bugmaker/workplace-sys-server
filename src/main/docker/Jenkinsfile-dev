@@ -9,7 +9,7 @@ pipeline {
       agent none
       steps {
         container('maven') {
-          git(url: 'http://172.22.212.45/workplace-new/rear-end/basic/workplace-sys-server.git', credentialsId: 'gitlab', branch: 'dev', changelog: true, poll: false)
+          git(url: 'http://10.151.247.96/taichu/backend/workplace-sys-server.git', credentialsId: 'sdadmin', branch: 'dev', changelog: true, poll: false)
         }
       }
     }
