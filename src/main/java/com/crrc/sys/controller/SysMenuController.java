@@ -436,7 +436,7 @@ public class SysMenuController {
 
 
     @GetMapping("findTreeByProjectCodeAndCurrentUser")
-    public SysMenu findTreeByProjectCodeAndCurrentUser(@RequestParam(required = false) String language,
+    public SysMenu findTreeByProjectCodeAndCurrentUser(@RequestParam(required = false) String language, @RequestParam(required = false) Long roleId,
                                                   @RequestParam String projectCode) {
         if (ObjectUtils.isEmpty(language)) {
             language = "zh-CN";
@@ -453,7 +453,7 @@ public class SysMenuController {
         SysUser currentUser = userResultData.getResult();
 
         //查询当前角色拥有的菜单(树结构)
-        SysMenu sysMenu = menuService.findTreeByProjectCodeAndCurrentUser(projectCode,currentUser.getUserId(),language);
+        SysMenu sysMenu = menuService.findTreeByProjectCodeAndCurrentUser(projectCode,currentUser.getUserId(),roleId,language);
         CompletableFuture.runAsync(() -> {
             List<SysApi> apiList = findApi(Collections.singletonList(sysMenu));
             if (CollectionUtils.isEmpty(apiList)) {

@@ -560,17 +560,27 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     @Override
-    public SysMenu findTreeByProjectCodeAndCurrentUser(String projectCode,Long userId, String language) {
+    public SysMenu findTreeByProjectCodeAndCurrentUser(String projectCode,Long userId, Long roleId,String language) {
         ProjectEntity project = projectService.findByCode(projectCode);
         if(ObjectUtils.isEmpty(project)){
             return null;
         }
-        List<Long> roleIds = roleMapper.listRoleIdsByProjectAndUser(project.getId(),userId);
+
+        List<Long> roleIds;
+        if(ObjectUtils.isEmpty(roleId)){
+            roleIds= roleMapper.listRoleIdsByProjectAndUser(project.getId(),userId);
+
+        }else{
+            roleIds = new ArrayList<>(Collections.singletonList(roleId));
+        }
 
         final SysRole sysRole = roleMapper.findById(roleIds.get(0), language);
         if (ObjectUtils.isEmpty(sysRole)) {
             throw new BizException("角色ID不存在[" + roleIds.get(0) + "]");
         }
+
+
+
 
         CompletableFuture<SysMenu> completableFuture = CompletableFuture.supplyAsync(() -> {
 

@@ -124,5 +124,5 @@ public interface SysMenuService {
     List<Long> findFunctionIdByMenuId(long menuId);
 
 
-    SysMenu findTreeByProjectCodeAndCurrentUser(String projectCode, Long userId,String language);
+    SysMenu findTreeByProjectCodeAndCurrentUser(String projectCode, Long userId,Long roleId,String language);
 }
