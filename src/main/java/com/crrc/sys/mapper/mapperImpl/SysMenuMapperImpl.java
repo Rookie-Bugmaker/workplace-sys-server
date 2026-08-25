@@ -453,6 +453,7 @@ public class SysMenuMapperImpl extends ServiceImpl<SysMenuTlMapperService, SysMe
                 )
                 .innerJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysMenuBDBEntity::getMenuId)
                 .in(SysRoleMenuDBEntity::getRoleId, roleIds)
+                .groupBy(SysMenuBDBEntity::getMenuId)
                 .orderByAsc(SysMenuBDBEntity::getMenuSort);
         return sysMenuBMapperService.selectJoinList( SysMenu.class, wrapper);
     }

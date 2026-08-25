@@ -620,8 +620,10 @@ public class SysMenuServiceImpl implements SysMenuService {
                             //遍历拥有的列权限
                             for (SysRoleFunctionColumn hasColumn : rfcList) {
                                 if (functionColumn.getFcId().equals(hasColumn.getFcId())) {
-                                    //设置实际编辑编辑的值
-                                    functionColumn.setEditableFlag(hasColumn.getFcEditableFlag());
+                                    //并集语义：任一角色允许编辑即视为可编辑，避免多角色时后遍历的false覆盖先遍历的true
+                                    if ("Y".equals(hasColumn.getFcEditableFlag())) {
+                                        functionColumn.setEditableFlag("Y");
+                                    }
                                     //修改隐藏列为false
                                     functionColumn.setHideColumn(false);
                                 }
