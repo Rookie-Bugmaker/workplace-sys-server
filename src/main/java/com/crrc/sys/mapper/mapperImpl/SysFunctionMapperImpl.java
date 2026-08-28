@@ -431,6 +431,7 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
                 )
                 .innerJoin(SysRoleMenuDBEntity.class, SysRoleMenuDBEntity::getMenuId, SysFunctionBDBEntity::getFunctionId)
                 .in(SysRoleMenuDBEntity::getRoleId, roleIds)
+                .groupBy(SysFunctionBDBEntity::getFunctionId)
                 .orderByAsc(SysFunctionBDBEntity::getFunctionId);
         return sysFunctionBMapperService.selectJoinList(SysFunction.class, wrapper);
     }
