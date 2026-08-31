@@ -44,17 +44,6 @@ public class SysFunctionColumn extends BaseEntityYunLing {
 	 * 默认编辑(Y:是、N:否)
 	 */
 	private String fcEditableFlag;
-
-	/**
-	 * 是否可排序(Y:是、N:否)
-	 */
-	private String fcSortFlag;
-
-	/**
-	 * 自定义排序编码
-	 */
-	private String fcSortField;
-
     /**
      * 上级ID(目前只设计了2层，所以此处的parent_id等于块ID)
      */
@@ -203,21 +192,5 @@ public class SysFunctionColumn extends BaseEntityYunLing {
 
 	public void setFcType(String fcType) {
 		this.fcType = fcType;
-	}
-
-	public String getFcSortFlag() {
-		return fcSortFlag;
-	}
-
-	public void setFcSortFlag(String fcSortFlag) {
-		this.fcSortFlag = fcSortFlag;
-	}
-
-	public String getFcSortField() {
-		return fcSortField;
-	}
-
-	public void setFcSortField(String fcSortField) {
-		this.fcSortField = fcSortField;
 	}
 }

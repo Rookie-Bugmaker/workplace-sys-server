@@ -22,47 +22,37 @@ public class SysFunctionColumnBDBEntity extends BaseEntityYunLing {
      */
     @TableId(type = IdType.INPUT)
     private Long fcId;
-    
+
     /**
      * 功能ID
      */
     private Long functionId;
-    
+
     /**
      * (块/列)编码
      */
     private String fcCode;
-    
+
     /**
      * 默认显示(Y:是/N:否)
      */
     private String fcDisplayFlag;
-    
+
     /**
      * 是否可编辑
      */
     private String fcEditableFlag;
 
     /**
-     * 是否可排序
-     */
-    private String fcSortFlag;
-
-    /**
-     * 自定义排序编码
-     */
-    private String fcSortField;
-    
-    /**
      * 上级ID
      */
     private Long parentId;
-    
+
     /**
      * 值集ID
      */
     private Long vsId;
-    
+
     /**
      * 列类型(varchar:字符、number:数字、date:日期)
      */
