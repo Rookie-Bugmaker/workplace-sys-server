@@ -61,14 +61,10 @@ spring:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
   redis:
-    #type: standalone # 当前使用的redis类型(单机/哨兵)
-    #database: 3 # Redis数据库索引（默认为0）
-    #host: 10.151.255.167
-    #port: 6379
-    #password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
-
-    type: sentinel # 当前使用的redis类型(单机/哨兵)
+    type: standalone # 当前使用的redis类型(单机/哨兵)
     database: 3 # Redis数据库索引（默认为0）
+    host: 10.151.255.79
+    port: 6379
     password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
 
     timeout: 10000ms # 连接超时时间（毫秒）默认是2000ms
@@ -78,10 +74,10 @@ spring:
         max-idle: 500 # 连接池中的最大空闲连接
         max-wait: -1ms # 连接池最大阻塞等待时间（使用负值表示没有限制）
         min-idle: 200 # 连接池中的最小空闲连接
-    sentinel:
-      master: mymaster
-      nodes: 10.151.255.94:32379,10.151.255.107:32379,10.151.255.56:32379
-      password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
+    #sentinel:
+    #  master: mymaster
+    #  nodes: 10.151.255.94:32379,10.151.255.174:32379,10.151.255.177:32379
+    #  password: ENC(JLbHJF19wHbxP7J1EBMRauboqXCTLZ6yoju0QnALkMMTe5oAIqtVYQLBZnKsPBgo)
   data:
     mongodb:
       host: 10.151.255.173
