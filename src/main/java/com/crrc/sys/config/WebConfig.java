@@ -1,6 +1,7 @@
 package com.crrc.sys.config;
 
 import com.crrc.sys.config.interceptor.AutoIdempotentInterceptor;
+import com.crrc.sys.config.interceptor.SortContextInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -19,9 +20,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Resource
     private AutoIdempotentInterceptor autoIdempotentInterceptor;
 
+    @Resource
+    private SortContextInterceptor sortContextInterceptor;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(autoIdempotentInterceptor);
+        registry.addInterceptor(sortContextInterceptor);
     }
 
     /**

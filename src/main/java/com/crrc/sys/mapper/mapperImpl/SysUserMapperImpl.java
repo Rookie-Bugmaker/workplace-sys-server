@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crrc.sys.common.BeanUtils;
 import com.crrc.sys.common.MyBatisUtil;
+import com.crrc.sys.common.SortContextHolder;
 import com.crrc.sys.entity.dept.Dept;
 import com.crrc.sys.entity.org.person.*;
 import com.crrc.sys.entity.profile.SysProfileBDBEntity;
@@ -159,6 +160,10 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
                 );
             }
         }
+
+        String sortField = SortContextHolder.getSortField();
+        boolean isAsc = SortContextHolder.isAsc();
+        wrapper.orderBy(StringUtils.isNotBlank(sortField), isAsc, sortField);
 
         Page<SysUserInfoDBJoinDTO> midPage = sysUserMapperService.selectJoinPage(
                 MyBatisUtil.makePage(param.getPage(), param.getPageSize()), SysUserInfoDBJoinDTO.class, wrapper);
