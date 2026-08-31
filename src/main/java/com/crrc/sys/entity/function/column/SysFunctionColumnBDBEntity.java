@@ -44,6 +44,16 @@ public class SysFunctionColumnBDBEntity extends BaseEntityYunLing {
     private String fcEditableFlag;
 
     /**
+     * 是否可排序
+     */
+    private String fcSortFlag;
+
+    /**
+     * 自定义排序编码
+     */
+    private String fcSortField;
+
+    /**
      * 上级ID
      */
     private Long parentId;
