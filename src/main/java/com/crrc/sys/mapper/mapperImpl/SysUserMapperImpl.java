@@ -542,7 +542,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         }
         // 用户描述模糊
         if (needUserDesc) {
-            wrapper.like(SysUserDBEntity::getUserDescription, userDescription.trim());
+            wrapper.like(SysOrgPersonTlDBEntity::getFullName, userDescription.trim());
         }
         // 工号模糊
         if (needJobNo) {
