@@ -1,9 +1,15 @@
 package com.crrc.sys.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crrc.sys.client.AuthClient;
+import com.crrc.sys.common.IdKeyGenerator;
+import com.crrc.sys.common.MyBatisUtil;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthDBEntity;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
@@ -16,10 +22,17 @@ import com.crrc.sys.enums.LanguageEnum;
 import com.crrc.sys.mapper.mapperImpl.SysDataAuthMapperImpl;
 import com.crrc.sys.mapper.mapperImpl.SysDataAuthValueMapperImpl;
 import com.crrc.sys.mapper.mapperImpl.SysProfileMapperImpl;
+import com.crrc.sys.model.profile.AuthValueItem;
+import com.crrc.sys.model.profile.ProfileBindObjectDTO;
+import com.crrc.sys.model.profile.ProfileBindObjectQueryDTO;
+import com.crrc.sys.model.profile.ProfileBindObjectRowDTO;
+import com.crrc.sys.model.profile.ProfileBindObjectVO;
 import com.crrc.sys.service.SysDataAuthService;
 import com.crrc.sys.service.SysProfileService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -34,6 +47,11 @@ import java.util.stream.Collectors;
 @Service
 public class SysDataAuthServiceImpl implements SysDataAuthService {
 
+    /**
+     * 绑定对象分页查询默认每页条数
+     */
+    private static final int DEFAULT_PAGE_SIZE = 50;
+
 	@Resource
 	private AuthClient authClient;
 
@@ -47,6 +65,9 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
     private SysDataAuthValueMapperImpl dataAuthValueMapper;
     @Autowired
     private SysProfileMapperImpl profileMapper;
+
+    @Resource
+    private IdKeyGenerator idKeyGenerator;
 
     /**
      * 根据对象ID删除数据权限
@@ -197,5 +218,246 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
         return dataAuthMap;
 
 
+    }
+
+    /**
+     * 分页查询配置文件已绑定的角色/用户(配置文件维度)
+     * 支持按对象名称/编码模糊查询(objectSearchParam)与权限值过滤(authValue)：
+     * 命中的对象仍内嵌其在当前配置文件下的全部权限值集合。
+     */
+    @Override
+    public PaginationGrid<ProfileBindObjectVO> findBindObjects(ProfileBindObjectQueryDTO query) {
+        if (query == null || ObjectUtils.isEmpty(query.getProfileId())) {
+            throw new ParamValidateException("profileId不能为空");
+        }
+        String authType = query.getAuthType();
+        if (!DataAuthTypeEnum.contains(authType)) {
+            throw new ParamValidateException("对象类型参数错误，只能为角色或用户");
+        }
+        String language = query.getLanguage();
+        if (StringUtils.isBlank(language)) {
+            language = LanguageEnum.ZH_CN.getValue();
+        } else if (!LanguageEnum.contains(language)) {
+            throw new ParamValidateException("language参数错误");
+        }
+        //分页参数默认值
+        int page = (query.getPage() != null && query.getPage() > 0) ? query.getPage() : 1;
+        int pageSize = (query.getPageSize() != null && query.getPageSize() > 0) ? query.getPageSize() : DEFAULT_PAGE_SIZE;
+        Page<ProfileBindObjectRowDTO> pageObj = MyBatisUtil.makePage(page, pageSize);
+        //1.按 authType 分派分页查询：DB 侧完成模糊过滤与权限值过滤
+        IPage<ProfileBindObjectRowDTO> rowPage;
+        if (DataAuthTypeEnum.ROLE.getValue().equals(authType)) {
+            rowPage = dataAuthMapper.findBindRolePage(pageObj, query.getProfileId(), language,
+                    query.getObjectSearchParam(), query.getAuthValue());
+        } else {
+            rowPage = dataAuthMapper.findBindUserPage(pageObj, query.getProfileId(),
+                    query.getObjectSearchParam(), query.getAuthValue());
+        }
+        //2.回填当前页对象的权限值集合(按 authId 分组)
+        List<ProfileBindObjectRowDTO> rows = rowPage.getRecords();
+        List<ProfileBindObjectVO> voList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(rows)) {
+            List<Long> authIds = rows.stream().map(ProfileBindObjectRowDTO::getAuthId).collect(Collectors.toList());
+            List<SysDataAuthValue> valueList = dataAuthValueMapper.findByAuthIds(authIds);
+            Map<Long, List<SysDataAuthValue>> authIdToValuesMap = CollectionUtils.isEmpty(valueList)
+                    ? new HashMap<>()
+                    : valueList.stream().collect(Collectors.groupingBy(SysDataAuthValue::getAuthId));
+            //3.组装 VO：name/code 随 authType 取值，authValues 内嵌该对象全部权限值
+            for (ProfileBindObjectRowDTO row : rows) {
+                ProfileBindObjectVO vo = new ProfileBindObjectVO();
+                vo.setObjectId(row.getObjectId());
+                vo.setAuthType(authType);
+                vo.setAuthValues(toValueItems(authIdToValuesMap.getOrDefault(row.getAuthId(), new ArrayList<>())));
+                if (DataAuthTypeEnum.ROLE.getValue().equals(authType)) {
+                    //角色：name=roleName、code=roleCode
+                    vo.setName(row.getRoleName());
+                    vo.setCode(row.getRoleCode());
+                } else {
+                    //用户：name=用户描述(姓名)优先，否则取用户名；code=用户名
+                    if (StringUtils.isNotBlank(row.getFullName())) {
+                        vo.setName(row.getFullName());
+                    } else {
+                        vo.setName(row.getUserName());
+                    }
+                    vo.setCode(row.getUserName());
+                }
+                voList.add(vo);
+            }
+        }
+        //4.转换为 PaginationGrid<ProfileBindObjectVO>
+        Page<ProfileBindObjectVO> voPage = new Page<>(rowPage.getCurrent(), rowPage.getSize(), rowPage.getTotal());
+        voPage.setRecords(voList);
+        return PaginationGrid.success(voPage);
+    }
+
+    /**
+     * 将权限值实体集合转换为接口返回的权限值项集合(携带权限值描述)
+     */
+    private List<AuthValueItem> toValueItems(List<SysDataAuthValue> valueList) {
+        if (CollectionUtils.isEmpty(valueList)) {
+            return new ArrayList<>();
+        }
+        List<AuthValueItem> items = new ArrayList<>(valueList.size());
+        for (SysDataAuthValue value : valueList) {
+            AuthValueItem item = new AuthValueItem();
+            item.setAuthValue(value.getAuthValue());
+            item.setAuthValueDesc(value.getAuthValueDesc());
+            items.add(item);
+        }
+        return items;
+    }
+
+    /**
+     * 保存配置文件绑定的角色/用户(配置文件维度，全量替换语义)
+     * 入参按对象维度传递{objectId, authValues}集合，后端做：
+     * 1.对象级差集：新增对象插主表+权限值，移除对象级联删主表+权限值；
+     * 2.保留对象上权限值的增量增删：相同的值行保留不删不插，仅删除被移除的值、新增新增的值。
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void saveBindObjects(ProfileBindObjectDTO dto, long createBy) {
+        if (dto == null || ObjectUtils.isEmpty(dto.getProfileId())) {
+            throw new ParamValidateException("profileId不能为空");
+        }
+        String authType = dto.getAuthType();
+        if (!DataAuthTypeEnum.contains(authType)) {
+            throw new ParamValidateException("authType参数错误");
+        }
+        //校验配置文件存在
+        SysProfile sysProfile = profileService.findById(dto.getProfileId(), LanguageEnum.ZH_CN.getValue());
+        if (ObjectUtils.isEmpty(sysProfile)) {
+            throw new BizException("配置文件不存在!");
+        }
+        long profileId = dto.getProfileId();
+        //1.解析前端目标状态：按 objectId 聚合(合并重复 objectId 的权限值、过滤空白 authValue)
+        //   以 authValue 为唯一键去重：同一 objectId 在多个 BindItem 中重复出现、或同一 authValue 在
+        //   authValues 中重复出现时合并为一条；authValueDesc 优先保留首个非空白描述，避免因首次出现空白
+        //   描述而丢弃后续有效描述。
+        Map<Long, Map<String, String>> newValuesByObjectId = new LinkedHashMap<>();
+        List<ProfileBindObjectDTO.BindItem> bindList = dto.getBindList();
+        if (bindList != null) {
+            for (ProfileBindObjectDTO.BindItem item : bindList) {
+                if (item == null || ObjectUtils.isEmpty(item.getObjectId())) {
+                    continue;
+                }
+                Map<String, String> values = newValuesByObjectId.computeIfAbsent(item.getObjectId(), k -> new LinkedHashMap<>());
+                if (item.getAuthValues() != null) {
+                    for (AuthValueItem valueItem : item.getAuthValues()) {
+                        if (valueItem == null || StringUtils.isBlank(valueItem.getAuthValue())) {
+                            continue;
+                        }
+                        String authValue = valueItem.getAuthValue().trim();
+                        String desc = valueItem.getAuthValueDesc();
+                        //已存在该 authValue 时去重，但若既有描述为空而本次带非空描述则补齐(合并)
+                        String existingDesc = values.get(authValue);
+                        if (existingDesc == null || (StringUtils.isBlank(existingDesc) && StringUtils.isNotBlank(desc))) {
+                            values.put(authValue, desc);
+                        }
+                    }
+                }
+            }
+        }
+        Set<Long> newObjectIds = newValuesByObjectId.keySet();
+        //2.读取 DB 当前状态
+        List<SysDataAuth> oldList = dataAuthMapper.findByProfileIdAndAuthType(profileId, authType);
+        Map<Long, Long> objectIdToAuthIdMap = new HashMap<>();
+        for (SysDataAuth dataAuth : oldList) {
+            objectIdToAuthIdMap.put(dataAuth.getObjectId(), dataAuth.getAuthId());
+        }
+        Set<Long> oldObjectIds = objectIdToAuthIdMap.keySet();
+        //3.权限值按 authId 分组(仅保留对象需要)，记录每个权限值当前的描述，用于保留对象的描述更新判断
+        Map<Long, Map<String, String>> oldValuesByAuthIdMap = new HashMap<>();
+        Set<Long> retainedObjectIds = newObjectIds.stream().filter(oldObjectIds::contains).collect(Collectors.toSet());
+        if (!retainedObjectIds.isEmpty()) {
+            List<Long> retainedAuthIds = retainedObjectIds.stream()
+                    .map(objectIdToAuthIdMap::get)
+                    .collect(Collectors.toList());
+            List<SysDataAuthValue> oldValueList = dataAuthValueMapper.findByAuthIds(retainedAuthIds);
+            if (!CollectionUtils.isEmpty(oldValueList)) {
+                oldValuesByAuthIdMap = oldValueList.stream().collect(Collectors.groupingBy(
+                        SysDataAuthValue::getAuthId,
+                        Collectors.toMap(SysDataAuthValue::getAuthValue,
+                                v -> v.getAuthValueDesc() == null ? "" : v.getAuthValueDesc(),
+                                (existing, replacement) -> existing)
+                ));
+            }
+        }
+        java.util.Date now = java.util.Calendar.getInstance().getTime();
+        //4.对象级差集删除：删除主表 + 级联删除权限值
+        List<Long> toRemove = oldObjectIds.stream().filter(id -> !newObjectIds.contains(id)).collect(Collectors.toList());
+        if (!toRemove.isEmpty()) {
+            List<Long> deletedAuthIds = dataAuthMapper.deleteByProfileIdAndAuthType(profileId, authType, toRemove);
+            dataAuthValueMapper.deleteByAuthIds(deletedAuthIds);
+        }
+        //5.对象级新增：插入主表 + 权限值(含权限值描述)
+        List<Long> toAdd = newObjectIds.stream().filter(id -> !oldObjectIds.contains(id)).collect(Collectors.toList());
+        if (!toAdd.isEmpty()) {
+            List<SysDataAuth> addAuthList = new ArrayList<>(toAdd.size());
+            List<SysDataAuthValue> addValueList = new ArrayList<>();
+            for (Long objectId : toAdd) {
+                long authId = idKeyGenerator.getId();
+                SysDataAuth dataAuth = new SysDataAuth();
+                dataAuth.setAuthId(authId);
+                dataAuth.setAuthType(authType);
+                dataAuth.setObjectId(objectId);
+                dataAuth.setProfileId(profileId);
+                dataAuth.setCreateBy(createBy);
+                dataAuth.setCreateDate(now);
+                addAuthList.add(dataAuth);
+                Map<String, String> valueDescMap = newValuesByObjectId.get(objectId);
+                for (Map.Entry<String, String> entry : valueDescMap.entrySet()) {
+                    SysDataAuthValue value = new SysDataAuthValue();
+                    value.setAuthId(authId);
+                    value.setAuthValue(entry.getKey());
+                    value.setAuthValueDesc(entry.getValue());
+                    value.setCreateBy(createBy);
+                    value.setCreateDate(now);
+                    addValueList.add(value);
+                }
+            }
+            dataAuthMapper.insertList(addAuthList);
+            if (!addValueList.isEmpty()) {
+                dataAuthValueMapper.insertList(addValueList);
+            }
+        }
+        //6.保留对象：权限值增量增删(以 authValue 为唯一键) + 已存在值行描述更新(前端传了 desc 且与库中不同则更新)
+        for (Long objectId : retainedObjectIds) {
+            long authId = objectIdToAuthIdMap.get(objectId);
+            Map<String, String> oldVals = oldValuesByAuthIdMap.getOrDefault(authId, Collections.emptyMap());
+            Map<String, String> newVals = newValuesByObjectId.get(objectId);
+            //待删除 = 旧值中不在新值中的
+            List<String> valsToDelete = oldVals.keySet().stream().filter(v -> !newVals.containsKey(v)).collect(Collectors.toList());
+            if (!valsToDelete.isEmpty()) {
+                dataAuthValueMapper.deleteByAuthIdAndValues(authId, valsToDelete);
+            }
+            //待新增 = 新值中不在旧值中的
+            List<SysDataAuthValue> valsToAdd = newVals.entrySet().stream()
+                    .filter(e -> !oldVals.containsKey(e.getKey()))
+                    .map(e -> {
+                        SysDataAuthValue value = new SysDataAuthValue();
+                        value.setAuthId(authId);
+                        value.setAuthValue(e.getKey());
+                        value.setAuthValueDesc(e.getValue());
+                        value.setCreateBy(createBy);
+                        value.setCreateDate(now);
+                        return value;
+                    })
+                    .collect(Collectors.toList());
+            if (!valsToAdd.isEmpty()) {
+                dataAuthValueMapper.insertList(valsToAdd);
+            }
+            //描述更新 = 新旧都存在的值行，前端传了 desc 且与库中不同时更新(空 desc 不覆盖原值)
+            for (Map.Entry<String, String> entry : newVals.entrySet()) {
+                String authValue = entry.getKey();
+                String newDesc = entry.getValue();
+                if (StringUtils.isBlank(newDesc) || !oldVals.containsKey(authValue)) {
+                    continue;
+                }
+                String oldDesc = oldVals.get(authValue);
+                if (!newDesc.equals(oldDesc)) {
+                    dataAuthValueMapper.updateDescByAuthIdAndValue(authId, authValue, newDesc);
+                }
+            }
+        }
     }
 }

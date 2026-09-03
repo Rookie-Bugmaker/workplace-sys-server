@@ -2,19 +2,29 @@ package com.crrc.sys.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.crrc.sys.annotation.AutoIdempotent;
 import com.crrc.sys.client.AuthClient;
+import com.crrc.sys.common.PaginationGrid;
 import com.crrc.sys.common.ResultData;
 import com.crrc.sys.config.exception.BizException;
+import com.crrc.sys.config.exception.ParamValidateException;
 import com.crrc.sys.entity.auth.SysDataAuth;
 import com.crrc.sys.entity.auth.SysDataAuthValue;
 import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.user.SysUser;
+import com.crrc.sys.enums.DataAuthTypeEnum;
 import com.crrc.sys.enums.LanguageEnum;
+import com.crrc.sys.model.profile.ProfileBindObjectDTO;
+import com.crrc.sys.model.profile.ProfileBindObjectQueryDTO;
+import com.crrc.sys.model.profile.ProfileBindObjectVO;
 import com.crrc.sys.service.SysDataAuthService;
 import com.crrc.sys.service.SysProfileService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,6 +48,9 @@ public class SysDataAuthController {
     @Resource
     private SysDataAuthService dataAuthService;
 
+    @Resource
+    private AuthClient authClient;
+
 
 
 
@@ -59,6 +72,59 @@ public class SysDataAuthController {
     @GetMapping("getDataAuth")
     public Map<String, List<String>> getDataAuth() {
         return dataAuthService.getDataAuth();
+    }
+
+    /**
+     * 分页查询配置文件已绑定的角色/用户(配置文件维度)
+     * 支持按对象名称/编码模糊查询(objectSearchParam)与权限值过滤(authValue)，命中对象内嵌其在该配置文件下的全部权限值集合。
+     * <p>objectSearchParam：authType=user 匹配用户名或用户描述(姓名)；authType=role 匹配角色编码或角色名称。</p>
+     * <p>authValue：仅返回拥有该权限值的对象(对象级过滤)，命中对象在 authValues 中仍展示其全部权限值。</p>
+     *
+     * @param query 查询入参(profileId、authType、language、page、pageSize、objectSearchParam、authValue)
+     * @return 分页绑定对象集合(含名称、编码、权限值集合)
+     */
+    @PostMapping("findBindObjects")
+    @Operation(summary = "分页查询配置文件已绑定的角色/用户(配置文件维度，含权限值，支持对象模糊与权限值过滤)")
+    public PaginationGrid<ProfileBindObjectVO> findBindObjects(@RequestBody ProfileBindObjectQueryDTO query) {
+        if (ObjectUtils.isEmpty(query) || ObjectUtils.isEmpty(query.getProfileId())) {
+            throw new ParamValidateException("profileId不能为空!");
+        }
+        if (ObjectUtils.isEmpty(query.getAuthType())) {
+            throw new ParamValidateException("authType不能为空!");
+        }
+        if (!DataAuthTypeEnum.contains(query.getAuthType())) {
+            throw new ParamValidateException("authType参数错误");
+        }
+        if (ObjectUtils.isEmpty(query.getLanguage())) {
+            throw new ParamValidateException("language不能为空");
+        }
+        if (!LanguageEnum.contains(query.getLanguage())) {
+            throw new ParamValidateException("language参数错误");
+        }
+        return dataAuthService.findBindObjects(query);
+    }
+
+    /**
+     * 保存配置文件绑定的角色/用户(配置文件维度，全量替换语义)
+     * 前端按对象维度传递完整的绑定集合(每项=对象ID+该对象拥有的权限值)，后端做对象级差集比对：
+     * 新增对象插入主表+权限值，移除的对象级联删除主表+权限值，保留的对象做权限值的增量增删(相同的值行保留不删不插)。
+     *
+     * @param dto 绑定入参
+     */
+    @AutoIdempotent
+    @PostMapping("saveBindObjects")
+    @Operation(summary = "保存配置文件绑定的角色/用户及权限值(配置文件维度，全量替换语义)")
+    public void saveBindObjects(@RequestBody ProfileBindObjectDTO dto) {
+        if (ObjectUtils.isEmpty(dto)) {
+            throw new ParamValidateException("参数错误");
+        }
+        //获取当前用户作为创建人
+        ResultData<SysUser> userResultData = authClient.currentUser();
+        if (!userResultData.getSuccess()) {
+            throw new BizException(userResultData.getCode(), userResultData.getMessage());
+        }
+        long createBy = userResultData.getResult().getUserId();
+        dataAuthService.saveBindObjects(dto, createBy);
     }
 
 

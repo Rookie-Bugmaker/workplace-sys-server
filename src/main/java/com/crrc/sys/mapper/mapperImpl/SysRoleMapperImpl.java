@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -309,6 +310,26 @@ public class SysRoleMapperImpl extends ServiceImpl<SysRoleTlMapperService, SysRo
                 .eq(SysRoleBDBEntity::getProjectId, projectId);
         List<SysRoleBDBEntity> entities = sysRoleBMapperService.selectList(wrapper);
         return entities.stream().map(SysRoleBDBEntity::getRoleId).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据角色ID集合查询角色信息(含多语言名称)
+     *
+     * @param roleIds  角色ID集合
+     * @param language 语言
+     * @return 角色集合
+     */
+    public List<SysRole> findByIds(List<Long> roleIds, String language) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        MPJLambdaWrapper<SysRoleBDBEntity> wrapper = new MPJLambdaWrapper<SysRoleBDBEntity>()
+                .selectAll(SysRoleBDBEntity.class)
+                .select(SysRoleTlDBEntity::getRoleName, SysRoleTlDBEntity::getRoleDescription, SysRoleTlDBEntity::getLanguage)
+                .innerJoin(SysRoleTlDBEntity.class, SysRoleTlDBEntity::getRoleId, SysRoleBDBEntity::getRoleId)
+                .in(SysRoleBDBEntity::getRoleId, roleIds)
+                .eq(SysRoleTlDBEntity::getLanguage, language);
+        return sysRoleBMapperService.selectJoinList(SysRole.class, wrapper);
     }
 
     public SysRole findDefaultRoleByProject(Long projectId, String projectName) {

@@ -78,6 +78,56 @@ public class SysDataAuthValueMapperImpl extends ServiceImpl<SysDataAuthValueMapp
         return convertFromDB(sysDataAuthValueDBEntities);
     }
 
+    /**
+     * 根据数据权限ID集合删除权限值(级联删除)
+     *
+     * @param authIds 数据权限ID集合
+     */
+    public void deleteByAuthIds(List<Long> authIds) {
+        if (authIds == null || authIds.isEmpty()) {
+            return;
+        }
+        LambdaUpdateWrapper<SysDataAuthValueDBEntity> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.in(SysDataAuthValueDBEntity::getAuthId, authIds);
+        sysDataAuthValueMapperService.delete(wrapper);
+    }
+
+    /**
+     * 按数据权限ID + 权限值集合精确删除权限值
+     * 用于保留对象的权限值差集：只删除该权限下被移除的值，保留其余已存在的值行。
+     *
+     * @param authId     数据权限ID
+     * @param authValues 待删除的权限值集合
+     */
+    public void deleteByAuthIdAndValues(long authId, List<String> authValues) {
+        if (authValues == null || authValues.isEmpty()) {
+            return;
+        }
+        LambdaUpdateWrapper<SysDataAuthValueDBEntity> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(SysDataAuthValueDBEntity::getAuthId, authId)
+                .in(SysDataAuthValueDBEntity::getAuthValue, authValues);
+        sysDataAuthValueMapperService.delete(wrapper);
+    }
+
+    /**
+     * 按数据权限ID + 权限值更新权限值描述
+     * 用于保留对象的权限值描述更新：同一权限值已存在但前端传入了新的描述时，仅更新描述字段。
+     *
+     * @param authId        数据权限ID
+     * @param authValue     权限值(唯一键定位行)
+     * @param authValueDesc 新的权限值描述
+     */
+    public void updateDescByAuthIdAndValue(long authId, String authValue, String authValueDesc) {
+        if (authValue == null || authValue.isEmpty()) {
+            return;
+        }
+        LambdaUpdateWrapper<SysDataAuthValueDBEntity> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(SysDataAuthValueDBEntity::getAuthId, authId)
+                .eq(SysDataAuthValueDBEntity::getAuthValue, authValue)
+                .set(SysDataAuthValueDBEntity::getAuthValueDesc, authValueDesc);
+        sysDataAuthValueMapperService.update(wrapper);
+    }
+
     private SysDataAuthValue convertFromDB(SysDataAuthValueDBEntity entity) {
         SysDataAuthValue data = BeanUtils.toBean(entity, SysDataAuthValue.class);
         return data;
