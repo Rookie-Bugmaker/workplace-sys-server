@@ -142,6 +142,35 @@ public class DeptController {
         return deptService.getDeptListResp(deptList);
     }
 
+    @GetMapping("/get_simple_list")
+    @Operation(summary = "获取部门下拉列表（编码和名称）")
+    public List<DeptSimpleRespVO> getDeptSimpleList() {
+        // 复用 list_vo 的查询逻辑，保证查出的部门数据与 list_vo 一致（同样的过滤、剔除临时部门、排序）
+        List<DeptListRespVO> deptTree = listDept(new DeptqueryVo());
+        List<DeptSimpleRespVO> result = new ArrayList<>();
+        flattenDeptSimple(deptTree, result);
+        return result;
+    }
+
+    /**
+     * 将 list_vo 返回的部门树按层级顺序展开为“编码+名称”的平铺列表
+     */
+    private void flattenDeptSimple(List<DeptListRespVO> nodes, List<DeptSimpleRespVO> result) {
+        if (CollectionUtils.isEmpty(nodes)) {
+            return;
+        }
+        for (DeptListRespVO node : nodes) {
+            DeptSimpleRespVO vo = new DeptSimpleRespVO();
+            vo.setId(node.getId());
+            vo.setCode(node.getOrgCode());
+            vo.setName(node.getDepartmentName());
+            result.add(vo);
+            flattenDeptSimple(node.getChildren(), result);
+        }
+    }
+
+
+
     @PostMapping("/get_subdept_list")
     @Operation(summary = "通过部门id获取子部门id列表")
     public List<Long> getSubdeptList(@RequestBody Long id) {
