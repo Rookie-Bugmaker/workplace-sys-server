@@ -148,8 +148,49 @@ public class DeptController {
         // 复用 list_vo 的查询逻辑，保证查出的部门数据与 list_vo 一致（同样的过滤、剔除临时部门、排序）
         List<DeptListRespVO> deptTree = listDept(new DeptqueryVo());
         List<DeptSimpleRespVO> result = new ArrayList<>();
+        // 所属公司放在第一条（取部门所属公司，编码/名称与 sys_company 保持一致）
+        Company company = getOwnCompany(deptTree);
+        if (company != null) {
+            DeptSimpleRespVO companyVo = new DeptSimpleRespVO();
+            companyVo.setId(company.getId());
+            companyVo.setCode(company.getOrgCode());
+            companyVo.setName(company.getCompanyName());
+            result.add(companyVo);
+        }
+        // 其余部门按层级顺序平铺
         flattenDeptSimple(deptTree, result);
         return result;
+    }
+
+    /**
+     * 取部门所属公司（这些部门同属一个公司时即为本系统所属公司），找不到则返回 null
+     */
+    private Company getOwnCompany(List<DeptListRespVO> deptTree) {
+        Long companyId = findCompanyId(deptTree);
+        if (companyId == null) {
+            return null;
+        }
+        return companyService.getById(companyId);
+    }
+
+    /**
+     * 在部门树中查找第一个有效的 companyId（剔除临时部门的 companyId=0）
+     */
+    private Long findCompanyId(List<DeptListRespVO> nodes) {
+        if (CollectionUtils.isEmpty(nodes)) {
+            return null;
+        }
+        for (DeptListRespVO node : nodes) {
+            Long companyId = node.getCompanyId();
+            if (companyId != null && companyId != 0L) {
+                return companyId;
+            }
+            Long childCompanyId = findCompanyId(node.getChildren());
+            if (childCompanyId != null) {
+                return childCompanyId;
+            }
+        }
+        return null;
     }
 
     /**
