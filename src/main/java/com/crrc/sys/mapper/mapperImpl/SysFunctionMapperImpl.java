@@ -111,7 +111,11 @@ public class SysFunctionMapperImpl extends ServiceImpl<SysFunctionBMapperService
                 )
                 .isNull(SysFunctionBDBEntity::getParentId)
                 .eq(param.getProjectId() != null, SysFunctionBDBEntity::getProjectId, param.getProjectId())
-                .in(allowedProjectIds!= null && !allowedProjectIds.isEmpty(), SysFunctionBDBEntity::getProjectId, allowedProjectIds)
+                // 数据权限(项目域)：放行【已分配项目内的功能】+【全局功能(project_id IS NULL，平台底座菜单如角色管理/菜单管理)】。
+                // 若只用 project_id IN(...)，因 NULL IN(...) 恒为 false，会让配置了数据权限的管理员看不到平台自带系统功能。
+                .and(allowedProjectIds != null && !allowedProjectIds.isEmpty(),
+                        w -> w.isNull(SysFunctionBDBEntity::getProjectId)
+                                .or().in(SysFunctionBDBEntity::getProjectId, allowedProjectIds))
                 .like(StringUtils.isNotBlank(param.getFunctionCode()), SysFunctionBDBEntity::getFunctionCode, param.getFunctionCode())
                 .like(StringUtils.isNotBlank(param.getFunctionName()), SysFunctionTlDBEntity::getFunctionName, param.getFunctionName())
                 .like(StringUtils.isNotBlank(param.getPath()), SysFunctionBDBEntity::getPath, param.getPath())
