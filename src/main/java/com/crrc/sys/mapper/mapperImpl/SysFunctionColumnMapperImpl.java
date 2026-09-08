@@ -121,6 +121,8 @@ public class SysFunctionColumnMapperImpl extends ServiceImpl<SysFunctionColumnTl
                 .set(SysFunctionColumnBDBEntity::getLastUpdateBy, functionColumn.getLastUpdateBy())
                 .set(SysFunctionColumnBDBEntity::getLastUpdateDate, functionColumn.getLastUpdateDate())
                 .set(SysFunctionColumnBDBEntity::getLastUpdateLogin, functionColumn.getLastUpdateLogin())
+                .set(SysFunctionColumnBDBEntity::getFcSortFlag, functionColumn.getFcSortFlag())
+                .set(SysFunctionColumnBDBEntity::getFcSortField, functionColumn.getFcSortField())
                 .eq(SysFunctionColumnBDBEntity::getFcId, functionColumn.getFcId());
         return sysFunctionColumnBMapperService.update(wrapper);
     }
