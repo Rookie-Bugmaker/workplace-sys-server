@@ -37,8 +37,10 @@ public interface SysDataAuthService {
 	PaginationGrid<ProfileBindObjectVO> findBindObjects(ProfileBindObjectQueryDTO query);
 
 	/**
-	 * 保存配置文件绑定的角色/用户(配置文件维度，全量替换语义)
-	 * 前端传递完整的对象ID集合，后端做差集比对：新增的插入，移除的级联删除。
+	 * 保存配置文件绑定的角色/用户(配置文件维度，增量语义：仅处理前端传递的对象)
+	 * 前端按对象维度传递需要处理的对象集合(每项=对象ID+该对象拥有的权限值)，后端仅对 bindList 中出现的
+	 * 对象做处理，不删除前端未传递的对象绑定。对每个对象的权限值按 authValue 唯一键做多增少删；
+	 * 前端传空权限值的已存在对象会被级联删除主表记录及权限值，避免出现有数据权限但权限值为空的脏数据。
 	 *
 	 * @param dto       绑定入参
 	 * @param createBy  创建人ID

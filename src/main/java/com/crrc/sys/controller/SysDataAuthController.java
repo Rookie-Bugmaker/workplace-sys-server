@@ -105,15 +105,17 @@ public class SysDataAuthController {
     }
 
     /**
-     * 保存配置文件绑定的角色/用户(配置文件维度，全量替换语义)
-     * 前端按对象维度传递完整的绑定集合(每项=对象ID+该对象拥有的权限值)，后端做对象级差集比对：
-     * 新增对象插入主表+权限值，移除的对象级联删除主表+权限值，保留的对象做权限值的增量增删(相同的值行保留不删不插)。
+     * 保存配置文件绑定的角色/用户(配置文件维度，增量语义：仅处理前端传递的对象)
+     * 前端按对象维度传递需要处理的对象集合(每项=对象ID+该对象拥有的权限值)，后端仅对 bindList 中出现的对象
+     * 做处理，不删除前端未传递的对象绑定。对每个对象的权限值按 authValue 唯一键做多增少删：
+     * 新对象且带权限值时插入主表+权限值，已存在对象做权限值增量增删，前端传空权限值的已存在对象会被
+     * 级联删除主表记录及权限值，避免出现有数据权限但权限值为空的脏数据。
      *
      * @param dto 绑定入参
      */
     @AutoIdempotent
     @PostMapping("saveBindObjects")
-    @Operation(summary = "保存配置文件绑定的角色/用户及权限值(配置文件维度，全量替换语义)")
+    @Operation(summary = "保存配置文件绑定的角色/用户及权限值(配置文件维度，增量语义，仅处理传入对象)")
     public void saveBindObjects(@RequestBody ProfileBindObjectDTO dto) {
         if (ObjectUtils.isEmpty(dto)) {
             throw new ParamValidateException("参数错误");

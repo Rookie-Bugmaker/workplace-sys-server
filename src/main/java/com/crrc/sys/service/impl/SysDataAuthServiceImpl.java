@@ -308,10 +308,14 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
     }
 
     /**
-     * 保存配置文件绑定的角色/用户(配置文件维度，全量替换语义)
-     * 入参按对象维度传递{objectId, authValues}集合，后端做：
-     * 1.对象级差集：新增对象插主表+权限值，移除对象级联删主表+权限值；
-     * 2.保留对象上权限值的增量增删：相同的值行保留不删不插，仅删除被移除的值、新增新增的值。
+     * 保存配置文件绑定的角色/用户(配置文件维度，增量语义：仅处理前端传递的对象)
+     * 入参按对象维度传递{objectId, authValues}集合，后端仅对 bindList 中出现的对象做处理，
+     * 不删除前端未传递的对象绑定。对每个对象的权限值按 authValue 唯一键做多增少删：
+     * 新对象(库中不存在)且带有权限值时插入主表+权限值；已存在对象做权限值增量增删
+     * (新值中多出的新增、旧值中不在新值中的删除)，并对已存在值行的描述做更新。
+     * 特别地：已存在对象经多增少删后若权限值变为空，则级联删除该对象此配置文件对应的主表记录
+     * 及其权限值，避免出现有数据权限但权限值为空的脏数据。新对象未带权限值时不插入。
+     * bindList 为空或其中的 BindItem 均无可处理对象时直接返回，不做任何变更。
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -358,6 +362,10 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
             }
         }
         Set<Long> newObjectIds = newValuesByObjectId.keySet();
+        //前端未传递任何有效对象时不做任何变更(不查询、不删除、不新增)，直接返回
+        if (newObjectIds.isEmpty()) {
+            return;
+        }
         //2.读取 DB 当前状态
         List<SysDataAuth> oldList = dataAuthMapper.findByProfileIdAndAuthType(profileId, authType);
         Map<Long, Long> objectIdToAuthIdMap = new HashMap<>();
@@ -365,9 +373,9 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
             objectIdToAuthIdMap.put(dataAuth.getObjectId(), dataAuth.getAuthId());
         }
         Set<Long> oldObjectIds = objectIdToAuthIdMap.keySet();
-        //3.权限值按 authId 分组(仅保留对象需要)，记录每个权限值当前的描述，用于保留对象的描述更新判断
-        Map<Long, Map<String, String>> oldValuesByAuthIdMap = new HashMap<>();
+        //3.已存在对象(保留对象)的权限值按 authId 分组，记录每个权限值当前的描述，用于增量增删与描述更新判断
         Set<Long> retainedObjectIds = newObjectIds.stream().filter(oldObjectIds::contains).collect(Collectors.toSet());
+        Map<Long, Map<String, String>> oldValuesByAuthIdMap = new HashMap<>();
         if (!retainedObjectIds.isEmpty()) {
             List<Long> retainedAuthIds = retainedObjectIds.stream()
                     .map(objectIdToAuthIdMap::get)
@@ -383,14 +391,10 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
             }
         }
         java.util.Date now = java.util.Calendar.getInstance().getTime();
-        //4.对象级差集删除：删除主表 + 级联删除权限值
-        List<Long> toRemove = oldObjectIds.stream().filter(id -> !newObjectIds.contains(id)).collect(Collectors.toList());
-        if (!toRemove.isEmpty()) {
-            List<Long> deletedAuthIds = dataAuthMapper.deleteByProfileIdAndAuthType(profileId, authType, toRemove);
-            dataAuthValueMapper.deleteByAuthIds(deletedAuthIds);
-        }
-        //5.对象级新增：插入主表 + 权限值(含权限值描述)
-        List<Long> toAdd = newObjectIds.stream().filter(id -> !oldObjectIds.contains(id)).collect(Collectors.toList());
+        //4.新对象(库中不存在)：仅当带有权限值时插入主表 + 权限值；未带权限值的不插入(避免产生空权限值的主表记录)
+        List<Long> toAdd = newObjectIds.stream()
+                .filter(id -> !oldObjectIds.contains(id) && !newValuesByObjectId.get(id).isEmpty())
+                .collect(Collectors.toList());
         if (!toAdd.isEmpty()) {
             List<SysDataAuth> addAuthList = new ArrayList<>(toAdd.size());
             List<SysDataAuthValue> addValueList = new ArrayList<>();
@@ -420,11 +424,18 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
                 dataAuthValueMapper.insertList(addValueList);
             }
         }
-        //6.保留对象：权限值增量增删(以 authValue 为唯一键) + 已存在值行描述更新(前端传了 desc 且与库中不同则更新)
+        //5.已存在对象：权限值多增少删 + 描述更新；若前端传空权限值则级联删除该对象此配置文件的主表记录及权限值，
+        //   避免出现"有数据权限但权限值为空"的脏数据
         for (Long objectId : retainedObjectIds) {
             long authId = objectIdToAuthIdMap.get(objectId);
             Map<String, String> oldVals = oldValuesByAuthIdMap.getOrDefault(authId, Collections.emptyMap());
             Map<String, String> newVals = newValuesByObjectId.get(objectId);
+            //前端传空权限值：级联删除主表 + 全部权限值
+            if (newVals.isEmpty()) {
+                List<Long> deletedAuthIds = dataAuthMapper.deleteByProfileIdAndAuthType(profileId, authType, Collections.singletonList(objectId));
+                dataAuthValueMapper.deleteByAuthIds(deletedAuthIds);
+                continue;
+            }
             //待删除 = 旧值中不在新值中的
             List<String> valsToDelete = oldVals.keySet().stream().filter(v -> !newVals.containsKey(v)).collect(Collectors.toList());
             if (!valsToDelete.isEmpty()) {
