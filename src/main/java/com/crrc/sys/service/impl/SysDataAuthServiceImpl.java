@@ -23,6 +23,7 @@ import com.crrc.sys.mapper.mapperImpl.SysDataAuthMapperImpl;
 import com.crrc.sys.mapper.mapperImpl.SysDataAuthValueMapperImpl;
 import com.crrc.sys.mapper.mapperImpl.SysProfileMapperImpl;
 import com.crrc.sys.model.profile.AuthValueItem;
+import com.crrc.sys.model.profile.ProfileBatchBindObjectDTO;
 import com.crrc.sys.model.profile.ProfileBindObjectDTO;
 import com.crrc.sys.model.profile.ProfileBindObjectQueryDTO;
 import com.crrc.sys.model.profile.ProfileBindObjectRowDTO;
@@ -469,6 +470,217 @@ public class SysDataAuthServiceImpl implements SysDataAuthService {
                     dataAuthValueMapper.updateDescByAuthIdAndValue(authId, authValue, newDesc);
                 }
             }
+        }
+    }
+
+    /**
+     * 批量绑定/解绑配置文件对象(配置文件维度，增量语义：仅处理前端传递的对象)
+     * 入参与 {@link #saveBindObjects} 基本相同，以 {@link ProfileBatchBindObjectDTO#getBindMode()} 区分模式：
+     * <ul>
+     *   <li>绑定模式(bindMode=true)：仅对前端传递的对象新增其缺失的权限值，对象已拥有的权限值不处理(不更新描述)；
+     *       库中不存在的新对象且带权限值时插入主表+权限值；bindList 为空或对象 authValues 为空时不处理。</li>
+     *   <li>解绑模式(bindMode=false)：仅删除对象已有的权限值，没有的权限值不处理；若删除后对象该配置文件下的
+     *       权限值全部被清空，则同步删除主表记录(sys_data_auth)及其剩余权限值，避免出现有数据权限但权限值为空的脏数据；
+     *       库中不存在的对象不做任何处理。</li>
+     * </ul>
+     * bindList 为空或其中的 BindItem 均无可处理对象时直接返回，不做任何变更。
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void batchBindObjects(ProfileBatchBindObjectDTO dto, long createBy) {
+        if (dto == null || ObjectUtils.isEmpty(dto.getProfileId())) {
+            throw new ParamValidateException("profileId不能为空");
+        }
+        Boolean bindMode = dto.getBindMode();
+        if (bindMode == null) {
+            throw new ParamValidateException("bindMode不能为空");
+        }
+        String authType = dto.getAuthType();
+        if (!DataAuthTypeEnum.contains(authType)) {
+            throw new ParamValidateException("authType参数错误");
+        }
+        //校验配置文件存在
+        SysProfile sysProfile = profileService.findById(dto.getProfileId(), LanguageEnum.ZH_CN.getValue());
+        if (ObjectUtils.isEmpty(sysProfile)) {
+            throw new BizException("配置文件不存在!");
+        }
+        long profileId = dto.getProfileId();
+        //1.解析前端目标状态：按 objectId 聚合(合并重复 objectId 的权限值、过滤空白 authValue)
+        //   以 authValue 为唯一键去重：同一 objectId 在多个 BindItem 中重复出现、或同一 authValue 在 authValues
+        //   中重复出现时合并为一条；authValueDesc 优先保留首个非空白描述。
+        Map<Long, Map<String, String>> newValuesByObjectId = new LinkedHashMap<>();
+        List<ProfileBindObjectDTO.BindItem> bindList = dto.getBindList();
+        if (bindList != null) {
+            for (ProfileBindObjectDTO.BindItem item : bindList) {
+                if (item == null || ObjectUtils.isEmpty(item.getObjectId())) {
+                    continue;
+                }
+                Map<String, String> values = newValuesByObjectId.computeIfAbsent(item.getObjectId(), k -> new LinkedHashMap<>());
+                if (item.getAuthValues() != null) {
+                    for (AuthValueItem valueItem : item.getAuthValues()) {
+                        if (valueItem == null || StringUtils.isBlank(valueItem.getAuthValue())) {
+                            continue;
+                        }
+                        String authValue = valueItem.getAuthValue().trim();
+                        String desc = valueItem.getAuthValueDesc();
+                        //已存在该 authValue 时去重，但若既有描述为空而本次带非空描述则补齐(合并)
+                        String existingDesc = values.get(authValue);
+                        if (existingDesc == null || (StringUtils.isBlank(existingDesc) && StringUtils.isNotBlank(desc))) {
+                            values.put(authValue, desc);
+                        }
+                    }
+                }
+            }
+        }
+        Set<Long> objectIds = newValuesByObjectId.keySet();
+        //前端未传递任何有效对象时不做任何变更(不查询、不删除、不新增)，直接返回
+        if (objectIds.isEmpty()) {
+            return;
+        }
+        //2.读取 DB 当前状态
+        List<SysDataAuth> oldList = dataAuthMapper.findByProfileIdAndAuthType(profileId, authType);
+        Map<Long, Long> objectIdToAuthIdMap = new HashMap<>();
+        for (SysDataAuth dataAuth : oldList) {
+            objectIdToAuthIdMap.put(dataAuth.getObjectId(), dataAuth.getAuthId());
+        }
+        Set<Long> oldObjectIds = objectIdToAuthIdMap.keySet();
+        java.util.Date now = java.util.Calendar.getInstance().getTime();
+
+        if (bindMode) {
+            //3.绑定模式：仅新增缺失的权限值
+            //3.1 库中不存在的新对象：仅当带有权限值时插入主表 + 权限值；未带权限值的不插入
+            List<Long> toAdd = objectIds.stream()
+                    .filter(id -> !oldObjectIds.contains(id) && !newValuesByObjectId.get(id).isEmpty())
+                    .collect(Collectors.toList());
+            if (!toAdd.isEmpty()) {
+                List<SysDataAuth> addAuthList = new ArrayList<>(toAdd.size());
+                List<SysDataAuthValue> addValueList = new ArrayList<>();
+                for (Long objectId : toAdd) {
+                    long authId = idKeyGenerator.getId();
+                    SysDataAuth dataAuth = new SysDataAuth();
+                    dataAuth.setAuthId(authId);
+                    dataAuth.setAuthType(authType);
+                    dataAuth.setObjectId(objectId);
+                    dataAuth.setProfileId(profileId);
+                    dataAuth.setCreateBy(createBy);
+                    dataAuth.setCreateDate(now);
+                    addAuthList.add(dataAuth);
+                    Map<String, String> valueDescMap = newValuesByObjectId.get(objectId);
+                    for (Map.Entry<String, String> entry : valueDescMap.entrySet()) {
+                        SysDataAuthValue value = new SysDataAuthValue();
+                        value.setAuthId(authId);
+                        value.setAuthValue(entry.getKey());
+                        value.setAuthValueDesc(entry.getValue());
+                        value.setCreateBy(createBy);
+                        value.setCreateDate(now);
+                        addValueList.add(value);
+                    }
+                }
+                dataAuthMapper.insertList(addAuthList);
+                if (!addValueList.isEmpty()) {
+                    dataAuthValueMapper.insertList(addValueList);
+                }
+            }
+            //3.2 已存在对象：读取其当前权限值，仅新增其缺失的权限值，已有的不处理(不更新描述)
+            List<Long> retainedAuthIds = objectIds.stream()
+                    .filter(oldObjectIds::contains)
+                    .map(objectIdToAuthIdMap::get)
+                    .collect(Collectors.toList());
+            if (!retainedAuthIds.isEmpty()) {
+                List<SysDataAuthValue> oldValueList = dataAuthValueMapper.findByAuthIds(retainedAuthIds);
+                Map<Long, Set<String>> oldValuesByAuthIdMap = new HashMap<>();
+                if (!CollectionUtils.isEmpty(oldValueList)) {
+                    oldValuesByAuthIdMap = oldValueList.stream().collect(Collectors.groupingBy(
+                            SysDataAuthValue::getAuthId,
+                            Collectors.mapping(SysDataAuthValue::getAuthValue, Collectors.toSet())
+                    ));
+                }
+                List<SysDataAuthValue> valsToAdd = new ArrayList<>();
+                for (Long objectId : objectIds) {
+                    if (!oldObjectIds.contains(objectId)) {
+                        continue;
+                    }
+                    long authId = objectIdToAuthIdMap.get(objectId);
+                    Set<String> oldVals = oldValuesByAuthIdMap.getOrDefault(authId, Collections.emptySet());
+                    Map<String, String> newVals = newValuesByObjectId.get(objectId);
+                    if (newVals.isEmpty()) {
+                        //前端未传权限值：绑定模式下无新增，不处理
+                        continue;
+                    }
+                    //待新增 = 新值中不在旧值中的
+                    for (Map.Entry<String, String> entry : newVals.entrySet()) {
+                        if (oldVals.contains(entry.getKey())) {
+                            continue;
+                        }
+                        SysDataAuthValue value = new SysDataAuthValue();
+                        value.setAuthId(authId);
+                        value.setAuthValue(entry.getKey());
+                        value.setAuthValueDesc(entry.getValue());
+                        value.setCreateBy(createBy);
+                        value.setCreateDate(now);
+                        valsToAdd.add(value);
+                    }
+                }
+                if (!valsToAdd.isEmpty()) {
+                    dataAuthValueMapper.insertList(valsToAdd);
+                }
+            }
+            return;
+        }
+
+        //4.解绑模式：仅删除已有的权限值；库中不存在的对象不做任何处理
+        List<Long> retainedAuthIds = objectIds.stream()
+                .filter(oldObjectIds::contains)
+                .map(objectIdToAuthIdMap::get)
+                .collect(Collectors.toList());
+        if (retainedAuthIds.isEmpty()) {
+            //前端传递的对象在库中均不存在：解绑模式无任何删除，直接返回
+            return;
+        }
+        //4.1 读取对象当前全部权限值，用于按值精确删除与判断删除后是否清空
+        List<SysDataAuthValue> oldValueList = dataAuthValueMapper.findByAuthIds(retainedAuthIds);
+        Map<Long, List<String>> oldValuesByAuthIdMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(oldValueList)) {
+            oldValuesByAuthIdMap = oldValueList.stream().collect(Collectors.groupingBy(
+                    SysDataAuthValue::getAuthId,
+                    Collectors.mapping(SysDataAuthValue::getAuthValue, Collectors.toList())
+            ));
+        }
+        //4.2 按对象删除其拥有的目标权限值；删除后该对象权限值全部清空时同步删除主表记录及剩余权限值
+        List<Long> clearedObjectIds = new ArrayList<>();
+        for (Long objectId : objectIds) {
+            if (!oldObjectIds.contains(objectId)) {
+                continue;
+            }
+            long authId = objectIdToAuthIdMap.get(objectId);
+            List<String> oldVals = oldValuesByAuthIdMap.getOrDefault(authId, Collections.emptyList());
+            if (oldVals.isEmpty()) {
+                //对象该配置文件下无权限值：解绑无任何删除，不处理
+                continue;
+            }
+            Map<String, String> targetVals = newValuesByObjectId.get(objectId);
+            if (targetVals.isEmpty()) {
+                //前端未传权限值：解绑模式下无删除目标，不处理
+                continue;
+            }
+            Set<String> targetSet = targetVals.keySet();
+            //待删除 = 旧值中前端要求解绑的(只删对象已有的)
+            List<String> valsToDelete = oldVals.stream().filter(targetSet::contains).collect(Collectors.toList());
+            if (valsToDelete.isEmpty()) {
+                continue;
+            }
+            //删除后剩余的权限值 = 旧值中不在待删除集合内的
+            long remaining = oldVals.stream().filter(v -> !targetSet.contains(v)).count();
+            if (remaining == 0L) {
+                //权限值将被全部清空：级联删除主表记录 + 全部权限值，避免出现有数据权限但权限值为空的脏数据
+                clearedObjectIds.add(objectId);
+            } else {
+                dataAuthValueMapper.deleteByAuthIdAndValues(authId, valsToDelete);
+            }
+        }
+        if (!clearedObjectIds.isEmpty()) {
+            List<Long> deletedAuthIds = dataAuthMapper.deleteByProfileIdAndAuthType(profileId, authType, clearedObjectIds);
+            dataAuthValueMapper.deleteByAuthIds(deletedAuthIds);
         }
     }
 }

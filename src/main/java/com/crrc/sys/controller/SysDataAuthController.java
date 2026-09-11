@@ -14,6 +14,7 @@ import com.crrc.sys.entity.profile.SysProfile;
 import com.crrc.sys.entity.user.SysUser;
 import com.crrc.sys.enums.DataAuthTypeEnum;
 import com.crrc.sys.enums.LanguageEnum;
+import com.crrc.sys.model.profile.ProfileBatchBindObjectDTO;
 import com.crrc.sys.model.profile.ProfileBindObjectDTO;
 import com.crrc.sys.model.profile.ProfileBindObjectQueryDTO;
 import com.crrc.sys.model.profile.ProfileBindObjectVO;
@@ -127,6 +128,34 @@ public class SysDataAuthController {
         }
         long createBy = userResultData.getResult().getUserId();
         dataAuthService.saveBindObjects(dto, createBy);
+    }
+
+    /**
+     * 批量绑定/解绑配置文件绑定的角色/用户(配置文件维度，增量语义：仅处理前端传递的对象)
+     * 入参与 saveBindObjects 基本相同，新增 bindMode 区分模式：
+     * <ul>
+     *   <li>绑定模式(bindMode=true)：仅新增对象缺失的权限值，对象已拥有的权限值不处理；新对象且带权限值时插入主表+权限值；
+     *       bindList 为空或对象 authValues 为空时不处理。</li>
+     *   <li>解绑模式(bindMode=false)：仅删除对象已有的权限值，没有的权限值不处理；若删除后对象该配置文件下的权限值
+     *       全部被清空，则同步删除主表记录及其剩余权限值；库中不存在的对象不做任何处理。</li>
+     * </ul>
+     *
+     * @param dto 绑定/解绑入参(含 bindMode)
+     */
+    @AutoIdempotent
+    @PostMapping("batchBindObjects")
+    @Operation(summary = "批量绑定/解绑配置文件对象及权限值(配置文件维度，增量语义，绑定模式仅新增缺失值，解绑模式仅删除已有值)")
+    public void batchBindObjects(@RequestBody ProfileBatchBindObjectDTO dto) {
+        if (ObjectUtils.isEmpty(dto)) {
+            throw new ParamValidateException("参数错误");
+        }
+        //获取当前用户作为创建人
+        ResultData<SysUser> userResultData = authClient.currentUser();
+        if (!userResultData.getSuccess()) {
+            throw new BizException(userResultData.getCode(), userResultData.getMessage());
+        }
+        long createBy = userResultData.getResult().getUserId();
+        dataAuthService.batchBindObjects(dto, createBy);
     }
 
 
