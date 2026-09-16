@@ -347,6 +347,18 @@ public class SysDeptPersonController {
     }
 
     /**
+     * 根据人员ID查询部门人员信息(批量)
+     *
+     * @param personIdList 人员ID集合
+     * @return 结果
+     */
+    @PostMapping("findByDeptIds")
+    public List<SysDeptPersonDTO> findByPersonId(@RequestBody List<Long> personIdList) {
+        List<SysDeptPersonPO> records = deptPersonService.findByPersonId(personIdList);
+        return poToDto(records);
+    }
+
+    /**
      * PO转DTO，同时设置人员姓名
      *
      * @param personPoList 人员实体集合

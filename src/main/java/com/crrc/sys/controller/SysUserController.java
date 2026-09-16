@@ -1288,7 +1288,7 @@ public class SysUserController {
         }
         List<SysUser> userList = userService.findByUserIds(ids);
         if (CollectionUtils.isEmpty(userList)) {
-            return null;
+            return new ArrayList<>();
         }
         return setUserProperties(userList);
     }
@@ -1306,7 +1306,7 @@ public class SysUserController {
         }
         List<SysUser> userList = userService.findByUserNameList(usernames);
         if (CollectionUtils.isEmpty(userList)) {
-            return null;
+            return new ArrayList<>();
         }
         return setUserProperties(userList);
     }
