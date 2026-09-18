@@ -49,6 +49,14 @@ public class SysOrgPersonFindByPageParam {
      * 人员类型List，由personType字符串转换而来
      */
     private List<Long> personTypeList;
+    /**
+     * 是否查询部门信息（true：查询；空或false：不查询）
+     */
+    private Boolean queryDept;
+    /**
+     * 是否查询公司信息（true：查询；空或false：不查询）
+     */
+    private Boolean queryCompany;
 
     public Integer getPage() {
         return page;
@@ -128,5 +136,21 @@ public class SysOrgPersonFindByPageParam {
 
     public void setPersonId(Long personId) {
         this.personId = personId;
+    }
+
+    public Boolean getQueryDept() {
+        return queryDept;
+    }
+
+    public void setQueryDept(Boolean queryDept) {
+        this.queryDept = queryDept;
+    }
+
+    public Boolean getQueryCompany() {
+        return queryCompany;
+    }
+
+    public void setQueryCompany(Boolean queryCompany) {
+        this.queryCompany = queryCompany;
     }
 }

@@ -1,10 +1,13 @@
 package com.crrc.sys.entity.org.person;
 
 import com.crrc.sys.entity.BaseEntityYunLing;
+import com.crrc.sys.entity.company.Company;
+import com.crrc.sys.model.dept.DeptInfoDTO;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 组织架构-人员
@@ -60,6 +63,14 @@ public class SysOrgPerson extends BaseEntityYunLing {
      * 取值：LanguageEnum
      */
     private String language;
+    /**
+     * 部门信息集合（queryDept=true 时填充）
+     */
+    private List<DeptInfoDTO> deptList;
+    /**
+     * 公司信息集合（queryCompany=true 时填充）
+     */
+    private List<Company> companyList;
 
     public Long getPersonId() {
         return personId;
@@ -147,5 +158,21 @@ public class SysOrgPerson extends BaseEntityYunLing {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public List<DeptInfoDTO> getDeptList() {
+        return deptList;
+    }
+
+    public void setDeptList(List<DeptInfoDTO> deptList) {
+        this.deptList = deptList;
+    }
+
+    public List<Company> getCompanyList() {
+        return companyList;
+    }
+
+    public void setCompanyList(List<Company> companyList) {
+        this.companyList = companyList;
     }
 }

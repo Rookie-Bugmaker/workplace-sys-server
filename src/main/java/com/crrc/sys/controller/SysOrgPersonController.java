@@ -120,7 +120,10 @@ public class SysOrgPersonController {
         if (!ObjectUtils.isEmpty(param.getPersonType())) {
             param.setPersonTypeList(Arrays.stream(param.getPersonType().split(",")).map(Long::parseLong).collect(Collectors.toList()));
         }
-        return orgPersonService.findByPage(param);
+        PaginationGrid<SysOrgPerson> page = orgPersonService.findByPage(param);
+        //按标识回填部门、公司信息
+        fillDeptAndCompany(page.getRows(), param.getQueryDept(), param.getQueryCompany());
+        return page;
     }
 
     /**
@@ -268,7 +271,10 @@ public class SysOrgPersonController {
      */
     @PostMapping("findList")
     public List<SysOrgPerson> findList(@RequestBody SysOrgPersonFindByPageParam param) {
-        return orgPersonService.findList(param);
+        List<SysOrgPerson> personList = orgPersonService.findList(param);
+        //按标识回填部门、公司信息
+        fillDeptAndCompany(personList, param.getQueryDept(), param.getQueryCompany());
+        return personList;
     }
 
     /**
@@ -673,8 +679,73 @@ public class SysOrgPersonController {
      */
     @PostMapping("findPersonPageWithoutCreatedUser")
     public Page<SysOrgPerson> findPersonPageWithoutCreatedUser(@RequestBody SysOrgPersonFindByPageParam param) {
-        return orgPersonService.findPersonPageWithoutCreatedUser(
+        Page<SysOrgPerson> page = orgPersonService.findPersonPageWithoutCreatedUser(
                 param.getPersonId(), param.getJobNo(), param.getPersonType(), param.getPage(), param.getPageSize());
+        //按标识回填部门、公司信息
+        fillDeptAndCompany(page.getRecords(), param.getQueryDept(), param.getQueryCompany());
+        return page;
+    }
+
+    /**
+     * 按 queryDept/queryCompany 标识为人员结果回填部门、公司信息
+     * <p>
+     * queryDept/queryCompany 为空或 false 时不做任何查询，结果保持原样（前端未同步修改时不受影响）；
+     * 为 true 时批量查询并回填到 {@link SysOrgPerson#getDeptList()} / {@link SysOrgPerson#getCompanyList()}。
+     *
+     * @param personList  人员列表
+     * @param queryDept   是否查询部门信息
+     * @param queryCompany 是否查询公司信息
+     */
+    private void fillDeptAndCompany(List<SysOrgPerson> personList, Boolean queryDept, Boolean queryCompany) {
+        if (CollectionUtils.isEmpty(personList)) {
+            return;
+        }
+        boolean needDept = Boolean.TRUE.equals(queryDept);
+        boolean needCompany = Boolean.TRUE.equals(queryCompany);
+        if (!needDept && !needCompany) {
+            return;
+        }
+        List<Long> personIds = personList.stream().map(SysOrgPerson::getPersonId).collect(Collectors.toList());
+        //查询人员部门关联关系
+        List<SysDeptPersonPO> deptPersonList = deptPersonService.findByPersonId(personIds);
+        if (CollectionUtils.isEmpty(deptPersonList)) {
+            return;
+        }
+        //部门信息
+        List<DeptInfoDTO> deptInfoList = Collections.emptyList();
+        if (needDept) {
+            List<Long> deptIdList = deptPersonList.stream().map(SysDeptPersonPO::getDeptId).distinct().collect(Collectors.toList());
+            List<Dept> deptList = deptService.findByDeptIds(deptIdList);
+            if (!CollectionUtils.isEmpty(deptList)) {
+                deptInfoList = DeptConvert.INSTANCE.deptToInfoDto(deptList);
+            }
+        }
+        //公司信息
+        List<Company> companyList = Collections.emptyList();
+        if (needCompany) {
+            List<Long> companyIdList = deptPersonList.stream().map(SysDeptPersonPO::getCompanyId).distinct().collect(Collectors.toList());
+            companyList = companyService.listByIds(companyIdList);
+        }
+        //绑定人员部门、公司
+        for (SysOrgPerson person : personList) {
+            List<SysDeptPersonPO> relations = deptPersonList.stream()
+                    .filter(o -> o.getPersonId().equals(person.getPersonId())).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(relations)) {
+                continue;
+            }
+            if (needDept && !CollectionUtils.isEmpty(deptInfoList)) {
+                List<Long> deptIdList = relations.stream().map(SysDeptPersonPO::getDeptId).collect(Collectors.toList());
+                List<DeptInfoDTO> personDeptList = deptInfoList.stream()
+                        .filter(o -> deptIdList.contains(o.getId())).collect(Collectors.toList());
+                person.setDeptList(personDeptList);
+            }
+            if (needCompany && !CollectionUtils.isEmpty(companyList)) {
+                List<Long> companyIdList = relations.stream().map(SysDeptPersonPO::getCompanyId).collect(Collectors.toList());
+                List<Company> personCompanyList = companyList.stream()
+                        .filter(o -> companyIdList.contains(o.getId())).collect(Collectors.toList());
+                person.setCompanyList(personCompanyList);
+            }
+        }
     }
 
     private List<SysDeptPersonPO> transExcelVOsToDeptPerson(Map<String, Long> jobNoToPersonIdMap, List<SysOrgPersonVerifyExcelDTO> excelVOs) {
