@@ -22,6 +22,10 @@ public class DictExcelVO {
     @ExcelProperty(value = {"说明"}, index = 3)
     private String remark;
 
+    @Schema(description = "项目编码（空为公共字典）")
+    @ExcelProperty(value = {"项目编码"}, index = 4)
+    private String projectCode;
+
     public String getDictCode() {
         return dictCode;
     }
@@ -52,5 +56,13 @@ public class DictExcelVO {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public String getProjectCode() {
+        return projectCode;
+    }
+
+    public void setProjectCode(String projectCode) {
+        this.projectCode = projectCode;
     }
 }

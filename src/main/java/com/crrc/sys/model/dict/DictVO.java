@@ -21,5 +21,8 @@ public class DictVO {
     @Schema(description = "说明", example = "demo")
     private String remark;
 
+    @Schema(description = "项目编码（空为公共字典）")
+    private String projectCode;
+
     private List<DictItemVO> items = new ArrayList<>();
 }

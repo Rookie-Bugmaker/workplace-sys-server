@@ -25,33 +25,55 @@ public class DictAndItemImportListener extends AnalysisEventListener<DictAndItem
     private final DictService dictService;
     private final DictItemService dictItemService;
     private final DictCacheService dictCacheService;
-    
+    private final Set<String> allowedProjectCodes;
+    private final boolean projectAuthEnabled;
+
     private final Map<String, DictVO> dictCodeToDictMap = new HashMap<>();
     private final Map<String, Set<String>> dictItemCodeMap = new HashMap<>();
 
     private final Map<Long, String> dictCodeIdToCodeMap = new HashMap<>();
     private final List<String> errorMessages = new ArrayList<>();
 
-    public DictAndItemImportListener(DictService dictService, 
+    public DictAndItemImportListener(DictService dictService,
                                    DictItemService dictItemService,
                                    DictCacheService dictCacheService) {
+        this(dictService, dictItemService, dictCacheService, null);
+    }
+
+    /**
+     * @param allowedProjectCodes 当前用户可访问的项目编码集合；
+     *                             非空时启用项目数据权限校验，导入非公共项目字典需在集合内；
+     *                             传 null 表示不启用项目权限校验。
+     */
+    public DictAndItemImportListener(DictService dictService,
+                                   DictItemService dictItemService,
+                                   DictCacheService dictCacheService,
+                                   Set<String> allowedProjectCodes) {
         this.dictService = dictService;
         this.dictItemService = dictItemService;
         this.dictCacheService = dictCacheService;
+        this.allowedProjectCodes = allowedProjectCodes;
+        this.projectAuthEnabled = allowedProjectCodes != null;
     }
 
     @Override
     public void invoke(DictAndItemExcelVO data, AnalysisContext context) {
         int row = context.readRowHolder().getRowIndex() + 1;
-        
+
         // 基本校验
         if (StringUtils.isBlank(data.getDictCode())) {
             errorMessages.add("第" + row + "行: 字典编码不能为空");
             return;
         }
-        
+
         if (StringUtils.isBlank(data.getDictName())) {
             errorMessages.add("第" + row + "行: 字典名称不能为空");
+            return;
+        }
+        // 项目数据权限校验：公共字典放行，项目字典需在 allowedProjectCodes 内
+        if (projectAuthEnabled && StringUtils.isNotBlank(data.getProjectCode())
+                && !allowedProjectCodes.contains(data.getProjectCode())) {
+            errorMessages.add("第" + row + "行: 无该项目的数据权限：" + data.getProjectCode());
             return;
         }
         DictVO dict;
@@ -63,6 +85,7 @@ public class DictAndItemImportListener extends AnalysisEventListener<DictAndItem
             dict.setDictName(data.getDictName());
             dict.setDictType(data.getDictType());
             dict.setRemark(data.getDictRemark());
+            dict.setProjectCode(data.getProjectCode());
             // 处理字典项
             processDictItem(dict, data, row);
             dictCodeToDictMap.put(data.getDictCode(), dict);

@@ -41,6 +41,11 @@ public class DictAndItemExcelVO {
     @ColumnWidth(20)
     private String itemSorted;
 
+    @Schema(description = "项目编码（空为公共字典）")
+    @ExcelProperty(value = {"项目编码"}, index = 7)
+    @ColumnWidth(20)
+    private String projectCode;
+
     // Getters and Setters
     public String getDictCode() {
         return dictCode;
@@ -96,5 +101,13 @@ public class DictAndItemExcelVO {
 
     public void setItemSorted(String itemSorted) {
         this.itemSorted = itemSorted;
+    }
+
+    public String getProjectCode() {
+        return projectCode;
+    }
+
+    public void setProjectCode(String projectCode) {
+        this.projectCode = projectCode;
     }
 }

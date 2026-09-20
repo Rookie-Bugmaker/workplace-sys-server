@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,14 +28,35 @@ import java.util.List;
 public interface DictService extends IService<Dict> {
     PaginationGrid<Dict> page(DictPageReqVO pageReqVO);
 
+    /**
+     * 分页查询，并按用户可访问的项目编码集合过滤（公共字典恒可见；allowedProjectCodes 为空时仅返回公共字典）。
+     */
+    PaginationGrid<Dict> page(DictPageReqVO pageReqVO, Collection<String> allowedProjectCodes);
+
     List<Dict> query(DictListReqVO queryReqVO);
 
+    /**
+     * 列表查询，并按用户可访问的项目编码集合过滤。
+     */
+    List<Dict> query(DictListReqVO queryReqVO, Collection<String> allowedProjectCodes);
+
     List<Dict> query(DictExcelVO queryReqVO);
+
+    /**
+     * Excel 条件查询，并按用户可访问的项目编码集合过滤。
+     */
+    List<Dict> query(DictExcelVO queryReqVO, Collection<String> allowedProjectCodes);
+
     Dict getByCode(String dictCode);
     List<Dict> getByName(String dictName);
     List<Dict> getAll();
 
     void exports(DictExcelVO exportReqVO, HttpServletResponse response);
+
+    /**
+     * 导出字典，并按用户可访问的项目编码集合过滤可见字典。
+     */
+    void exports(DictExcelVO exportReqVO, HttpServletResponse response, Collection<String> allowedProjectCodes);
 
     void template(HttpServletResponse response);
 

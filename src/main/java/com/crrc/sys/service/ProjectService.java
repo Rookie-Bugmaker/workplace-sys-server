@@ -20,4 +20,6 @@ public interface ProjectService extends IService<ProjectEntity> {
     List<String> findGroup();
 
     List<ProjectEntity> findByCodeList(List<String> projectCode);
+
+    List<ProjectEntity> findByIdList(List<Long> projectIds);
 }

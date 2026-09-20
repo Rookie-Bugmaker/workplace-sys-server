@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,6 +56,11 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
 
     @Override
     public PaginationGrid<Dict> page(DictPageReqVO pageReqVO) {
+        return page(pageReqVO, null);
+    }
+
+    @Override
+    public PaginationGrid<Dict> page(DictPageReqVO pageReqVO, Collection<String> allowedProjectCodes) {
         pageReqVO = (pageReqVO == null) ? new DictPageReqVO() : pageReqVO;
         IPage<Dict> page = new Page<>(pageReqVO.getPage(), pageReqVO.getPageSize());
         LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
@@ -63,13 +69,20 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
         queryWrapper.eq(StringUtils.isNotBlank(pageReqVO.getDictType()), Dict::getDictType, pageReqVO.getDictType());
         queryWrapper.like(StringUtils.isNotBlank(pageReqVO.getDictCode()), Dict::getDictCode, pageReqVO.getDictCode());
         queryWrapper.like(StringUtils.isNotBlank(pageReqVO.getRemark()), Dict::getRemark, pageReqVO.getRemark());
+        queryWrapper.eq(StringUtils.isNotBlank(pageReqVO.getProjectCode()), Dict::getProjectCode, pageReqVO.getProjectCode());
         queryWrapper.orderByDesc(BaseEntity::getUpdateTime);
+        applyProjectCodeFilter(queryWrapper, allowedProjectCodes);
         page = this.page(page, queryWrapper);
         return PaginationGrid.success(page);
     }
 
     @Override
     public List<Dict> query(DictListReqVO queryReqVO) {
+        return query(queryReqVO, null);
+    }
+
+    @Override
+    public List<Dict> query(DictListReqVO queryReqVO, Collection<String> allowedProjectCodes) {
         queryReqVO = (queryReqVO == null) ? new DictListReqVO() : queryReqVO;
         LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(queryReqVO.getId() != null, Dict::getId, queryReqVO.getId());
@@ -77,12 +90,19 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
         queryWrapper.eq(StringUtils.isNotBlank(queryReqVO.getDictType()), Dict::getDictType, queryReqVO.getDictType());
         queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getDictCode()), Dict::getDictCode, queryReqVO.getDictCode());
         queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getRemark()), Dict::getRemark, queryReqVO.getRemark());
+        queryWrapper.eq(StringUtils.isNotBlank(queryReqVO.getProjectCode()), Dict::getProjectCode, queryReqVO.getProjectCode());
         queryWrapper.orderByDesc(BaseEntity::getUpdateTime);
+        applyProjectCodeFilter(queryWrapper, allowedProjectCodes);
         return this.list(queryWrapper);
     }
 
     @Override
     public List<Dict> query(DictExcelVO queryReqVO) {
+        return query(queryReqVO, null);
+    }
+
+    @Override
+    public List<Dict> query(DictExcelVO queryReqVO, Collection<String> allowedProjectCodes) {
         queryReqVO = (queryReqVO == null) ? new DictExcelVO() : queryReqVO;
         LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getDictName()), Dict::getDictName, queryReqVO.getDictName());
@@ -90,7 +110,27 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
         queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getDictCode()), Dict::getDictCode, queryReqVO.getDictCode());
         queryWrapper.like(StringUtils.isNotBlank(queryReqVO.getRemark()), Dict::getRemark, queryReqVO.getRemark());
         queryWrapper.orderByDesc(BaseEntity::getUpdateTime);
+        applyProjectCodeFilter(queryWrapper, allowedProjectCodes);
         return this.list(queryWrapper);
+    }
+
+    /**
+     * 应用项目数据权限过滤：
+     * - allowedProjectCodes 为 null：不限制（兼容未传权限的调用）。
+     * - allowedProjectCodes 为空集合：仅返回公共字典（projectCode 为空）。
+     * - allowedProjectCodes 非空：返回公共字典 + projectCode 在集合内的字典。
+     */
+    private void applyProjectCodeFilter(LambdaQueryWrapper<Dict> queryWrapper, Collection<String> allowedProjectCodes) {
+        if (allowedProjectCodes == null) {
+            return;
+        }
+        if (allowedProjectCodes.isEmpty()) {
+            queryWrapper.and(w -> w.isNull(Dict::getProjectCode).or().eq(Dict::getProjectCode, ""));
+        } else {
+            queryWrapper.and(w -> w.isNull(Dict::getProjectCode)
+                    .or().eq(Dict::getProjectCode, "")
+                    .or().in(Dict::getProjectCode, allowedProjectCodes));
+        }
     }
 
     @Override
@@ -143,6 +183,11 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
 
     @Override
     public void exports(DictExcelVO exportReqVO, HttpServletResponse response) {
+        exports(exportReqVO, response, null);
+    }
+
+    @Override
+    public void exports(DictExcelVO exportReqVO, HttpServletResponse response, Collection<String> allowedProjectCodes) {
         // 1. 设置响应头
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("utf-8");
@@ -163,6 +208,7 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
             queryWrapper.like(StringUtils.isNotBlank(exportReqVO.getRemark()), Dict::getRemark, exportReqVO.getRemark());
             queryWrapper.orderByDesc(BaseEntity::getUpdateTime);
         }
+        applyProjectCodeFilter(queryWrapper, allowedProjectCodes);
         List<Dict> dictList = this.list(queryWrapper);
 
         // 3. 转换为ExcelVO
@@ -172,6 +218,7 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
             vo.setDictName(dict.getDictName());
             vo.setDictType(dict.getDictType());
             vo.setRemark(dict.getRemark());
+            vo.setProjectCode(dict.getProjectCode());
             return vo;
         }).collect(Collectors.toList());
 

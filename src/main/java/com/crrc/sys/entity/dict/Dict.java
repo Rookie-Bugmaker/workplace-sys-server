@@ -56,4 +56,7 @@ public class Dict extends BaseEntity {
     @Schema(description = "字典类型 0：系统 1：业务")
     private String dictType;
 
+    @Schema(description = "项目编码（空为公共字典，所有项目可处理）")
+    private String projectCode;
+
 }

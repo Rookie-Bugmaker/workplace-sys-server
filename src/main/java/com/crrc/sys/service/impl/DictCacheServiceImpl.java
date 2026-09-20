@@ -48,7 +48,8 @@ public class DictCacheServiceImpl implements DictCacheService {
         return !StringUtils.equals(String.valueOf(cachedDict.get("dictCode")), dict.getDictCode()) ||
                 !StringUtils.equals(String.valueOf(cachedDict.get("dictName")), dict.getDictName()) ||
                 !StringUtils.equals(String.valueOf(cachedDict.get("dictType")), dict.getDictType()) ||
-                !StringUtils.equals(String.valueOf(cachedDict.get("remark")), dict.getRemark());
+                !StringUtils.equals(String.valueOf(cachedDict.get("remark")), dict.getRemark()) ||
+                !StringUtils.equals(String.valueOf(cachedDict.get("projectCode")), StringUtils.defaultString(dict.getProjectCode()));
     }
 
     @Override
@@ -224,6 +225,7 @@ public class DictCacheServiceImpl implements DictCacheService {
         resultMap.put("dictName", StringUtils.defaultIfBlank(dict.getDictName(), ""));
         resultMap.put("dictType", StringUtils.defaultIfBlank(dict.getDictType(), ""));
         resultMap.put("remark", StringUtils.defaultIfBlank(dict.getRemark(), ""));
+        resultMap.put("projectCode", StringUtils.defaultIfBlank(dict.getProjectCode(), ""));
         return resultMap;
     }
     
@@ -260,6 +262,10 @@ public class DictCacheServiceImpl implements DictCacheService {
         dictVO.setDictName(String.valueOf(dictMap.get("dictName")));
         dictVO.setDictType(String.valueOf(dictMap.get("dictType")));
         dictVO.setRemark(String.valueOf(dictMap.get("remark")));
+        // 兼容旧缓存：projectCode 字段为修改后新增，旧缓存中不存在该 key（get 返回 null）。
+        // String.valueOf(null) 会得到字符串 "null"，需特判为空串，避免 DictVO.projectCode 误填 "null"。
+        Object projectCodeObj = dictMap.get("projectCode");
+        dictVO.setProjectCode(projectCodeObj == null ? "" : String.valueOf(projectCodeObj));
         dictVO.setItems(new ArrayList<>());
 
         // 获取字典项
@@ -365,6 +371,7 @@ public class DictCacheServiceImpl implements DictCacheService {
             dictMap.put("dictName", StringUtils.defaultIfBlank(dictVO.getDictName(), ""));
             dictMap.put("dictType", StringUtils.defaultIfBlank(dictVO.getDictType(),""));
             dictMap.put("remark", StringUtils.defaultIfBlank(dictVO.getRemark(),""));
+            dictMap.put("projectCode", StringUtils.defaultIfBlank(dictVO.getProjectCode(), ""));
             redisCache.setCacheMap(dictKey, dictMap);
 
             // 更新字典项

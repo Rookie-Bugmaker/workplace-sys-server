@@ -28,6 +28,10 @@ public class DictPageReqVO {
 
     @Schema(description = "备注", example = "demo")
     private String remark;
+
+    @Schema(description = "项目编码（空为公共字典）")
+    private String projectCode;
+
     private static final Integer PAGE_NO = 0;
     private static final Integer PAGE_SIZE = 10;
 
