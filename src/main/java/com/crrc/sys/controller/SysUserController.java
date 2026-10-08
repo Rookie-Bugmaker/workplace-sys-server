@@ -710,7 +710,7 @@ public class SysUserController {
 
     /**
      * 根据公司/部门/角色（均可多个）查询用户，支持用户名/用户描述/工号模糊查询（服务端分页）
-     * 公司/部门/角色至少一个必填
+     * 公司/部门/角色至少一个必填；用户名/用户描述/工号之间按 montage 拼接（or-或关系，其余含空-且关系）
      * @param sysUserRequestDTO 查询条件
      * @return 分页用户信息
      */

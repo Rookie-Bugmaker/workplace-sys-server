@@ -151,6 +151,7 @@ public class SysUserServiceImpl implements SysUserService {
         String userName = param.getUserName();
         String userDescription = param.getUserDescription();
         String jobNo = param.getJobNo();
+        String montage = param.getMontage();
 
         // 分页参数：默认 page=1, pageSize=50
         int page = param.getPage() != null && param.getPage() > 0 ? param.getPage() : 1;
@@ -187,7 +188,7 @@ public class SysUserServiceImpl implements SysUserService {
 
         Page<SysUserDTO> pageObj = new Page<>(page, pageSize);
         IPage<SysUserDTO> result = userMapper.findUsersByMultiCondition(
-                pageObj, companyIdList, deptIdList, roleCodes, userName, userDescription, jobNo);
+                pageObj, companyIdList, deptIdList, roleCodes, userName, userDescription, jobNo, montage);
         return PaginationGrid.success(result);
     }
 

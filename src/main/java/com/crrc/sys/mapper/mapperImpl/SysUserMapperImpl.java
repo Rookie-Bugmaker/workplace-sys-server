@@ -495,6 +495,7 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
      * @param userName      用户名模糊关键字
      * @param userDescription 用户描述模糊关键字
      * @param jobNo         工号模糊关键字
+     * @param montage       [用户名、用户描述、工号]模糊条件的拼接方式：or-或关系，其余(含空)-且关系
      * @return 分页用户信息
      */
     public IPage<SysUserDTO> findUsersByMultiCondition(Page<SysUserDTO> page,
@@ -503,12 +504,17 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
                                                        @Param("roleCodes") List<String> roleCodes,
                                                        @Param("userName") String userName,
                                                        @Param("userDescription") String userDescription,
-                                                       @Param("jobNo") String jobNo) {
+                                                       @Param("jobNo") String jobNo,
+                                                       @Param("montage") String montage) {
         boolean needDeptPerson = !CollectionUtils.isEmpty(companyIdList) || !CollectionUtils.isEmpty(deptIdList);
         boolean needRole = !CollectionUtils.isEmpty(roleCodes);
         boolean needJobNo = StringUtils.isNotBlank(jobNo);
         boolean needUserName = StringUtils.isNotBlank(userName);
         boolean needUserDesc = StringUtils.isNotBlank(userDescription);
+        // 仅在实际参与查询时trim，避免montage=or的条件链对空关键字取trim()
+        String userNameLike = needUserName ? userName.trim() : null;
+        String userDescriptionLike = needUserDesc ? userDescription.trim() : null;
+        String jobNoLike = needJobNo ? jobNo.trim() : null;
 
         MPJLambdaWrapper<SysUserDBEntity> wrapper = new MPJLambdaWrapper<SysUserDBEntity>()
                 .selectAll(SysUserDBEntity.class)
@@ -541,17 +547,29 @@ public class SysUserMapperImpl extends ServiceImpl<SysUserMapperService, SysUser
         }
         // 启用用户
         wrapper.eq(SysUserDBEntity::getDisableState, "N");
-        // 用户名模糊
-        if (needUserName) {
-            wrapper.like(SysUserDBEntity::getUserName, userName.trim());
-        }
-        // 用户描述模糊
-        if (needUserDesc) {
-            wrapper.like(SysOrgPersonTlDBEntity::getFullName, userDescription.trim());
-        }
-        // 工号模糊
-        if (needJobNo) {
-            wrapper.like(SysOrgPersonBDBEntity::getJobNo, jobNo.trim());
+        // 模糊关键字：用户名/用户描述(姓名)/工号
+        if ("or".equalsIgnoreCase(montage)) {
+            // 三个关键字之间或关系，整体作为一个条件组，不影响公司/部门/角色等其他AND条件
+            wrapper.and(w -> w
+                    .like(needUserName, SysUserDBEntity::getUserName, userNameLike)
+                    .or(needUserName && needUserDesc)
+                    .like(needUserDesc, SysOrgPersonTlDBEntity::getFullName, userDescriptionLike)
+                    .or(needJobNo && (needUserName || needUserDesc))
+                    .like(needJobNo, SysOrgPersonBDBEntity::getJobNo, jobNoLike)
+            );
+        } else {
+            // 用户名模糊
+            if (needUserName) {
+                wrapper.like(SysUserDBEntity::getUserName, userNameLike);
+            }
+            // 用户描述模糊
+            if (needUserDesc) {
+                wrapper.like(SysOrgPersonTlDBEntity::getFullName, userDescriptionLike);
+            }
+            // 工号模糊
+            if (needJobNo) {
+                wrapper.like(SysOrgPersonBDBEntity::getJobNo, jobNoLike);
+            }
         }
         // 按用户ID去重，避免角色/部门一对多导致重复
         wrapper.groupBy(SysUserDBEntity::getUserId)

@@ -74,6 +74,11 @@ public class SysUserRequestDTO {
     private String jobNo;
 
     /**
+     * [用户名、用户描述、工号]模糊查询拼接条件(and | or)，为空按 and 处理
+     */
+    private String montage;
+
+    /**
      * 当前页码(分页查询,默认 1)
      */
     private Integer page;

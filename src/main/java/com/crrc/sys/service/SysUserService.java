@@ -53,7 +53,7 @@ public interface SysUserService {
     List<SysUserDTO> findUserByRoleCode(String roleCode, Long companyId, Long deptId);
 
     /**
-     * 根据公司/部门/角色（均可多个）及模糊关键字查询用户（服务端分页）
+     * 根据公司/部门/角色（均可多个）及模糊关键字查询用户（服务端分页），montage=or 时模糊关键字之间或关系
      */
     PaginationGrid<SysUserDTO> findUsersByMultiCondition(SysUserRequestDTO param);
 
