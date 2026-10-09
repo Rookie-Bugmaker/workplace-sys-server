@@ -33,6 +33,7 @@ import com.crrc.sys.model.dept.DeptInfoDTO;
 import com.crrc.sys.model.dept.person.SysDeptPersonPO;
 import com.crrc.sys.model.org.person.SysOrgPersonDTO;
 import com.crrc.sys.model.org.person.SysOrgPersonDeliveryExcelVO;
+import com.crrc.sys.model.org.person.SysOrgPersonSaveParam;
 import com.crrc.sys.model.org.person.SysOrgPersonVerifyExcelDTO;
 import com.crrc.sys.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -129,12 +130,12 @@ public class SysOrgPersonController {
     /**
      * 人员新增
      *
-     * @param person 人员
+     * @param param 人员
      */
     @AutoIdempotent
     @PostMapping("add")
-    public void add(SysOrgPerson person) {
-        verification(OperationTypeEnum.ADD.getValue(), person);
+    public void add(SysOrgPersonSaveParam param) {
+        verification(OperationTypeEnum.ADD.getValue(), param);
         //获取当前用户
         ResultData<SysUser> userResultData = authClient.currentUser();
         if (!userResultData.getSuccess()) {
@@ -142,6 +143,8 @@ public class SysOrgPersonController {
         }
         //当前用户
         SysUser currentUser = userResultData.getResult();
+        SysOrgPerson person = new SysOrgPerson();
+        BeanUtils.copyProperties(param, person);
         //主键
         person.setPersonId(idKeyGenerator.getId());
         //创建人
@@ -157,12 +160,12 @@ public class SysOrgPersonController {
     /**
      * 人员修改
      *
-     * @param person 人员
+     * @param param 人员
      */
     @AutoIdempotent
     @PostMapping("update")
-    public void update(SysOrgPerson person) {
-        verification(OperationTypeEnum.UPDATE.getValue(), person);
+    public void update(SysOrgPersonSaveParam param) {
+        verification(OperationTypeEnum.UPDATE.getValue(), param);
         //获取当前用户
         ResultData<SysUser> userResultData = authClient.currentUser();
         if (!userResultData.getSuccess()) {
@@ -170,6 +173,8 @@ public class SysOrgPersonController {
         }
         //当前用户
         SysUser currentUser = userResultData.getResult();
+        SysOrgPerson person = new SysOrgPerson();
+        BeanUtils.copyProperties(param, person);
         //创建人
         person.setLastUpdateBy(currentUser.getUserId());
         //创建时间
@@ -186,27 +191,29 @@ public class SysOrgPersonController {
      * 公共参数校验
      *
      * @param operation 新增或修改
-     * @param person    人员
+     * @param param     人员
      */
-    private void verification(String operation, SysOrgPerson person) {
-        if (ObjectUtils.isEmpty(person)) {
+    private void verification(String operation, SysOrgPersonSaveParam param) {
+        if (ObjectUtils.isEmpty(param)) {
             throw new ParamValidateException("参数错误");
         }
         //移除语言中的逗号
-        person.setLanguage(person.getLanguage().contains(",") ? person.getLanguage().replace(",", "") : person.getLanguage());
+        if (!ObjectUtils.isEmpty(param.getLanguage()) && param.getLanguage().contains(",")) {
+            param.setLanguage(param.getLanguage().replace(",", ""));
+        }
         if (OperationTypeEnum.UPDATE.getValue().equals(operation)) {
-            if (ObjectUtils.isEmpty(person.getPersonId())) {
+            if (ObjectUtils.isEmpty(param.getPersonId())) {
                 throw new ParamValidateException("personId不能为空!");
             }
         }
-        if (ObjectUtils.isEmpty(person.getJobNo())) {
+        if (ObjectUtils.isEmpty(param.getJobNo())) {
             throw new ParamValidateException("工号不能为空!");
         }
-        if (person.getJobNo().length() > 20) {
+        if (param.getJobNo().length() > 20) {
             throw new ParamValidateException("工号超长(最大20)!");
         }
         // 根据工号查询人员信息
-        SysOrgPerson byJobNo = orgPersonService.findByJobNo(person.getJobNo());
+        SysOrgPerson byJobNo = orgPersonService.findByJobNo(param.getJobNo());
         if (OperationTypeEnum.ADD.getValue().equals(operation)) {
             if (!ObjectUtils.isEmpty(byJobNo)) {
                 throw new ParamValidateException("工号已存在");
@@ -214,33 +221,35 @@ public class SysOrgPersonController {
         }
         if (OperationTypeEnum.UPDATE.getValue().equals(operation)
                 && !ObjectUtils.isEmpty(byJobNo)
-                && !byJobNo.getPersonId().equals(person.getPersonId())) {
+                && !byJobNo.getPersonId().equals(param.getPersonId())) {
             throw new ParamValidateException("工号已存在");
         }
-        if (ObjectUtils.isEmpty(person.getFullName())) {
+        if (ObjectUtils.isEmpty(param.getFullName())) {
             throw new ParamValidateException("姓名不能为空!");
         }
-        if (person.getFullName().length() > 30) {
+        if (param.getFullName().length() > 30) {
             throw new ParamValidateException("姓名超长(最大30)!");
         }
-        if (ObjectUtils.isEmpty(person.getGender())) {
+        if (ObjectUtils.isEmpty(param.getGender())) {
             throw new ParamValidateException("性别不能为空!");
         }
-        if (!GenderEnum.contains(person.getGender())) {
+        if (!GenderEnum.contains(param.getGender())) {
             throw new ParamValidateException("性别参数错误!");
         }
-        if (!ObjectUtils.isEmpty(person.getPhone()) && person.getPhone().length() > 11) {
+        if (!ObjectUtils.isEmpty(param.getPhone()) && param.getPhone().length() > 11) {
             throw new ParamValidateException("手机超长(最大11)!");
         }
         //邮箱校验
         String emailReg = "^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z0-9]{2,6}$";
-        if (!ObjectUtils.isEmpty(person.getEmail()) && !person.getEmail().matches(emailReg)) {
-            throw new ParamValidateException("邮箱格式错误!");
+        if (!ObjectUtils.isEmpty(param.getEmail())) {
+            if (!param.getEmail().matches(emailReg)) {
+                throw new ParamValidateException("邮箱格式错误!");
+            }
+            if (param.getEmail().length() > 50) {
+                throw new ParamValidateException("邮箱超长(最大50)!");
+            }
         }
-        if (person.getEmail().length() > 50) {
-            throw new ParamValidateException("邮箱超长(最大50)!");
-        }
-        if (ObjectUtils.isEmpty(person.getStatus())) {
+        if (ObjectUtils.isEmpty(param.getStatus())) {
             throw new ParamValidateException("人员状态不能为空");
         }
     }
