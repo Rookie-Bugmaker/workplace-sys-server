@@ -401,10 +401,9 @@ public class SysUserValidServiceImpl implements SysUserValidService {
         // 1. 初始化线程安全的工具类
         PasswordEncoder bcpe = new BCryptPasswordEncoder();
         Date nowDate = new Date();
-        List<SysUser> result = Collections.synchronizedList(new ArrayList<>());
 
-        // 2. 使用并行流处理数据
-        list.parallelStream().forEach(excelEntity -> {
+        // 2. 并行校验并保留原始行序，重复用户名按首行创建用户
+        return list.parallelStream().map(excelEntity -> {
             // 每个线程使用独立的StringBuilder避免线程安全问题
             StringBuilder validateMsg = new StringBuilder();
 
@@ -412,20 +411,21 @@ public class SysUserValidServiceImpl implements SysUserValidService {
             SysUser user = buildUser(excelEntity, currentUser, nowDate, bcpe);
 
             // 4. 验证用户数据
-            validateUser(excelEntity, user, validateMsg, repeatNames, existsUserNames,
+            validateUser(excelEntity, user, validateMsg,
                     roleList, roleCodeList, relationUsers, currentUser);
 
-            // 5. 设置验证状态和信息
+            // 5. 重复用户只作为报告提示，不影响其他字段的校验结果
             excelEntity.setValidateStatus(validateMsg.length() > 0 ? StatusEnum.N.name() : StatusEnum.Y.name());
-            if (validateMsg.length() > 0) {
-                excelEntity.setValidateMsg(validateMsg.toString());
+            if (existsUserNames.contains(excelEntity.getUserName())) {
+                validateMsg.append("【用户名已存在，跳过用户新增，仅增量添加角色，重复角色跳过】");
             }
+            if (repeatNames.contains(excelEntity.getUserName())) {
+                validateMsg.append("【文件内用户名重复，用户仅保留一条，角色合并去重】");
+            }
+            excelEntity.setValidateMsg(validateMsg.toString());
 
-            // 6. 添加到结果集
-            result.add(user);
-        });
-
-        return result;
+            return user;
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -449,13 +449,11 @@ public class SysUserValidServiceImpl implements SysUserValidService {
     private void validateUser(UserExcelEntity excelEntity,
                               SysUser user,
                               StringBuilder validateMsg,
-                              List<String> repeatNames,
-                              List<String> existsUserNames,
                               List<SysRole> roleList,
                               List<String> roleCodeList,
                               List<SysOrgPerson> relationUsers,
                               SysUser currentUser) {
-        validateUserName(excelEntity, validateMsg, repeatNames, existsUserNames);
+        validateUserName(excelEntity, validateMsg);
         validatePassword(excelEntity, validateMsg, currentUser);
         validateUserType(excelEntity, user, validateMsg);
         validateRelationUser(excelEntity, user, validateMsg, relationUsers);
@@ -467,19 +465,10 @@ public class SysUserValidServiceImpl implements SysUserValidService {
     /**
      * 验证用户名
      */
-    private void validateUserName(UserExcelEntity excelEntity,
-                                  StringBuilder validateMsg,
-                                  List<String> repeatNames,
-                                  List<String> existsUserNames) {
+    private void validateUserName(UserExcelEntity excelEntity, StringBuilder validateMsg) {
         if (ObjectUtils.isEmpty(excelEntity.getUserName())) {
             validateMsg.append("【用户名为空】");
         } else {
-            if (repeatNames.contains(excelEntity.getUserName())) {
-                validateMsg.append("【用户名输入重复】");
-            }
-            if (existsUserNames.contains(excelEntity.getUserName())) {
-                validateMsg.append("【用户名已存在】");
-            }
             if (containsChinese(excelEntity.getUserName())) {
                 validateMsg.append("【用户名不能包含中文】");
             }

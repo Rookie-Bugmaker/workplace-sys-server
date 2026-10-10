@@ -30,6 +30,7 @@ import com.crrc.sys.model.user.SysOnlineUserParamDTO;
 import com.crrc.sys.model.user.SysOnlineUserVO;
 import com.crrc.sys.model.user.UserGetRespVO;
 import com.crrc.sys.model.user.role.SysUserRoleDTO;
+import com.crrc.sys.model.user.role.SysUserRolePO;
 import com.crrc.sys.service.SysDataAuthService;
 import com.crrc.sys.service.SysProfileService;
 import com.crrc.sys.service.SysUserService;
@@ -495,18 +496,59 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean addList(List<SysUser> list) {
-        ArrayList<SysUserRole> userRoleList = new ArrayList<>();
-        list.forEach(user -> {
-            if (!CollectionUtils.isEmpty(user.getUserRoleList())) {
-                userRoleList.addAll(user.getUserRoleList());
-            }
-        });
-        if (!CollectionUtils.isEmpty(userRoleList)) {
-            // 保存用户分配角色
-            userRoleMapper.insert(userRoleList);
+        if (CollectionUtils.isEmpty(list)) {
+            return true;
         }
-        // 保存用户信息
-        return userMapper.insertAll(list);
+
+        // 提交时重新查询已有用户，保留原账号资料，并使用真实用户ID补充角色
+        List<String> userNames = list.stream().map(SysUser::getUserName).distinct().collect(Collectors.toList());
+        Map<String, SysUser> userByName = new HashMap<>();
+        final int batchSize = 900;
+        for (int start = 0; start < userNames.size(); start += batchSize) {
+            List<SysUser> existsUsers = userMapper.findByUserNameList(
+                    userNames.subList(start, Math.min(start + batchSize, userNames.size())));
+            existsUsers.forEach(user -> userByName.put(user.getUserName(), user));
+        }
+
+        // 直接读取用户角色关系，按用户ID和角色ID去重
+        Map<Long, Set<Long>> roleIdsByUser = new HashMap<>();
+        List<Long> existsUserIds = userByName.values().stream().map(SysUser::getUserId).collect(Collectors.toList());
+        for (int start = 0; start < existsUserIds.size(); start += batchSize) {
+            List<SysUserRolePO> existsRoles = userRoleMapper.findByUserIds(
+                    existsUserIds.subList(start, Math.min(start + batchSize, existsUserIds.size())));
+            existsRoles.forEach(role -> roleIdsByUser.computeIfAbsent(role.getUserId(), key -> new HashSet<>())
+                    .add(role.getRoleId()));
+        }
+
+        List<SysUser> newUsers = new ArrayList<>();
+        List<SysUserRole> newRoles = new ArrayList<>();
+        for (SysUser user : list) {
+            SysUser targetUser = userByName.get(user.getUserName());
+            if (targetUser == null) {
+                // 文件内同名用户只新增首条，后续行继续合并角色
+                targetUser = user;
+                userByName.put(user.getUserName(), targetUser);
+                newUsers.add(targetUser);
+            }
+            Set<Long> roleIds = roleIdsByUser.computeIfAbsent(targetUser.getUserId(), key -> new HashSet<>());
+            if (!CollectionUtils.isEmpty(user.getUserRoleList())) {
+                for (SysUserRole role : user.getUserRoleList()) {
+                    if (roleIds.add(role.getRoleId())) {
+                        role.setUserId(targetUser.getUserId());
+                        newRoles.add(role);
+                    }
+                }
+            }
+        }
+
+        // 仅写入缺少的用户和角色，全部重复时直接成功；写入失败在事务内抛出异常
+        if (!CollectionUtils.isEmpty(newUsers) && !userMapper.insertAll(newUsers)) {
+            throw new BizException("入库失败！");
+        }
+        if (!CollectionUtils.isEmpty(newRoles) && userRoleMapper.insert(newRoles) != newRoles.size()) {
+            throw new BizException("入库失败！");
+        }
+        return true;
     }
 
     /**
